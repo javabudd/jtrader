@@ -55,7 +55,7 @@ for i in range(0, len(symbol_groups)):
     symbol_strings.append(','.join(symbol_groups[i]))
 
 for symbol_string in symbol_strings:
-    api_url = f'https://sandbox.iexapis.com/stable/stock/market/batch?symbols={symbol_string}' \
+    api_url = f'https://cloud.iexapis.com/stable/stock/market/batch?symbols={symbol_string}' \
               f'&types=quote,stats&token={IEX_CLOUD_API_TOKEN}'
     response = requests.get(api_url)
     data = response.json()
