@@ -1,0 +1,7 @@
+venv/
+sp_500_stocks.csv
+.idea
+**/secrets.py
+.DS_Store
+__pycache__
+**/momentum.xlsx
