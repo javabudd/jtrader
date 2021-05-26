@@ -15,20 +15,11 @@ def chunks(lst, n):
         yield lst[item:item + n]
 
 
-portfolio_value = input('Enter portfolio value: ')
-
-try:
-    portfolio_value = float(portfolio_value)
-except ValueError as e:
-    print('Please enter a valid number')
-    exit(0)
-
 stocks = pd.read_csv('sp_500_stocks.csv')
 
 csv_columns = [
     'Ticker',
     'Price',
-    'Number of Shares to Buy',
     'One-Year Price Return',
     'One-Year Return Percentile',
     'Six-Month Price Return',
@@ -69,7 +60,6 @@ for symbol_string in symbol_strings:
                 [
                     symbol,
                     data[symbol]['quote']['close'],
-                    'N/A',
                     data[symbol]['stats']['year1ChangePercent'],
                     'N/A',
                     data[symbol]['stats']['month6ChangePercent'],
@@ -85,7 +75,6 @@ for symbol_string in symbol_strings:
             ignore_index=True
         )
 
-    position_size = float(portfolio_value) / len(df.index)
     for row in df.index:
         momentum_percentiles = []
         for time_period in time_periods:
@@ -95,7 +84,6 @@ for symbol_string in symbol_strings:
             df.loc[row, percentile_col] = stats.percentileofscore(df[change_col], df.loc[row, change_col]) / 100
             momentum_percentiles.append(df.loc[row, percentile_col])
         df.loc[row, 'HQM Score'] = mean(momentum_percentiles)
-        df.loc[row, 'Number of Shares to Buy'] = position_size / df.loc[row, 'Price']
 
 df.sort_values('HQM Score', ascending=False, inplace=True)
 df = df[:50]
@@ -146,16 +134,15 @@ percent_format = writer.book.add_format(
 column_formats = {
     'A': ['Ticker', string_format],
     'B': ['Price', dollar_format],
-    'C': ['Number of Shares to Buy', float_format],
-    'D': ['One-Year Price Return', percent_format],
-    'E': ['One-Year Return Percentile', percent_format],
-    'F': ['Six-Month Price Return', percent_format],
-    'G': ['Six-Month Return Percentile', percent_format],
-    'H': ['Three-Month Price Return', percent_format],
-    'I': ['Three-Month Return Percentile', percent_format],
-    'J': ['One-Month Price Return', percent_format],
-    'K': ['One-Month Return Percentile', percent_format],
-    'L': ['HQM Score', percent_format]
+    'C': ['One-Year Price Return', percent_format],
+    'D': ['One-Year Return Percentile', percent_format],
+    'E': ['Six-Month Price Return', percent_format],
+    'F': ['Six-Month Return Percentile', percent_format],
+    'G': ['Three-Month Price Return', percent_format],
+    'H': ['Three-Month Return Percentile', percent_format],
+    'I': ['One-Month Price Return', percent_format],
+    'J': ['One-Month Return Percentile', percent_format],
+    'K': ['HQM Score', percent_format]
 }
 
 for column in column_formats.keys():
