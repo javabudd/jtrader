@@ -1,7 +1,9 @@
-import os
+from typing import Optional
 
 from slack_sdk import WebClient
 from slack_sdk.errors import SlackApiError
+
+from secrets import SLACK_TOKEN
 
 
 def chunks(lst, n):
@@ -9,19 +11,19 @@ def chunks(lst, n):
         yield lst[item:item + n]
 
 
-def send_slack_message(message: str):
-    client = WebClient(token=os.environ['SLACK_BOT_TOKEN'])
+def send_slack_message(message: str, channel: Optional[str] = '#stonks', **kwargs):
+    client = WebClient(token=SLACK_TOKEN)
 
     try:
-        client.chat_postMessage(channel='#stonks', text=message)
+        client.chat_postMessage(channel=channel, text=message, **kwargs)
     except SlackApiError as e:
         print(f"Got an error: {e.response['error']}")
 
 
-def send_slack_file(filename, title, **kwargs):
-    client = WebClient(token=os.environ['SLACK_BOT_TOKEN'])
+def send_slack_file(filename, title, channel: Optional[str] = '#stonks', **kwargs):
+    client = WebClient(token=SLACK_TOKEN)
 
     try:
-        client.files_upload(channels='#stonks', filename=filename, title=title, **kwargs)
+        client.files_upload(channels=channel, filename=filename, title=title, **kwargs)
     except SlackApiError as e:
         print(f"Got an error: {e.response['error']}")
