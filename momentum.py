@@ -1,19 +1,15 @@
 #!/usr/bin/env python
 # coding: utf-8
 
+import io
 from statistics import mean
 
 import pandas as pd
 import requests
 from scipy import stats
 
+import utils
 from secrets import IEX_CLOUD_API_TOKEN
-
-
-def chunks(lst, n):
-    for item in range(0, len(lst), n):
-        yield lst[item:item + n]
-
 
 stocks = pd.read_csv('sp_500_stocks.csv')
 
@@ -40,7 +36,7 @@ time_periods = [
 
 df = pd.DataFrame(columns=csv_columns)
 
-symbol_groups = list(chunks(stocks['Ticker'], 100))
+symbol_groups = list(utils.chunks(stocks['Ticker'], 100))
 symbol_strings = []
 for i in range(0, len(symbol_groups)):
     symbol_strings.append(','.join(symbol_groups[i]))
@@ -89,7 +85,9 @@ df.sort_values('HQM Score', ascending=False, inplace=True)
 df = df[:50]
 df.reset_index(inplace=True, drop=True)
 
-writer = pd.ExcelWriter('momentum.xlsx', engine='xlsxwriter')
+file_name = 'momentum.xlsx'
+
+writer = pd.ExcelWriter(file_name, engine='xlsxwriter')
 
 df.to_excel(writer, 'Momentum', index=False)
 
@@ -150,3 +148,6 @@ for column in column_formats.keys():
     writer.sheets['Momentum'].write(f'{column}1', column_formats[column][0], column_formats[column][1])
 
 writer.save()
+
+with open(file_name, 'rb') as f:
+    utils.send_slack_file(file_name, 'momentum.xlsx', file=io.BytesIO(f.read()))

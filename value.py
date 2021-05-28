@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
+import io
 import statistics
 
 import numpy as np
@@ -10,20 +11,11 @@ from scipy import stats
 import utils
 from secrets import IEX_CLOUD_API_TOKEN
 
-portfolio_value = input('Enter portfolio value: ')
-
-try:
-    portfolio_value = float(portfolio_value)
-except ValueError as e:
-    print('Please enter a valid number')
-    exit(0)
-
 stocks = pd.read_csv('sp_500_stocks.csv')
 
 csv_columns = [
     'Ticker',
     'Price',
-    'Number of Shares to Buy',
     'Price-to-Earnings Ratio',
     'PE Percentile',
     'Price-to-Book Ratio',
@@ -86,7 +78,6 @@ for symbol_string in symbol_strings:
                 [
                     symbol,
                     data[symbol]['quote']['latestPrice'],
-                    'N/A',
                     pe_ratio,
                     'N/A',
                     pb_ratio,
@@ -111,20 +102,20 @@ for symbol_string in symbol_strings:
         for row in df.index:
             df.loc[row, metrics[metric]] = stats.percentileofscore(df[metric], df.loc[row, metric]) / 100
 
-    position_size = float(portfolio_value) / len(df.index)
     for row in df.index:
         value_percentiles = []
         for metric in metrics.keys():
             value_percentiles.append(df.loc[row, metrics[metric]])
 
         df.loc[row, 'RV Score'] = statistics.mean(value_percentiles)
-        df.loc[row, 'Number of Shares to Buy'] = position_size / df.loc[row, 'Price']
 
 df.sort_values('RV Score', ascending=True, inplace=True)
 df = df[:50]
 df.reset_index(inplace=True, drop=True)
 
-writer = pd.ExcelWriter('value_stocks.xlsx', engine='xlsxwriter')
+file_name = 'value_stocks.xlsx'
+
+writer = pd.ExcelWriter(file_name, engine='xlsxwriter')
 
 df.to_excel(writer, 'Value', index=False)
 
@@ -169,18 +160,17 @@ percent_format = writer.book.add_format(
 column_formats = {
     'A': ['Ticker', string_format],
     'B': ['Price', dollar_format],
-    'C': ['Number of Shares to Buy', float_format],
-    'D': ['Price-to-Earnings Ratio', float_format],
-    'E': ['PE Ratio', percent_format],
-    'F': ['Price-to-Book Ratio', float_format],
-    'G': ['PB Ratio', percent_format],
-    'H': ['Price-to-Sales Ratio', float_format],
-    'I': ['PS Ratio', percent_format],
-    'J': ['EV/EBITDA', float_format],
-    'K': ['EV/EBITDA Percentile', percent_format],
-    'L': ['EV/GP', float_format],
-    'M': ['EV/GP Percentile', percent_format],
-    'N': ['RV Score', float_format],
+    'C': ['Price-to-Earnings Ratio', float_format],
+    'D': ['PE Ratio', percent_format],
+    'E': ['Price-to-Book Ratio', float_format],
+    'F': ['PB Ratio', percent_format],
+    'G': ['Price-to-Sales Ratio', float_format],
+    'H': ['PS Ratio', percent_format],
+    'I': ['EV/EBITDA', float_format],
+    'J': ['EV/EBITDA Percentile', percent_format],
+    'K': ['EV/GP', float_format],
+    'L': ['EV/GP Percentile', percent_format],
+    'M': ['RV Score', float_format],
 }
 
 for column in column_formats.keys():
@@ -188,3 +178,6 @@ for column in column_formats.keys():
     writer.sheets['Value'].write(f'{column}1', column_formats[column][0], column_formats[column][1])
 
 writer.save()
+
+with open(file_name, 'rb') as f:
+    utils.send_slack_file(file_name, 'value.xlsx', file=io.BytesIO(f.read()))
