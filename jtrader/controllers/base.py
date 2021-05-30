@@ -1,7 +1,7 @@
 from cement import Controller, ex
 from cement.utils.version import get_version_banner
 
-from jtrader.core.momentum import Momentum
+from jtrader.core.hqm import HighQualityMomentum
 from jtrader.core.news import News
 from jtrader.core.value import Value
 from ..core.version import get_version
@@ -50,7 +50,7 @@ class Base(Controller):
         """News Stream Command"""
 
         data = {
-            'news_stream': News(),
+            'news_stream': News(self.app.config.get('jtrader', 'is_sandbox')),
         }
 
         # if self.app.pargs.foo is not None:
@@ -59,7 +59,7 @@ class Base(Controller):
         self.app.render(data, 'start_news_stream.jinja2')
 
     @ex(
-        help='Get momentum stats',
+        help='Get high quality momentum stats',
 
         arguments=[
             (
@@ -72,14 +72,14 @@ class Base(Controller):
             ),
         ],
     )
-    def get_momentum_stats(self):
-        """Momentum Stats Command"""
+    def get_hqm_stats(self):
+        """HQM Stats Command"""
 
         data = {
-            'stats': Momentum(self.app.config.get('jtrader', 'is_sandbox')),
+            'stats': HighQualityMomentum(self.app.config.get('jtrader', 'is_sandbox')),
         }
 
-        self.app.render(data, 'get_momentum_stats.jinja2')
+        self.app.render(data, 'get_hqm_stats.jinja2')
 
     @ex(
         help='Get deep value stats',

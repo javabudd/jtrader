@@ -34,7 +34,7 @@ time_periods = [
 ]
 
 
-class Momentum(IEX):
+class HighQualityMomentum(IEX):
     def run(self):
         df = pd.DataFrame(columns=csv_columns)
 
