@@ -10,31 +10,31 @@ from scipy import stats
 import jtrader.core.utils as utils
 from jtrader.core.iex import IEX
 
-stocks = pd.read_csv('sp_500_stocks.csv')
+stocks = pd.read_csv('all_stocks.csv')
 
 csv_columns = [
     'Ticker',
     'Price',
-    'One-Year Price Return',
-    'One-Year Return Percentile',
-    'Six-Month Price Return',
-    'Six-Month Return Percentile',
     'Three-Month Price Return',
     'Three-Month Return Percentile',
     'One-Month Price Return',
     'One-Month Return Percentile',
-    'HQM Score'
+    'Thirty-Day Price Return',
+    'Thirty-Day Return Percentile',
+    'Five-Day Price Return',
+    'Five-Day Return Percentile',
+    'LQM Score'
 ]
 
 time_periods = [
-    'One-Year',
-    'Six-Month',
     'Three-Month',
-    'One-Month'
+    'One-Month',
+    'Thirty-Day',
+    'Five-Day'
 ]
 
 
-class HighQualityMomentum(IEX):
+class LowQualityMomentum(IEX):
     def run(self):
         df = pd.DataFrame(columns=csv_columns)
 
@@ -54,13 +54,13 @@ class HighQualityMomentum(IEX):
                         [
                             symbol,
                             data[symbol]['quote']['close'],
-                            data[symbol]['stats']['year1ChangePercent'],
-                            'N/A',
-                            data[symbol]['stats']['month6ChangePercent'],
-                            'N/A',
                             data[symbol]['stats']['month3ChangePercent'],
                             'N/A',
                             data[symbol]['stats']['month1ChangePercent'],
+                            'N/A',
+                            data[symbol]['stats']['day30ChangePercent'],
+                            'N/A',
+                            data[symbol]['stats']['day5ChangePercent'],
                             'N/A',
                             'N/A'
                         ],
@@ -78,9 +78,9 @@ class HighQualityMomentum(IEX):
                     df[change_col].fillna(value=0.0, inplace=True)
                     df.loc[row, percentile_col] = stats.percentileofscore(df[change_col], df.loc[row, change_col]) / 100
                     momentum_percentiles.append(df.loc[row, percentile_col])
-                df.loc[row, 'HQM Score'] = mean(momentum_percentiles)
+                df.loc[row, 'LQM Score'] = mean(momentum_percentiles)
 
-        df.sort_values('HQM Score', ascending=False, inplace=True)
+        df.sort_values('LQM Score', ascending=False, inplace=True)
         df = df[:50]
         df.reset_index(inplace=True, drop=True)
 
@@ -131,15 +131,15 @@ class HighQualityMomentum(IEX):
         column_formats = {
             'A': ['Ticker', string_format],
             'B': ['Price', dollar_format],
-            'C': ['One-Year Price Return', percent_format],
-            'D': ['One-Year Return Percentile', percent_format],
-            'E': ['Six-Month Price Return', percent_format],
-            'F': ['Six-Month Return Percentile', percent_format],
-            'G': ['Three-Month Price Return', percent_format],
-            'H': ['Three-Month Return Percentile', percent_format],
-            'I': ['One-Month Price Return', percent_format],
-            'J': ['One-Month Return Percentile', percent_format],
-            'K': ['HQM Score', percent_format]
+            'C': ['Three-Month Price Return', percent_format],
+            'D': ['Three-Month Return Percentile', percent_format],
+            'E': ['One-Month Price Return', percent_format],
+            'F': ['One-Month Return Percentile', percent_format],
+            'G': ['Thirty-Day Price Return', percent_format],
+            'H': ['Thirty-Day Return Percentile', percent_format],
+            'I': ['Five-Day Price Return', percent_format],
+            'J': ['Five-Day Return Percentile', percent_format],
+            'K': ['LQM Score', percent_format]
         }
 
         for column in column_formats.keys():
