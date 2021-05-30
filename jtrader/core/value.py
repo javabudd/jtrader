@@ -7,7 +7,7 @@ import numpy as np
 import pandas as pd
 from scipy import stats
 
-import utils
+import jtrader.core.utils as utils
 from jtrader.core.iex import IEX
 
 stocks = pd.read_csv('sp_500_stocks.csv')
@@ -186,4 +186,4 @@ class Value(IEX):
         writer.save()
 
         with open(file_name, 'rb') as f:
-            utils.send_slack_file(file_name, 'value.xlsx', file=io.BytesIO(f.read()))
+            utils.send_slack_file(file_name, file_name, file=io.BytesIO(f.read()))

@@ -3,6 +3,7 @@ from cement.utils.version import get_version_banner
 
 from jtrader.core.momentum import Momentum
 from jtrader.core.news import News
+from jtrader.core.value import Value
 from ..core.version import get_version
 
 VERSION_BANNER = """
@@ -79,3 +80,26 @@ class Base(Controller):
         }
 
         self.app.render(data, 'get_momentum_stats.jinja2')
+
+    @ex(
+        help='Get deep value stats',
+
+        arguments=[
+            (
+                    ['-f', '--foo'],
+                    {
+                        'help': 'notorious foo option',
+                        'action': 'store',
+                        'dest': 'foo'
+                    }
+            ),
+        ],
+    )
+    def get_value_stats(self):
+        """Deep Value Stats Command"""
+
+        data = {
+            'stats': Value(self.app.config.get('jtrader', 'is_sandbox')),
+        }
+
+        self.app.render(data, 'get_value_stats.jinja2')
