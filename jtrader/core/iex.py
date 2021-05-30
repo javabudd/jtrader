@@ -1,3 +1,4 @@
+from abc import ABC, abstractmethod
 from typing import Optional
 
 import requests
@@ -6,10 +7,14 @@ from sseclient import SSEClient
 from jtrader.core.secrets import IEX_CLOUD_API_TOKEN
 
 
-class IEX:
+class IEX(ABC):
     def __init__(self, is_sandbox: bool, version: Optional[str] = 'stable'):
         self.is_sandbox = is_sandbox
         self.version = version
+
+    @abstractmethod
+    def run(self):
+        pass
 
     def send_iex_request(self, endpoint_path: str, query_params: Optional[dict] = None):
         api_url = self.get_api_url(endpoint_path, query_params)
