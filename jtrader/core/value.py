@@ -5,13 +5,12 @@ import statistics
 
 import numpy as np
 import pandas as pd
-import requests
 from scipy import stats
 
 import utils
-from jtrader.core.secrets import IEX_CLOUD_API_TOKEN
+from jtrader.core.iex import IEX
 
-stocks = pd.read_csv('../../sp_500_stocks.csv')
+stocks = pd.read_csv('sp_500_stocks.csv')
 
 csv_columns = [
     'Ticker',
@@ -37,147 +36,154 @@ metrics = {
     'EV/GP': 'EV/GP Percentile',
 }
 
-df = pd.DataFrame(columns=csv_columns)
 
-symbol_groups = list(utils.chunks(stocks['Ticker'], 100))
-symbol_strings = []
-for i in range(0, len(symbol_groups)):
-    symbol_strings.append(','.join(symbol_groups[i]))
+class Value(IEX):
+    def run(self):
+        df = pd.DataFrame(columns=csv_columns)
 
-for symbol_string in symbol_strings:
-    api_url = f'https://cloud.iexapis.com/stable/stock/market/batch?symbols={symbol_string}' \
-              f'&types=quote,advanced-stats&token={IEX_CLOUD_API_TOKEN}'
-    response = requests.get(api_url)
-    data = response.json()
+        symbol_groups = list(utils.chunks(stocks['Ticker'], 100))
+        symbol_strings = []
+        for i in range(0, len(symbol_groups)):
+            symbol_strings.append(','.join(symbol_groups[i]))
 
-    for symbol in symbol_string.split(','):
-        if data[symbol]['quote']['close'] is None:
-            print('Could not get closing price for %s' % symbol)
-            continue
+        for symbol_string in symbol_strings:
+            data = self.send_iex_request(
+                'stock/market/batch',
+                {
+                    "symbols": symbol_string,
+                    "types": "quote,advanced-stats"
+                }
+            )
 
-        pe_ratio = data[symbol]['quote']['peRatio']
-        pb_ratio = data[symbol]['advanced-stats']['priceToBook']
-        ps_ratio = data[symbol]['advanced-stats']['priceToSales']
-        enterprise_value = data[symbol]['advanced-stats']['enterpriseValue']
-        ebitda = data[symbol]['advanced-stats']['EBITDA']
+            for symbol in symbol_string.split(','):
+                if data[symbol]['quote']['close'] is None:
+                    print('Could not get closing price for %s' % symbol)
+                    continue
 
-        try:
-            ev_to_ebitda = enterprise_value / ebitda
-        except TypeError:
-            ev_to_ebitda = np.NaN
+                pe_ratio = data[symbol]['quote']['peRatio']
+                pb_ratio = data[symbol]['advanced-stats']['priceToBook']
+                ps_ratio = data[symbol]['advanced-stats']['priceToSales']
+                enterprise_value = data[symbol]['advanced-stats']['enterpriseValue']
+                ebitda = data[symbol]['advanced-stats']['EBITDA']
 
-        gross_profit = data[symbol]['advanced-stats']['grossProfit']
+                try:
+                    ev_to_ebitda = enterprise_value / ebitda
+                except TypeError:
+                    ev_to_ebitda = np.NaN
 
-        try:
-            ev_to_gross_profit = enterprise_value / gross_profit
-        except TypeError:
-            ev_to_gross_profit = np.NaN
+                gross_profit = data[symbol]['advanced-stats']['grossProfit']
 
-        df = df.append(
-            pd.Series(
-                [
-                    symbol,
-                    data[symbol]['quote']['latestPrice'],
-                    pe_ratio,
-                    'N/A',
-                    pb_ratio,
-                    'N/A',
-                    ps_ratio,
-                    'N/A',
-                    ev_to_ebitda,
-                    'N/A',
-                    ev_to_gross_profit,
-                    'N/A',
-                    'N/A'
-                ],
-                index=csv_columns
-            ),
-            ignore_index=True
+                try:
+                    ev_to_gross_profit = enterprise_value / gross_profit
+                except TypeError:
+                    ev_to_gross_profit = np.NaN
+
+                df = df.append(
+                    pd.Series(
+                        [
+                            symbol,
+                            data[symbol]['quote']['latestPrice'],
+                            pe_ratio,
+                            'N/A',
+                            pb_ratio,
+                            'N/A',
+                            ps_ratio,
+                            'N/A',
+                            ev_to_ebitda,
+                            'N/A',
+                            ev_to_gross_profit,
+                            'N/A',
+                            'N/A'
+                        ],
+                        index=csv_columns
+                    ),
+                    ignore_index=True
+                )
+
+            for column in ['Price-to-Earnings Ratio', 'Price-to-Book Ratio', 'Price-to-Sales Ratio', 'EV/EBITDA',
+                           'EV/GP']:
+                df.fillna(df[column].mean(), inplace=True)
+
+            for metric in metrics.keys():
+                for row in df.index:
+                    df.loc[row, metrics[metric]] = stats.percentileofscore(df[metric], df.loc[row, metric]) / 100
+
+            for row in df.index:
+                value_percentiles = []
+                for metric in metrics.keys():
+                    value_percentiles.append(df.loc[row, metrics[metric]])
+
+                df.loc[row, 'RV Score'] = statistics.mean(value_percentiles)
+
+        df.sort_values('RV Score', ascending=True, inplace=True)
+        df = df[:50]
+        df.reset_index(inplace=True, drop=True)
+
+        file_name = 'value_stocks.xlsx'
+
+        writer = pd.ExcelWriter(file_name, engine='xlsxwriter')
+
+        df.to_excel(writer, 'Value', index=False)
+
+        bg_color = '#0a0a23'
+        font_color = '#ffffff'
+
+        string_format = writer.book.add_format(
+            {
+                'font_color': font_color,
+                'bg_color': bg_color,
+                'border': 1
+            }
         )
 
-    for column in ['Price-to-Earnings Ratio', 'Price-to-Book Ratio', 'Price-to-Sales Ratio', 'EV/EBITDA', 'EV/GP']:
-        df.fillna(df[column].mean(), inplace=True)
+        dollar_format = writer.book.add_format(
+            {
+                'font_color': font_color,
+                'bg_color': bg_color,
+                'border': 1,
+                'num_format': '$0.00'
+            }
+        )
 
-    for metric in metrics.keys():
-        for row in df.index:
-            df.loc[row, metrics[metric]] = stats.percentileofscore(df[metric], df.loc[row, metric]) / 100
+        float_format = writer.book.add_format(
+            {
+                'font_color': font_color,
+                'bg_color': bg_color,
+                'border': 1,
+                'num_format': '0.00'
+            }
+        )
 
-    for row in df.index:
-        value_percentiles = []
-        for metric in metrics.keys():
-            value_percentiles.append(df.loc[row, metrics[metric]])
+        percent_format = writer.book.add_format(
+            {
+                'font_color': font_color,
+                'bg_color': bg_color,
+                'border': 1,
+                'num_format': '0.0%'
+            }
+        )
 
-        df.loc[row, 'RV Score'] = statistics.mean(value_percentiles)
+        column_formats = {
+            'A': ['Ticker', string_format],
+            'B': ['Price', dollar_format],
+            'C': ['Price-to-Earnings Ratio', float_format],
+            'D': ['PE Ratio', percent_format],
+            'E': ['Price-to-Book Ratio', float_format],
+            'F': ['PB Ratio', percent_format],
+            'G': ['Price-to-Sales Ratio', float_format],
+            'H': ['PS Ratio', percent_format],
+            'I': ['EV/EBITDA', float_format],
+            'J': ['EV/EBITDA Percentile', percent_format],
+            'K': ['EV/GP', float_format],
+            'L': ['EV/GP Percentile', percent_format],
+            'M': ['RV Score', float_format],
+        }
 
-df.sort_values('RV Score', ascending=True, inplace=True)
-df = df[:50]
-df.reset_index(inplace=True, drop=True)
+        for column in column_formats.keys():
+            writer.sheets['Value'].set_column(f'{column}:{column}', 25, column_formats[column][1])
+            writer.sheets['Value'].write(f'{column}1', column_formats[column][0], column_formats[column][1])
 
-file_name = 'value_stocks.xlsx'
+        writer.save()
 
-writer = pd.ExcelWriter(file_name, engine='xlsxwriter')
-
-df.to_excel(writer, 'Value', index=False)
-
-bg_color = '#0a0a23'
-font_color = '#ffffff'
-
-string_format = writer.book.add_format(
-    {
-        'font_color': font_color,
-        'bg_color': bg_color,
-        'border': 1
-    }
-)
-
-dollar_format = writer.book.add_format(
-    {
-        'font_color': font_color,
-        'bg_color': bg_color,
-        'border': 1,
-        'num_format': '$0.00'
-    }
-)
-
-float_format = writer.book.add_format(
-    {
-        'font_color': font_color,
-        'bg_color': bg_color,
-        'border': 1,
-        'num_format': '0.00'
-    }
-)
-
-percent_format = writer.book.add_format(
-    {
-        'font_color': font_color,
-        'bg_color': bg_color,
-        'border': 1,
-        'num_format': '0.0%'
-    }
-)
-
-column_formats = {
-    'A': ['Ticker', string_format],
-    'B': ['Price', dollar_format],
-    'C': ['Price-to-Earnings Ratio', float_format],
-    'D': ['PE Ratio', percent_format],
-    'E': ['Price-to-Book Ratio', float_format],
-    'F': ['PB Ratio', percent_format],
-    'G': ['Price-to-Sales Ratio', float_format],
-    'H': ['PS Ratio', percent_format],
-    'I': ['EV/EBITDA', float_format],
-    'J': ['EV/EBITDA Percentile', percent_format],
-    'K': ['EV/GP', float_format],
-    'L': ['EV/GP Percentile', percent_format],
-    'M': ['RV Score', float_format],
-}
-
-for column in column_formats.keys():
-    writer.sheets['Value'].set_column(f'{column}:{column}', 25, column_formats[column][1])
-    writer.sheets['Value'].write(f'{column}1', column_formats[column][0], column_formats[column][1])
-
-writer.save()
-
-with open(file_name, 'rb') as f:
-    utils.send_slack_file(file_name, 'value.xlsx', file=io.BytesIO(f.read()))
+        with open(file_name, 'rb') as f:
+            utils.send_slack_file(file_name, 'value.xlsx', file=io.BytesIO(f.read()))
