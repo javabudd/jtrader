@@ -75,6 +75,9 @@ class Momentum(IEX):
                     change_col = f'{time_period} Price Return'
                     percentile_col = f'{time_period} Return Percentile'
 
+                    if df.loc[row, change_col] is None:
+                        df.loc[row, change_col] = 0
+
                     df.loc[row, percentile_col] = stats.percentileofscore(df[change_col], df.loc[row, change_col]) / 100
                     momentum_percentiles.append(df.loc[row, percentile_col])
                 df.loc[row, 'HQM Score'] = mean(momentum_percentiles)
