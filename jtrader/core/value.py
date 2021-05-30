@@ -9,9 +9,9 @@ import requests
 from scipy import stats
 
 import utils
-from secrets import IEX_CLOUD_API_TOKEN
+from jtrader.core.secrets import IEX_CLOUD_API_TOKEN
 
-stocks = pd.read_csv('sp_500_stocks.csv')
+stocks = pd.read_csv('../../sp_500_stocks.csv')
 
 csv_columns = [
     'Ticker',
