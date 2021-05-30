@@ -1,16 +1,12 @@
 import json
 
-from sseclient import SSEClient
-
 import jtrader.core.utils as utils
-from jtrader.core.secrets import IEX_CLOUD_API_TOKEN
+from jtrader.core.iex import IEX
 
 
-class News:
+class News(IEX):
     def run(self):
-        stream_url = f'https://cloud-sse.iexapis.com/stable/news-stream?token={IEX_CLOUD_API_TOKEN}&symbols=SPY'
-
-        stream_messages = SSEClient(stream_url)
+        stream_messages = self.start_iex_stream('news-stream', {"symbols": "SPY"})
         for messages in stream_messages:
             for message in json.loads(messages.data):
                 if message['lang'] == 'et':

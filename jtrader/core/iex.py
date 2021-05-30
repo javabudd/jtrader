@@ -1,6 +1,7 @@
 from typing import Optional
 
 import requests
+from sseclient import SSEClient
 
 from jtrader.core.secrets import IEX_CLOUD_API_TOKEN
 
@@ -17,6 +18,15 @@ class IEX:
 
         return response.json()
 
+    def start_iex_stream(self, endpoint_path: str, query_params: Optional[dict] = None):
+        version = self.version
+        query_string = self.query_params_to_string(query_params)
+
+        stream_url = \
+            f'https://cloud-sse.iexapis.com/{version}/{endpoint_path}?token={IEX_CLOUD_API_TOKEN}{query_string}'
+
+        return SSEClient(stream_url)
+
     def get_api_url(self, endpoint_path: str, query_params: Optional[dict] = None):
         mode = 'cloud'
 
@@ -24,11 +34,16 @@ class IEX:
             mode = 'sandbox'
 
         version = self.version
+        query_string = self.query_params_to_string(query_params)
 
+        return f'https://{mode}.iexapis.com/{version}/{endpoint_path}?token={IEX_CLOUD_API_TOKEN}{query_string}'
+
+    @staticmethod
+    def query_params_to_string(query_params: Optional[dict] = None):
         query_string = ''
         if query_params is not None:
             for key in query_params.keys():
                 value = query_params[key]
                 query_string += f'&{key}={value}'
 
-        return f'https://{mode}.iexapis.com/{version}/{endpoint_path}?token={IEX_CLOUD_API_TOKEN}{query_string}'
+        return query_string
