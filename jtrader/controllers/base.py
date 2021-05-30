@@ -75,7 +75,7 @@ class Base(Controller):
         """Momentum Stats Command"""
 
         data = {
-            'stats': Momentum(),
+            'stats': Momentum(self.app.config.get('jtrader', 'is_sandbox')),
         }
 
         self.app.render(data, 'get_momentum_stats.jinja2')

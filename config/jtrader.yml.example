@@ -3,6 +3,9 @@
 
 jtrader:
 
+### Wether or not we are hitting sandbox APIs
+is_sandbox: true
+
 ### Toggle application level debug (does not toggle framework debugging)
 # debug: false
 
@@ -23,7 +26,6 @@ jtrader:
 
 ### sample foo option
 # foo: bar
-
 
 log.colorlog:
 

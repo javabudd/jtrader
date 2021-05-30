@@ -5,11 +5,10 @@ import io
 from statistics import mean
 
 import pandas as pd
-import requests
 from scipy import stats
 
 import jtrader.core.utils as utils
-from jtrader.core.secrets import IEX_CLOUD_API_TOKEN
+from jtrader.core.iex import IEX
 
 stocks = pd.read_csv('sp_500_stocks.csv')
 
@@ -35,7 +34,7 @@ time_periods = [
 ]
 
 
-class Momentum:
+class Momentum(IEX):
     def run(self):
         df = pd.DataFrame(columns=csv_columns)
 
@@ -45,11 +44,7 @@ class Momentum:
             symbol_strings.append(','.join(symbol_groups[i]))
 
         for symbol_string in symbol_strings:
-            api_url = f'https://cloud.iexapis.com/stable/stock/market/batch?symbols={symbol_string}' \
-                      f'&types=quote,stats&token={IEX_CLOUD_API_TOKEN}'
-            response = requests.get(api_url)
-            data = response.json()
-
+            data = self.send_iex_request('stock/market/batch', {"symbols": symbol_string, "types": "quote,stats"})
             for symbol in symbol_string.split(','):
                 if data[symbol]['quote']['close'] is None:
                     continue

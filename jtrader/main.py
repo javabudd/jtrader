@@ -1,12 +1,11 @@
-
 from cement import App, TestApp, init_defaults
 from cement.core.exc import CaughtSignal
-from .core.exc import JTraderError
-from .controllers.base import Base
 
-# configuration defaults
+from .controllers.base import Base
+from .core.exc import JTraderError
+
 CONFIG = init_defaults('jtrader')
-CONFIG['jtrader']['foo'] = 'bar'
+CONFIG['jtrader']['is_sandbox'] = True
 
 
 class JTrader(App):
@@ -46,7 +45,7 @@ class JTrader(App):
         ]
 
 
-class JTraderTest(TestApp,JTrader):
+class JTraderTest(TestApp, JTrader):
     """A sub-class of JTrader that is better suited for testing."""
 
     class Meta:
