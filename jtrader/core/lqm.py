@@ -110,15 +110,6 @@ class LowQualityMomentum(IEX):
             }
         )
 
-        float_format = writer.book.add_format(
-            {
-                'font_color': font_color,
-                'bg_color': bg_color,
-                'border': 1,
-                'num_format': '0.00'
-            }
-        )
-
         percent_format = writer.book.add_format(
             {
                 'font_color': font_color,
