@@ -3,7 +3,7 @@ from typing import Optional
 from slack_sdk import WebClient
 from slack_sdk.errors import SlackApiError
 
-from secrets import SLACK_TOKEN
+from jtrader.core.secrets import SLACK_TOKEN
 
 
 def chunks(lst, n):
