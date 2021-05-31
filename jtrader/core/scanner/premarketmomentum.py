@@ -128,6 +128,9 @@ class PreMarketMomentum(IEX):
             utils.send_slack_file(file_name, 'PreMarketMomentum.xlsx', '#stock-scanner', file=io.BytesIO(f.read()))
 
     def stock_qualifies(self, stock_data):
+        if 'quote' not in stock_data:
+            return False
+
         quote = stock_data['quote']
 
         if 'previousClose' not in quote or 'extendedPrice' not in quote or quote['previousClose'] is None \
