@@ -26,11 +26,25 @@ class APOValidator:
         return 'Absolute Price Oscillator'
 
     @staticmethod
-    def validate(indicator_data):
-        if 'indicator' not in indicator_data:
-            return False
+    def validate(**kwargs):
+        for required in ['indicator', 'chart']:
+            if required not in kwargs.keys():
+                raise RuntimeError
 
-        return indicator_data['indicator'][0][1] > 0 and indicator_data['indicator'][0][2] <= 0
+        indicator_data = kwargs.get('indicator')
+        chart = kwargs.get('chart')
+
+        highest_low = max(chart, key=lambda x: x["low"])
+        lowest_low = min(chart, key=lambda x: x["low"])
+
+        # @TODO update this to actual logic
+        price_has_lowest_low = True
+
+        if indicator_data[0][1] > 0 and indicator_data[0][2] <= 0:
+            if price_has_lowest_low and highest_low['low'] > lowest_low['low']:
+                return True
+
+        return False
 
 
 class ULTOSCValidator:
@@ -39,7 +53,7 @@ class ULTOSCValidator:
     the oscillator surges. Even if the price continues to rise the oscillator tends to fall forming a divergence
     even though the price may still be trending strongly.
 
-    In order for the indicator to generate a buy signal, Williams recommended a three-step approach.
+    Buy signals:
 
     First, a bullish divergence must form. This is when the price makes a lower low but the indicator is at a higher
     low.Second, the first low in the divergence (the lower one) must have been below 30. This means the divergence
@@ -47,7 +61,7 @@ class ULTOSCValidator:
     oscillator must rise above the divergence high. The divergence high is the high point between the two lows of
     the divergence.
 
-    Williams created the same three-step method for sell signals.
+    Sell signals:
 
     First, a bearish divergence must form. This is when the price makes a higher high but the indicator is at a lower
     high. Second, the first high in the divergence (the higher one) must be above 70. This means the divergence started
@@ -60,13 +74,14 @@ class ULTOSCValidator:
         return 'Ultimate Oscillator'
 
     @staticmethod
-    def validate(indicator_data):
-        if 'indicator' not in indicator_data:
-            return False
+    def validate(**kwargs):
+        if 'indicator' not in kwargs.keys():
+            raise RuntimeError
 
-        short_period = indicator_data['indicator'][0][0]
-        medium_period = indicator_data['indicator'][0][1]
-        long_period = indicator_data['indicator'][0][2]
+        indicator_data = kwargs.get('indicator')
+        short_period = indicator_data[0][0]
+        medium_period = indicator_data[0][1]
+        long_period = indicator_data[0][2]
 
         if short_period is None or medium_period is None or long_period is None:
             return False
@@ -81,10 +96,13 @@ class Scanner(IEX):
             'ultosc': ULTOSCValidator
         }
 
+        # @TODO should we shuffle this?
+        # random.shuffle(stocks['Ticker'])
+
         for ticker in stocks['Ticker']:
             for indicator in indicators.keys():
                 data = self.send_iex_request(f"stock/{ticker}/indicator/{indicator}", {"range": "5d"})
-                resolved_indicator = indicators[indicator].validate(data)
+                resolved_indicator = indicators[indicator].validate(**data)
                 if resolved_indicator:
                     found_indicator = indicators[indicator].get_name()
                     utils.send_slack_message(ticker + ' triggered ' + found_indicator, '#stock-scanner')
