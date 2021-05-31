@@ -42,7 +42,6 @@ class PreMarketMomentum(IEX):
                 if symbol not in data:
                     continue
 
-                # does the stock quality for a momentum alert?
                 if self.stock_qualifies(data[symbol]):
                     df = df.append(
                         pd.Series(
