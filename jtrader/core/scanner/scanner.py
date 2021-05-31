@@ -11,14 +11,19 @@ class APOValidator:
     The Absolute Price Oscillator displays the difference between two exponential moving averages of a security's price
     and is expressed as an absolute value.
 
-    How this indicator works:
-
     APO crossing above zero is considered bullish , while crossing below zero is bearish . A positive indicator value
     indicates an upward movement, while negative readings signal a downward trend. Divergences form when a new high or
-    low in price is not confirmed by the Absolute Price Oscillator (APO). A bullish divergence forms when price make a
-    lower low, but the APO forms a higher low. This indicates less downward momentum that could foreshadow a bullish
-    reversal. A bearish divergence forms when price makes a higher high, but the APO forms a lower high. This shows
-    less upward momentum that could foreshadow a bearish reversal.
+    low in price is not confirmed by the Absolute Price Oscillator (APO).
+
+    Buy signals:
+
+    A bullish divergence forms when the price makes a lower low, but the APO forms a higher low. This indicates less
+    downward momentum that could foreshadow a bullish reversal.
+
+    Sell signals:
+
+    A bearish divergence forms when the price makes a higher high, but the APO forms a lower high. This shows less
+    upward momentum that could foreshadow a bearish reversal.
     """
 
     @staticmethod
@@ -49,9 +54,10 @@ class APOValidator:
 
 class ULTOSCValidator:
     """
-    False divergences are common in oscillators that only use one timeframe, because when the price surges
-    the oscillator surges. Even if the price continues to rise the oscillator tends to fall forming a divergence
-    even though the price may still be trending strongly.
+    The Ultimate Oscillator is a range-bound indicator with a value that fluctuates between 0 and 100. Similar to the
+    Relative Strength Index (RSI), levels below 30 are deemed to be oversold, and levels above 70 are deemed to be
+    overbought. Trading signals are generated when the price moves in the opposite direction as the indicator, and are
+    based on a three-step method.
 
     Buy signals:
 
