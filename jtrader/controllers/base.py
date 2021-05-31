@@ -3,6 +3,7 @@ from cement.utils.version import get_version_banner
 
 from jtrader.core.hqm import HighQualityMomentum
 from jtrader.core.lqm import LowQualityMomentum
+from jtrader.core.scanner.premarketmomentum import PreMarketMomentum
 from jtrader.core.news import News
 from jtrader.core.value import Value
 from ..core.version import get_version
@@ -127,3 +128,26 @@ class Base(Controller):
         }
 
         self.app.render(data, 'get_value_stats.jinja2')
+
+    @ex(
+        help='Start Pre Market Momentum Scanner',
+
+        arguments=[
+            (
+                    ['-f', '--foo'],
+                    {
+                        'help': 'notorious foo option',
+                        'action': 'store',
+                        'dest': 'foo'
+                    }
+            ),
+        ],
+    )
+    def start_pmm_scanner(self):
+        """Start Pre Market Momentum Scanner Command"""
+
+        data = {
+            'scanner': PreMarketMomentum(self.app.config.get('jtrader', 'is_sandbox')),
+        }
+
+        self.app.render(data, 'start_pmm_scanner.jinja2')
