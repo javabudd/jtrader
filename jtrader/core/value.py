@@ -10,7 +10,7 @@ from scipy import stats
 import jtrader.core.utils as utils
 from jtrader.core.iex import IEX
 
-stocks = pd.read_csv('sp_500_stocks.csv')
+stocks = pd.read_csv('files/sp_500_stocks.csv')
 
 csv_columns = [
     'Ticker',

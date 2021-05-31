@@ -9,7 +9,7 @@ import pandas as pd
 import jtrader.core.utils as utils
 from jtrader.core.iex import IEX
 
-stocks = pd.read_csv('all_stocks.csv')
+stocks = pd.read_csv('files/all_stocks.csv')
 
 relative_volume = 'Relative Volume (30 Day)'
 change_from_close = 'Change From Close (%)'
