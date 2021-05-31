@@ -84,11 +84,11 @@ class HighQualityMomentum(IEX):
         df = df[:50]
         df.reset_index(inplace=True, drop=True)
 
-        file_name = 'momentum.xlsx'
+        file_name = 'HighQualityMomentum.xlsx'
 
         writer = pd.ExcelWriter(file_name, engine='xlsxwriter')
 
-        df.to_excel(writer, 'Momentum', index=False)
+        df.to_excel(writer, 'HighQualityMomentum', index=False)
 
         bg_color = '#0a0a23'
         font_color = '#ffffff'
@@ -107,15 +107,6 @@ class HighQualityMomentum(IEX):
                 'bg_color': bg_color,
                 'border': 1,
                 'num_format': '$0.00'
-            }
-        )
-
-        float_format = writer.book.add_format(
-            {
-                'font_color': font_color,
-                'bg_color': bg_color,
-                'border': 1,
-                'num_format': '0.00'
             }
         )
 
@@ -143,10 +134,14 @@ class HighQualityMomentum(IEX):
         }
 
         for column in column_formats.keys():
-            writer.sheets['Momentum'].set_column(f'{column}:{column}', 25, column_formats[column][1])
-            writer.sheets['Momentum'].write(f'{column}1', column_formats[column][0], column_formats[column][1])
+            writer.sheets['HighQualityMomentum'].set_column(f'{column}:{column}', 25, column_formats[column][1])
+            writer.sheets['HighQualityMomentum'].write(
+                f'{column}1',
+                column_formats[column][0],
+                column_formats[column][1]
+            )
 
         writer.save()
 
         with open(file_name, 'rb') as f:
-            utils.send_slack_file(file_name, 'momentum.xlsx', file=io.BytesIO(f.read()))
+            utils.send_slack_file(file_name, 'HighQualityMomentum.xlsx', '#stock-scanner', file=io.BytesIO(f.read()))
