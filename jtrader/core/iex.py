@@ -5,7 +5,7 @@ from typing import Optional
 import requests
 from sseclient import SSEClient
 
-from jtrader.core.secrets import IEX_CLOUD_API_TOKEN
+from jtrader.core.secrets import IEX_CLOUD_API_TOKEN, IEX_CLOUD_SANDBOX_API_TOKEN
 
 
 class IEX(ABC):
@@ -40,14 +40,16 @@ class IEX(ABC):
 
     def get_api_url(self, endpoint_path: str, query_params: Optional[dict] = None):
         mode = 'cloud'
+        token = IEX_CLOUD_API_TOKEN
 
         if self.is_sandbox:
+            token = IEX_CLOUD_SANDBOX_API_TOKEN
             mode = 'sandbox'
 
         version = self.version
         query_string = self.query_params_to_string(query_params)
 
-        return f'https://{mode}.iexapis.com/{version}/{endpoint_path}?token={IEX_CLOUD_API_TOKEN}{query_string}'
+        return f'https://{mode}.iexapis.com/{version}/{endpoint_path}?token={token}{query_string}'
 
     @staticmethod
     def query_params_to_string(query_params: Optional[dict] = None):
