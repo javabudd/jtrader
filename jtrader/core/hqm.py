@@ -46,7 +46,7 @@ class HighQualityMomentum(IEX):
         for symbol_string in symbol_strings:
             data = self.send_iex_request('stock/market/batch', {"symbols": symbol_string, "types": "quote,stats"})
             for symbol in symbol_string.split(','):
-                if data[symbol]['quote']['close'] is None:
+                if symbol not in data or data[symbol]['quote']['close'] is None:
                     continue
 
                 df = df.append(

@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from json.decoder import JSONDecodeError
 from typing import Optional
 
 import requests
@@ -21,7 +22,12 @@ class IEX(ABC):
 
         response = requests.get(api_url)
 
-        return response.json()
+        try:
+            data = response.json()
+        except JSONDecodeError:
+            data = {}
+
+        return data
 
     def start_iex_stream(self, endpoint_path: str, query_params: Optional[dict] = None):
         version = self.version
