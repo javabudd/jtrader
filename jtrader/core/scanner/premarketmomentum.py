@@ -63,11 +63,11 @@ class PreMarketMomentum(IEX):
         df.sort_values([gap, relative_volume, change_from_close], ascending=False, inplace=True)
         df.reset_index(inplace=True, drop=True)
 
-        file_name = 'momentum.xlsx'
+        file_name = 'PreMarketMomentum.xlsx'
 
         writer = pd.ExcelWriter(file_name, engine='xlsxwriter')
 
-        df.to_excel(writer, 'Momentum', index=False)
+        df.to_excel(writer, 'PMM', index=False)
 
         bg_color = '#0a0a23'
         font_color = '#ffffff'
@@ -119,13 +119,13 @@ class PreMarketMomentum(IEX):
         }
 
         for column in column_formats.keys():
-            writer.sheets['Momentum'].set_column(f'{column}:{column}', 25, column_formats[column][1])
-            writer.sheets['Momentum'].write(f'{column}1', column_formats[column][0], column_formats[column][1])
+            writer.sheets['PMM'].set_column(f'{column}:{column}', 25, column_formats[column][1])
+            writer.sheets['PMM'].write(f'{column}1', column_formats[column][0], column_formats[column][1])
 
         writer.save()
 
         with open(file_name, 'rb') as f:
-            utils.send_slack_file(file_name, 'momentum.xlsx', '#stock-scanner', file=io.BytesIO(f.read()))
+            utils.send_slack_file(file_name, 'PreMarketMomentum.xlsx', '#stock-scanner', file=io.BytesIO(f.read()))
 
     def stock_qualifies(self, stock_data):
         quote = stock_data['quote']
