@@ -4,6 +4,7 @@ from cement.utils.version import get_version_banner
 from jtrader.core.hqm import HighQualityMomentum
 from jtrader.core.lqm import LowQualityMomentum
 from jtrader.core.scanner.premarketmomentum import PreMarketMomentum
+from jtrader.core.scanner.scanner import Scanner
 from jtrader.core.news import News
 from jtrader.core.value import Value
 from ..core.version import get_version
@@ -148,6 +149,29 @@ class Base(Controller):
 
         data = {
             'scanner': PreMarketMomentum(self.app.config.get('jtrader', 'is_sandbox')),
+        }
+
+        self.app.render(data, 'start_pmm_scanner.jinja2')
+
+    @ex(
+        help='Start Real Time Scanner',
+
+        arguments=[
+            (
+                    ['-f', '--foo'],
+                    {
+                        'help': 'notorious foo option',
+                        'action': 'store',
+                        'dest': 'foo'
+                    }
+            ),
+        ],
+    )
+    def start_realtime_scanner(self):
+        """Start Real Time Scanner Command"""
+
+        data = {
+            'scanner': Scanner(self.app.config.get('jtrader', 'is_sandbox')),
         }
 
         self.app.render(data, 'start_pmm_scanner.jinja2')
