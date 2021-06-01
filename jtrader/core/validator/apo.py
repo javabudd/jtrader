@@ -34,27 +34,28 @@ class APOValidator:
 
     def validate(self):
         time_range = '5d'
-        data = self.iex_client.send_iex_request(f"stock/{self.ticker}/indicator/apo", {"range": time_range})
-
-        for required in ['indicator', 'chart']:
-            if required not in data:
-                return False
-
-        indicator_data = data['indicator']
+        historical_data = self.iex_client.send_iex_request(f"stock/{self.ticker}/chart/" + time_range)
+        quote_data = self.iex_client.send_iex_request(f"stock/{self.ticker}/quote")
 
         if self.is_bullish:
-            if (1 in indicator_data[0] and indicator_data[0][1] > 0) and \
-                    (2 in indicator_data[0] and indicator_data[0][2] <= 0):
-                historical_data = self.iex_client.send_iex_request(f"stock/{self.ticker}/chart/" + time_range)
-                quote_data = self.iex_client.send_iex_request(f"stock/{self.ticker}/quote")
-                apo_chart = data['chart']
+            lowest_low_historical = min(historical_data, key=lambda x: x["low"])
+            if quote_data['low'] < lowest_low_historical['low']:
+                data = self.iex_client.send_iex_request(f"stock/{self.ticker}/indicator/apo", {"range": time_range})
+                for required in ['indicator', 'chart']:
+                    if required not in data:
+                        return False
 
-                highest_apo_low = max(apo_chart[:-1], key=lambda x: x["low"])
-                lowest_low_historical = min(historical_data, key=lambda x: x["low"])
-                latest_apo_low = apo_chart[-1]
+                indicator_data = data['indicator']
 
-                if quote_data['low'] < lowest_low_historical['low'] and latest_apo_low['low'] > highest_apo_low['low']:
-                    return True
+                if (1 in indicator_data[0] and indicator_data[0][1] > 0) and \
+                        (2 in indicator_data[0] and indicator_data[0][2] <= 0):
+                    apo_chart = data['chart']
+
+                    highest_apo_low = max(apo_chart[:-1], key=lambda x: x["low"])
+                    latest_apo_low = apo_chart[-1]
+
+                    if latest_apo_low['low'] > highest_apo_low['low']:
+                        return True
         else:
             # no logic for bearish detection yet
             return False
