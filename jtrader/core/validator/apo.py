@@ -38,7 +38,14 @@ class APOValidator:
         quote_data = self.iex_client.send_iex_request(f"stock/{self.ticker}/quote")
 
         if self.is_bullish:
+            if not historical_data:
+                return False
+
             lowest_low_historical = min(historical_data, key=lambda x: x["low"])
+
+            if lowest_low_historical['low'] is None or quote_data['low'] is None:
+                return False
+
             if quote_data['low'] < lowest_low_historical['low']:
                 data = self.iex_client.send_iex_request(f"stock/{self.ticker}/indicator/apo", {"range": time_range})
                 for required in ['indicator', 'chart']:
