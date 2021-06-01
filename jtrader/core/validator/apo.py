@@ -1,6 +1,6 @@
 from typing import Optional
 
-from jtrader.core.service.iex_client import IEXClient
+from pyEX.client import Client
 
 
 class APOValidator:
@@ -23,7 +23,7 @@ class APOValidator:
     upward momentum that could foreshadow a bearish reversal.
     """
 
-    def __init__(self, ticker: str, iex_client: IEXClient, is_bullish: Optional[bool] = True):
+    def __init__(self, ticker: str, iex_client: Client, is_bullish: Optional[bool] = True):
         self.iex_client = iex_client
         self.ticker = ticker
         self.is_bullish = is_bullish
@@ -34,8 +34,8 @@ class APOValidator:
 
     def validate(self):
         time_range = '5d'
-        historical_data = self.iex_client.send_iex_request(f"stock/{self.ticker}/chart/" + time_range)
-        quote_data = self.iex_client.send_iex_request(f"stock/{self.ticker}/quote")
+        historical_data = self.iex_client.stocks.chart(self.ticker, timeframe=time_range)
+        quote_data = self.iex_client.stocks.quote(self.ticker)
 
         if self.is_bullish:
             return self.signals_bullish(historical_data, quote_data, time_range)
@@ -52,15 +52,24 @@ class APOValidator:
             return False
 
         if quote_data['low'] < lowest_low_historical['low']:
-            data = self.iex_client.send_iex_request(f"stock/{self.ticker}/indicator/apo", {"range": time_range})
+            data = self.iex_client.stocks.technicals(self.ticker, 'apo', range=time_range)
             for required in ['indicator', 'chart']:
                 if required not in data:
                     return False
 
             indicator_data = data['indicator']
 
-            if (1 in indicator_data[0] and indicator_data[0][1] > 0) and \
-                    (2 in indicator_data[0] and indicator_data[0][2] <= 0):
+            try:
+                short_period = indicator_data[0][0]
+            except IndexError:
+                short_period = None
+
+            try:
+                long_period = indicator_data[0][1]
+            except IndexError:
+                return False
+
+            if short_period is not None and short_period > 0 and long_period <= 0:
                 apo_chart = data['chart']
 
                 if not apo_chart:

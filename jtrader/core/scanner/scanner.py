@@ -1,6 +1,7 @@
 import time
 
 import pandas as pd
+from pyEX import PyEXception
 
 import jtrader.core.utils as utils
 from jtrader.core.iex import IEX
@@ -21,12 +22,20 @@ class Scanner(IEX):
             randomized_stocks = stocks.sample(frac=1)
 
             for ticker in randomized_stocks['Ticker']:
+                self.logger.info('Processing ticker: ' + ticker)
                 for indicator in indicators:
                     indicator_instance = indicator(ticker, self.iex_client)
-                    resolved_indicator = indicator_instance.validate()
+                    try:
+                        resolved_indicator = indicator_instance.validate()
+                    except PyEXception as e:
+                        self.logger.error(e.args[0] + ' ' + e.args[1])
+
+                        break
                     if resolved_indicator:
                         found_indicator = indicator.get_name()
-                        utils.send_slack_message(ticker + ' triggered ' + found_indicator, '#stock-scanner')
+                        message = ticker + ' triggered ' + found_indicator
+                        self.logger.info(message)
+                        utils.send_slack_message(message, '#stock-scanner')
 
             utils.send_slack_message('Scanner pass-through, sleeping for 60 minutes', '#stock-scanner')
             time.sleep(3600)

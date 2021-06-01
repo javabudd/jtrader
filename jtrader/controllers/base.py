@@ -3,9 +3,9 @@ from cement.utils.version import get_version_banner
 
 from jtrader.core.hqm import HighQualityMomentum
 from jtrader.core.lqm import LowQualityMomentum
+from jtrader.core.news import News
 from jtrader.core.scanner.premarketmomentum import PreMarketMomentum
 from jtrader.core.scanner.scanner import Scanner
-from jtrader.core.news import News
 from jtrader.core.value import Value
 from ..core.version import get_version
 
@@ -53,7 +53,7 @@ class Base(Controller):
         """News Stream Command"""
 
         data = {
-            'news_stream': News(self.app.config.get('jtrader', 'is_sandbox')),
+            'news_stream': News(self.app.config.get('jtrader', 'is_sandbox'), self.app.log),
         }
 
         # if self.app.pargs.foo is not None:
@@ -79,7 +79,7 @@ class Base(Controller):
         """LQM Stats Command"""
 
         data = {
-            'stats': LowQualityMomentum(self.app.config.get('jtrader', 'is_sandbox')),
+            'stats': LowQualityMomentum(self.app.config.get('jtrader', 'is_sandbox'), self.app.log),
         }
 
         self.app.render(data, 'get_lqm_stats.jinja2')
@@ -102,7 +102,7 @@ class Base(Controller):
         """HQM Stats Command"""
 
         data = {
-            'stats': HighQualityMomentum(self.app.config.get('jtrader', 'is_sandbox')),
+            'stats': HighQualityMomentum(self.app.config.get('jtrader', 'is_sandbox'), self.app.log),
         }
 
         self.app.render(data, 'get_hqm_stats.jinja2')
@@ -125,7 +125,7 @@ class Base(Controller):
         """Deep Value Stats Command"""
 
         data = {
-            'stats': Value(self.app.config.get('jtrader', 'is_sandbox')),
+            'stats': Value(self.app.config.get('jtrader', 'is_sandbox'), self.app.log),
         }
 
         self.app.render(data, 'get_value_stats.jinja2')
@@ -148,7 +148,7 @@ class Base(Controller):
         """Start Pre Market Momentum Scanner Command"""
 
         data = {
-            'scanner': PreMarketMomentum(self.app.config.get('jtrader', 'is_sandbox')),
+            'scanner': PreMarketMomentum(self.app.config.get('jtrader', 'is_sandbox'), self.app.log),
         }
 
         self.app.render(data, 'start_pmm_scanner.jinja2')
@@ -169,9 +169,13 @@ class Base(Controller):
     )
     def start_realtime_scanner(self):
         """Start Real Time Scanner Command"""
+        is_sandbox = self.app.config.get('jtrader', 'is_sandbox')
+
+        if is_sandbox:
+            self.app.log.info('Starting in sandbox mode...')
 
         data = {
-            'scanner': Scanner(self.app.config.get('jtrader', 'is_sandbox')),
+            'scanner': Scanner(is_sandbox, self.app.log),
         }
 
         self.app.render(data, 'start_pmm_scanner.jinja2')

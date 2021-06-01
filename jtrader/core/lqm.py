@@ -44,7 +44,7 @@ class LowQualityMomentum(IEX):
             symbol_strings.append(','.join(symbol_groups[i]))
 
         for symbol_string in symbol_strings:
-            data = self.send_iex_request('stock/market/batch', {"symbols": symbol_string, "types": "quote,stats"})
+            data = self.iex_client.stocks.batch(symbol_string, ["quote", "stats"])
             for symbol in symbol_string.split(','):
                 if symbol not in data or 'quote' not in data[symbol] or data[symbol]['quote']['close'] is None:
                     continue

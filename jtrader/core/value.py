@@ -47,13 +47,7 @@ class Value(IEX):
             symbol_strings.append(','.join(symbol_groups[i]))
 
         for symbol_string in symbol_strings:
-            data = self.send_iex_request(
-                'stock/market/batch',
-                {
-                    "symbols": symbol_string,
-                    "types": "quote,advanced-stats"
-                }
-            )
+            data = self.iex_client.stocks.batch(symbol_string, ["quote", "advanced-stats"])
 
             for symbol in symbol_string.split(','):
                 if data[symbol]['quote']['close'] is None:

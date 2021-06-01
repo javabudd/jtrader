@@ -1,6 +1,6 @@
 from typing import Optional
 
-from jtrader.core.service.iex_client import IEXClient
+from pyEX.client import Client
 
 
 class ULTOSCValidator:
@@ -26,7 +26,7 @@ class ULTOSCValidator:
     must drop below the divergence low. The divergence low is the low point between the two highs of the divergence.
     """
 
-    def __init__(self, ticker: str, iex_client: IEXClient, is_bullish: Optional[bool] = True):
+    def __init__(self, ticker: str, iex_client: Client, is_bullish: Optional[bool] = True):
         self.iex_client = iex_client
         self.ticker = ticker
         self.is_bullish = is_bullish
@@ -37,7 +37,7 @@ class ULTOSCValidator:
 
     def validate(self):
         time_range = '5d'
-        data = self.iex_client.send_iex_request(f"stock/{self.ticker}/indicator/ultosc", {"range": time_range})
+        data = self.iex_client.stocks.technicals(self.ticker, 'ultosc', range=time_range)
         if 'indicator' not in data:
             return False
 
