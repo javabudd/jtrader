@@ -40,8 +40,7 @@ class APOValidator:
         if self.is_bullish:
             return self.signals_bullish(historical_data, quote_data, time_range)
         else:
-            # no logic for bearish detection yet
-            return False
+            return self.signals_bearish()
 
     def signals_bullish(self, historical_data, quote_data, time_range):
         if not historical_data:
@@ -73,4 +72,8 @@ class APOValidator:
                 if latest_apo_low['low'] > highest_apo_low['low']:
                     return True
 
+        return False
+
+    # nothing yet
+    def signals_bearish(self):
         return False
