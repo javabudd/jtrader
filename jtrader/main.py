@@ -5,7 +5,7 @@ from .controllers.base import Base
 from .core.exc import JTraderError
 
 CONFIG = init_defaults('jtrader')
-CONFIG['jtrader']['is_sandbox'] = True
+CONFIG['jtrader']['is_sandbox'] = False
 
 
 class JTrader(App):

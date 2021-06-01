@@ -58,6 +58,9 @@ class APOValidator:
                         (2 in indicator_data[0] and indicator_data[0][2] <= 0):
                     apo_chart = data['chart']
 
+                    if not apo_chart:
+                        return False
+
                     highest_apo_low = max(apo_chart[:-1], key=lambda x: x["low"])
                     latest_apo_low = apo_chart[-1]
 
