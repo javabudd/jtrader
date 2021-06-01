@@ -1,3 +1,8 @@
+from typing import Optional
+
+from jtrader.core.service.iex_client import IEXClient
+
+
 class ULTOSCValidator:
     """
     The Ultimate Oscillator is a range-bound indicator with a value that fluctuates between 0 and 100. Similar to the
@@ -21,16 +26,32 @@ class ULTOSCValidator:
     must drop below the divergence low. The divergence low is the low point between the two highs of the divergence.
     """
 
+    def __init__(self, ticker: str, iex_client: IEXClient, is_bullish: Optional[bool] = True):
+        self.iex_client = iex_client
+        self.ticker = ticker
+        self.is_bullish = is_bullish
+
     @staticmethod
     def get_name():
         return 'Ultimate Oscillator'
 
-    @staticmethod
-    def validate(**kwargs):
-        if 'indicator' not in kwargs.keys():
-            raise RuntimeError
+    def validate(self):
+        time_range = '5d'
+        data = self.iex_client.send_iex_request(f"stock/{self.ticker}/indicator/ultosc", {"range": time_range})
+        if 'indicator' not in data:
+            return False
 
-        indicator_data = kwargs.get('indicator')
+        indicator_data = data['indicator']
+
+        if 0 not in indicator_data[0] or indicator_data[0][0] is None:
+            return False
+
+        if 1 not in indicator_data[0] or indicator_data[0][1] is None:
+            return False
+
+        if 2 not in indicator_data[0] or indicator_data[0][2] is None:
+            return False
+
         short_period = indicator_data[0][0]
         medium_period = indicator_data[0][1]
         long_period = indicator_data[0][2]

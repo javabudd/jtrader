@@ -1,3 +1,8 @@
+from typing import Optional
+
+from jtrader.core.service.iex_client import IEXClient
+
+
 class APOValidator:
     """
     The Absolute Price Oscillator displays the difference between two exponential moving averages of a security's price
@@ -18,27 +23,40 @@ class APOValidator:
     upward momentum that could foreshadow a bearish reversal.
     """
 
+    def __init__(self, ticker: str, iex_client: IEXClient, is_bullish: Optional[bool] = True):
+        self.iex_client = iex_client
+        self.ticker = ticker
+        self.is_bullish = is_bullish
+
     @staticmethod
     def get_name():
         return 'Absolute Price Oscillator'
 
-    @staticmethod
-    def validate(**kwargs):
+    def validate(self):
+        time_range = '5d'
+        data = self.iex_client.send_iex_request(f"stock/{self.ticker}/indicator/apo", {"range": time_range})
+
         for required in ['indicator', 'chart']:
-            if required not in kwargs.keys():
-                raise RuntimeError
+            if required not in data:
+                return False
 
-        indicator_data = kwargs.get('indicator')
-        chart = kwargs.get('chart')
+        indicator_data = data['indicator']
 
-        highest_low = max(chart, key=lambda x: x["low"])
-        lowest_low = min(chart, key=lambda x: x["low"])
+        if self.is_bullish:
+            if (1 in indicator_data[0] and indicator_data[0][1] > 0) and \
+                    (2 in indicator_data[0] and indicator_data[0][2] <= 0):
+                historical_data = self.iex_client.send_iex_request(f"stock/{self.ticker}/chart/" + time_range)
+                quote_data = self.iex_client.send_iex_request(f"stock/{self.ticker}/quote")
+                apo_chart = data['chart']
 
-        # @TODO update this to actual logic
-        price_has_lowest_low = True
+                highest_apo_low = max(apo_chart[:-1], key=lambda x: x["low"])
+                lowest_low_historical = min(historical_data, key=lambda x: x["low"])
+                latest_apo_low = apo_chart[-1]
 
-        if indicator_data[0][1] > 0 and indicator_data[0][2] <= 0:
-            if price_has_lowest_low and highest_low['low'] > lowest_low['low']:
-                return True
+                if quote_data['low'] < lowest_low_historical['low'] and latest_apo_low['low'] > highest_apo_low['low']:
+                    return True
+        else:
+            # no logic for bearish detection yet
+            return False
 
         return False
