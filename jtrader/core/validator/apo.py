@@ -38,36 +38,39 @@ class APOValidator:
         quote_data = self.iex_client.send_iex_request(f"stock/{self.ticker}/quote")
 
         if self.is_bullish:
-            if not historical_data:
-                return False
-
-            lowest_low_historical = min(historical_data, key=lambda x: x["low"])
-
-            if lowest_low_historical['low'] is None or quote_data['low'] is None:
-                return False
-
-            if quote_data['low'] < lowest_low_historical['low']:
-                data = self.iex_client.send_iex_request(f"stock/{self.ticker}/indicator/apo", {"range": time_range})
-                for required in ['indicator', 'chart']:
-                    if required not in data:
-                        return False
-
-                indicator_data = data['indicator']
-
-                if (1 in indicator_data[0] and indicator_data[0][1] > 0) and \
-                        (2 in indicator_data[0] and indicator_data[0][2] <= 0):
-                    apo_chart = data['chart']
-
-                    if not apo_chart:
-                        return False
-
-                    highest_apo_low = max(apo_chart[:-1], key=lambda x: x["low"])
-                    latest_apo_low = apo_chart[-1]
-
-                    if latest_apo_low['low'] > highest_apo_low['low']:
-                        return True
+            return self.signals_bullish(historical_data, quote_data, time_range)
         else:
             # no logic for bearish detection yet
             return False
+
+    def signals_bullish(self, historical_data, quote_data, time_range):
+        if not historical_data:
+            return False
+
+        lowest_low_historical = min(historical_data, key=lambda x: x["low"])
+
+        if lowest_low_historical['low'] is None or quote_data['low'] is None:
+            return False
+
+        if quote_data['low'] < lowest_low_historical['low']:
+            data = self.iex_client.send_iex_request(f"stock/{self.ticker}/indicator/apo", {"range": time_range})
+            for required in ['indicator', 'chart']:
+                if required not in data:
+                    return False
+
+            indicator_data = data['indicator']
+
+            if (1 in indicator_data[0] and indicator_data[0][1] > 0) and \
+                    (2 in indicator_data[0] and indicator_data[0][2] <= 0):
+                apo_chart = data['chart']
+
+                if not apo_chart:
+                    return False
+
+                highest_apo_low = max(apo_chart[:-1], key=lambda x: x["low"])
+                latest_apo_low = apo_chart[-1]
+
+                if latest_apo_low['low'] > highest_apo_low['low']:
+                    return True
 
         return False
