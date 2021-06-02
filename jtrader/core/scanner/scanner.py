@@ -8,17 +8,24 @@ from cement.core.log import LogInterface
 from pyEX import PyEXception
 
 import jtrader.core.utils as utils
+from jtrader import __STOCK_CSVS__
 from jtrader.core.iex import IEX
 from jtrader.core.validator import __VALIDATION_MAP__
 
 
 class Scanner(IEX):
-    def __init__(self, is_sandbox: bool, logger: LogInterface, stock_list: Optional[str], indicators: Optional[list]):
+    def __init__(self, is_sandbox: bool, logger: LogInterface, stocks: Optional[str], indicators: Optional[list]):
         super().__init__(is_sandbox, logger)
 
-        self.stock_list = stock_list
-        self.indicators = []
+        if stocks is None:
+            self.stock_list = __STOCK_CSVS__['all']
+        else:
+            if stocks not in __STOCK_CSVS__:
+                raise RuntimeError
 
+            self.stock_list = __STOCK_CSVS__[stocks]
+
+        self.indicators = []
         if indicators is None:
             self.indicators.append(__VALIDATION_MAP__['all'])
         else:
@@ -33,7 +40,7 @@ class Scanner(IEX):
         if self.is_sandbox:
             chunk_size = 6000
 
-        stocks = pd.read_csv('files/all_stocks.csv', chunksize=chunk_size)
+        stocks = pd.read_csv(self.stock_list, chunksize=chunk_size)
 
         while True:
             i = 1
