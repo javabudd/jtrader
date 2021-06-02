@@ -1,51 +1,29 @@
 from jtrader.core.validator.validator import Validator
 
 
-class RSIBullish(Validator):
+class BullishRSI(Validator):
     """
-    The Ultimate Oscillator is a range-bound indicator with a value that fluctuates between 0 and 100. Similar to the
-    Relative Strength Index (RSI), levels below 30 are deemed to be oversold, and levels above 70 are deemed to be
-    overbought. Trading signals are generated when the price moves in the opposite direction as the indicator, and are
-    based on a three-step method.
+    The relative strength index (RSI) is a momentum indicator used in technical analysis that measures the magnitude of
+    recent price changes to evaluate overbought or oversold conditions in the price of a stock or other asset. The RSI
+    is displayed as an oscillator (a line graph that moves between two extremes) and can have a reading from 0 to 100.
 
     Buy signals:
-
-    First, a bullish divergence must form. This is when the price makes a lower low but the indicator is at a higher
-    low.Second, the first low in the divergence (the lower one) must have been below 30. This means the divergence
-    started from oversold territory and is more likely to result in an upside price reversal. Third, the Ultimate
-    oscillator must rise above the divergence high. The divergence high is the high point between the two lows of
-    the divergence.
+    Some traders will consider it a “buy signal” if a security’s RSI reading moves below 30, based on the idea that the
+    security has been oversold and is therefore poised for a rebound. However, the reliability of this signal will
+    depend in part on the overall context. If the security is caught in a significant downtrend, then it might continue
+    trading at an oversold level for quite some time. Traders in that situation might delay buying until they see other
+    confirmatory signals.
 
     Sell signals:
 
-    First, a bearish divergence must form. This is when the price makes a higher high but the indicator is at a lower
-    high. Second, the first high in the divergence (the higher one) must be above 70. This means the divergence started
-    from overbought territory and is more likely to result in a downside price reversal. Third, the Ultimate oscillator
-    must drop below the divergence low. The divergence low is the low point between the two highs of the divergence.
     """
 
     @staticmethod
     def get_name():
-        return 'Ultimate Oscillator'
+        return 'Bullish RSI'
 
     def validate(self):
-        time_range = '5d'
-
-        if self.has_lower_low(time_range):
-            data = self.iex_client.stocks.technicals(self.ticker, 'ultosc', range=time_range)
-            chart = data['chart']
-
-            if not chart or len(chart) == 1:
-                return False
-
-            highest_low = max(chart[:-1], key=lambda x: x["low"])
-            lowest_low = min(chart, key=lambda x: x["low"])
-            latest_low = chart[-1]
-
-            if latest_low['low'] > highest_low['low'] and lowest_low['low'] < 30:
-                return True
-
-            return False
+        return True
 
     def get_validation_chain(self):
         return []
