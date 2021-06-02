@@ -3,6 +3,7 @@ from cement.utils.version import get_version_banner
 
 from jtrader.core.hqm import HighQualityMomentum
 from jtrader.core.lqm import LowQualityMomentum
+from jtrader.core.momentum import Momentum
 from jtrader.core.news import News
 from jtrader.core.premarketmomentum import PreMarketMomentum
 from jtrader.core.scanner.scanner import Scanner
@@ -144,11 +145,38 @@ class Base(Controller):
             ),
         ],
     )
-    def start_pmm_scanner(self):
+    def get_pmm_stats(self):
         """Start Pre Market Momentum Scanner Command"""
 
         data = {
             'scanner': PreMarketMomentum(self.app.config.get('jtrader', 'is_sandbox'), self.app.log),
+        }
+
+        self.app.render(data, 'start_pmm_scanner.jinja2')
+
+    @ex(
+        help='Start Pre Market Momentum Scanner',
+
+        arguments=[
+            (
+                    ['-f', '--foo'],
+                    {
+                        'help': 'notorious foo option',
+                        'action': 'store',
+                        'dest': 'foo'
+                    }
+            ),
+        ],
+    )
+    def get_mm_stats(self):
+        """Start Market Momentum Scanner Command"""
+        is_sandbox = self.app.config.get('jtrader', 'is_sandbox')
+
+        if is_sandbox:
+            self.app.log.info('Starting in sandbox mode...')
+
+        data = {
+            'scanner': Momentum(is_sandbox, self.app.log),
         }
 
         self.app.render(data, 'start_pmm_scanner.jinja2')
