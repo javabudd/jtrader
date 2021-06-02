@@ -132,7 +132,7 @@ class Base(Controller):
         self.app.render(data, 'get_value_stats.jinja2')
 
     @ex(
-        help='Start Pre Market Momentum Scanner',
+        help='Get pre market momentum stats',
 
         arguments=[
             (
@@ -155,7 +155,7 @@ class Base(Controller):
         self.app.render(data, 'start_pmm_scanner.jinja2')
 
     @ex(
-        help='Start Pre Market Momentum Scanner',
+        help='Get market momentum stats',
 
         arguments=[
             (
@@ -182,7 +182,7 @@ class Base(Controller):
         self.app.render(data, 'start_pmm_scanner.jinja2')
 
     @ex(
-        help='Start Real Time Scanner',
+        help='Start stock scanner',
 
         arguments=[
             (
@@ -213,8 +213,8 @@ class Base(Controller):
             ),
         ],
     )
-    def start_realtime_scanner(self):
-        """Start Real Time Scanner Command"""
+    def start_scanner(self):
+        """Start Scanner Command"""
         is_sandbox = self.app.config.get('jtrader', 'is_sandbox')
 
         if is_sandbox:
