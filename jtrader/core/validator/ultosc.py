@@ -42,7 +42,7 @@ class ULTOSCValidator(Validator):
             lowest_low = min(chart, key=lambda x: x["low"])
             latest_low = chart[-1]
 
-            if latest_low > highest_low and lowest_low < 30:
+            if latest_low['low'] > highest_low['low'] and lowest_low['low'] < 30:
                 return True
 
             return False
