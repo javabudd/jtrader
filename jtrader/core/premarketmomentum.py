@@ -140,7 +140,7 @@ class PreMarketMomentum(IEX):
         # if the latest price is gaping 10%+
         if quote['extendedChangePercent'] >= .1:
             # if the PM volume is already 30%+ of the average trading volume
-            if quote['latestVolume'] != 0 and 1 - (quote['avgTotalVolume'] / quote['latestVolume']) > .3:
+            if quote['latestVolume'] != 0 and quote['latestVolume'] / quote['avgTotalVolume'] >= .3:
                 # make sure the stock has some news
                 data = self.iex_client.stocks.news(quote['symbol'])
 
