@@ -1,9 +1,7 @@
-from typing import Optional
-
-from pyEX.client import Client
+from jtrader.core.validator.validator import Validator
 
 
-class APOValidator:
+class APOValidator(Validator):
     """
     The Absolute Price Oscillator displays the difference between two exponential moving averages of a security's price
     and is expressed as an absolute value.
@@ -23,35 +21,19 @@ class APOValidator:
     upward momentum that could foreshadow a bearish reversal.
     """
 
-    def __init__(self, ticker: str, iex_client: Client, is_bullish: Optional[bool] = True):
-        self.iex_client = iex_client
-        self.ticker = ticker
-        self.is_bullish = is_bullish
-
     @staticmethod
     def get_name():
         return 'Absolute Price Oscillator'
 
     def validate(self):
         time_range = '5d'
-        historical_data = self.iex_client.stocks.chart(self.ticker, timeframe=time_range)
-        quote_data = self.iex_client.stocks.quote(self.ticker)
-
         if self.is_bullish:
-            return self.signals_bullish(historical_data, quote_data, time_range)
+            return self.signals_bullish(time_range)
         else:
             return self.signals_bearish()
 
-    def signals_bullish(self, historical_data, quote_data, time_range):
-        if not historical_data:
-            return False
-
-        lowest_low_historical = min(historical_data, key=lambda x: x["low"])
-
-        if lowest_low_historical['low'] is None or quote_data['low'] is None:
-            return False
-
-        if quote_data['low'] < lowest_low_historical['low']:
+    def signals_bullish(self, time_range):
+        if self.has_lower_low(time_range):
             data = self.iex_client.stocks.technicals(self.ticker, 'apo', range=time_range)
             for required in ['indicator', 'chart']:
                 if required not in data:

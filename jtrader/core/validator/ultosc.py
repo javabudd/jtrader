@@ -1,9 +1,7 @@
-from typing import Optional
-
-from pyEX.client import Client
+from jtrader.core.validator.validator import Validator
 
 
-class ULTOSCValidator:
+class ULTOSCValidator(Validator):
     """
     The Ultimate Oscillator is a range-bound indicator with a value that fluctuates between 0 and 100. Similar to the
     Relative Strength Index (RSI), levels below 30 are deemed to be oversold, and levels above 70 are deemed to be
@@ -26,37 +24,25 @@ class ULTOSCValidator:
     must drop below the divergence low. The divergence low is the low point between the two highs of the divergence.
     """
 
-    def __init__(self, ticker: str, iex_client: Client, is_bullish: Optional[bool] = True):
-        self.iex_client = iex_client
-        self.ticker = ticker
-        self.is_bullish = is_bullish
-
     @staticmethod
     def get_name():
         return 'Ultimate Oscillator'
 
     def validate(self):
         time_range = '5d'
-        data = self.iex_client.stocks.technicals(self.ticker, 'ultosc', range=time_range)
-        if 'indicator' not in data:
+
+        if self.has_lower_low(time_range):
+            data = self.iex_client.stocks.technicals(self.ticker, 'ultosc', range=time_range)
+            chart = data['chart']
+
+            if not chart or len(chart) == 1:
+                return False
+
+            highest_low = max(chart[:-1], key=lambda x: x["low"])
+            lowest_low = min(chart, key=lambda x: x["low"])
+            latest_low = chart[-1]
+
+            if latest_low > highest_low and lowest_low < 30:
+                return True
+
             return False
-
-        indicator_data = data['indicator']
-
-        if 0 not in indicator_data[0] or indicator_data[0][0] is None:
-            return False
-
-        if 1 not in indicator_data[0] or indicator_data[0][1] is None:
-            return False
-
-        if 2 not in indicator_data[0] or indicator_data[0][2] is None:
-            return False
-
-        short_period = indicator_data[0][0]
-        medium_period = indicator_data[0][1]
-        long_period = indicator_data[0][2]
-
-        if short_period is None or medium_period is None or long_period is None:
-            return False
-
-        return long_period >= 70 and medium_period >= 50 and short_period >= 30
