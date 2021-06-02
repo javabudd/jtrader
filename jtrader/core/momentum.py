@@ -125,7 +125,7 @@ class Momentum(IEX):
         writer.save()
 
         with open(file_name, 'rb') as f:
-            utils.send_slack_file(file_name, 'MarketMomentum.xlsx', '#stock-scanner', file=io.BytesIO(f.read()))
+            utils.send_slack_file(file_name, 'MarketMomentum.xlsx', file=io.BytesIO(f.read()))
 
     def stock_qualifies(self, stock_data):
         if 'quote' not in stock_data:

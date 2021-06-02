@@ -144,4 +144,4 @@ class HighQualityMomentum(IEX):
         writer.save()
 
         with open(file_name, 'rb') as f:
-            utils.send_slack_file(file_name, 'HighQualityMomentum.xlsx', '#stock-scanner', file=io.BytesIO(f.read()))
+            utils.send_slack_file(file_name, 'HighQualityMomentum.xlsx', file=io.BytesIO(f.read()))

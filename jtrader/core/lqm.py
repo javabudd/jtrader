@@ -144,4 +144,4 @@ class LowQualityMomentum(IEX):
         writer.save()
 
         with open(file_name, 'rb') as f:
-            utils.send_slack_file(file_name, 'LowQualityMomentum.xlsx', '#stock-scanner', file=io.BytesIO(f.read()))
+            utils.send_slack_file(file_name, 'LowQualityMomentum.xlsx', file=io.BytesIO(f.read()))
