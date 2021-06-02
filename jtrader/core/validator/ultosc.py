@@ -1,3 +1,4 @@
+from jtrader.core.validator.apo import APOValidator
 from jtrader.core.validator.validator import Validator
 
 
@@ -46,3 +47,8 @@ class ULTOSCValidator(Validator):
                 return True
 
             return False
+
+    def get_validation_chain(self):
+        return [
+            APOValidator
+        ]

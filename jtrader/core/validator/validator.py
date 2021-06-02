@@ -14,6 +14,10 @@ class Validator(ABC):
     def validate(self):
         pass
 
+    @abstractmethod
+    def get_validation_chain(self):
+        pass
+
     def has_lower_low(self, time_range: Optional[str] = '5d'):
         historical_data = self.iex_client.stocks.chart(self.ticker, timeframe=time_range)
         quote_data = self.iex_client.stocks.quote(self.ticker)

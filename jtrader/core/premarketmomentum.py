@@ -37,7 +37,7 @@ class PreMarketMomentum(IEX):
             symbol_strings.append(','.join(symbol_groups[i]))
 
         for symbol_string in symbol_strings:
-            data = self.send_iex_request('stock/market/batch', {"symbols": symbol_string, "types": "quote,stats"})
+            data = self.iex_client.stocks.batch(symbol_string, ['quote', 'stats'])
             for symbol in symbol_string.split(','):
                 if symbol not in data:
                     continue
@@ -138,11 +138,11 @@ class PreMarketMomentum(IEX):
             return False
 
         # if the latest price is gaping 10%+
-        if 1 - (quote['previousClose'] / quote['extendedPrice']) > .1:
+        if quote['extendedChangePercent'] >= .1:
             # if the PM volume is already 30%+ of the average trading volume
             if quote['latestVolume'] != 0 and 1 - (quote['avgTotalVolume'] / quote['latestVolume']) > .3:
                 # make sure the stock has some news
-                data = self.send_iex_request(f"stock/{quote['symbol']}/news")
+                data = self.iex_client.stocks.news(quote['symbol'])
 
                 has_news = False
                 for news in data:
