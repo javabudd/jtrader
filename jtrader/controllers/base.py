@@ -186,11 +186,29 @@ class Base(Controller):
 
         arguments=[
             (
-                    ['-f', '--foo'],
+                    ['-s', '--stock-list'],
                     {
-                        'help': 'notorious foo option',
+                        'help': 'change the default stock list',
                         'action': 'store',
-                        'dest': 'foo'
+                        'dest': 'stock_list',
+                        'choices': [
+                            'sp500',
+                            'all'
+                        ]
+                    }
+            ),
+            (
+                    ['-t', '--technical-indicators'],
+                    {
+                        'help': 'which technicals indicators to scan against',
+                        'action': 'append',
+                        'dest': 'indicators',
+                        'choices': [
+                            'robust',
+                            'apo',
+                            'ultosc'
+                        ],
+                        'nargs': '+'
                     }
             ),
         ],
@@ -203,7 +221,7 @@ class Base(Controller):
             self.app.log.info('Starting in sandbox mode...')
 
         data = {
-            'scanner': Scanner(is_sandbox, self.app.log),
+            'scanner': Scanner(is_sandbox, self.app.log, self.app.pargs.stock_list, self.app.pargs.indicators),
         }
 
         self.app.render(data, 'start_pmm_scanner.jinja2')

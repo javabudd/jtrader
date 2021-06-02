@@ -1,18 +1,33 @@
 import _thread
 import json
 import time
-from typing import Iterable
+from typing import Optional
 
 import pandas as pd
+from cement.core.log import LogInterface
 from pyEX import PyEXception
 
 import jtrader.core.utils as utils
 from jtrader.core.iex import IEX
-from jtrader.core.validator.robust import RobustValidator
-from jtrader.core.validator.validator import Validator
+from jtrader.core.validator import __VALIDATION_MAP__
 
 
 class Scanner(IEX):
+    def __init__(self, is_sandbox: bool, logger: LogInterface, stock_list: Optional[str], indicators: Optional[list]):
+        super().__init__(is_sandbox, logger)
+
+        self.stock_list = stock_list
+        self.indicators = []
+
+        if indicators is None:
+            self.indicators.append(__VALIDATION_MAP__['all'])
+        else:
+            for indicator in indicators:
+                if indicator[0] in __VALIDATION_MAP__:
+                    self.indicators.append(__VALIDATION_MAP__[indicator[0]])
+            if len(self.indicators) == 0:
+                raise RuntimeError
+
     def run(self):
         chunk_size = 3333
         if self.is_sandbox:
@@ -20,19 +35,15 @@ class Scanner(IEX):
 
         stocks = pd.read_csv('files/all_stocks.csv', chunksize=chunk_size)
 
-        validators: Iterable[Validator] = [
-            RobustValidator,
-        ]
-
         while True:
             i = 1
             for chunk in enumerate(stocks):
-                _thread.start_new_thread(self.loop, (f"Thread-{i}", validators, chunk))
+                _thread.start_new_thread(self.loop, (f"Thread-{i}", chunk))
                 i += 1
 
             time.sleep(3600)
 
-    def loop(self, thread_name, validators, chunk):
+    def loop(self, thread_name, chunk):
         sleep = .2
 
         if self.is_sandbox:
@@ -40,19 +51,19 @@ class Scanner(IEX):
 
         for ticker in chunk[1]['Ticker']:
             self.logger.info(f"({thread_name}) Processing ticker: {ticker}")
-            for validator in validators:
-                validator_instance = validator(ticker, self.iex_client)
+            for indicator_class in self.indicators:
+                indicator = indicator_class(ticker, self.iex_client)
                 passed_validators = {}
                 try:
-                    is_valid = validator_instance.validate()
+                    is_valid = indicator.validate()
 
                     if is_valid is False:
                         continue
 
-                    chain = validator_instance.get_validation_chain()
+                    chain = indicator.get_validation_chain()
                     has_valid_chain = True
                     if len(chain) > 0:
-                        passed_validators[validator_instance.get_name()] = []
+                        passed_validators[indicator.get_name()] = []
                         chain_index = 0
                         for validator_chain in chain:
                             validator_chain = validator_chain(ticker, self.iex_client)
@@ -60,12 +71,12 @@ class Scanner(IEX):
                                 has_valid_chain = False
                                 break  # break out of validation chain
 
-                            passed_validators[validator_instance.get_name()].append(validator_chain.get_name())
+                            passed_validators[indicator.get_name()].append(validator_chain.get_name())
                             chain_index += 1
                         if has_valid_chain is False:
                             continue  # continue to the next validator in list
                     else:
-                        passed_validators = [validator_instance.get_name()]
+                        passed_validators = [indicator.get_name()]
 
                 except PyEXception as e:
                     self.logger.error(e.args[0] + ' ' + e.args[1])
