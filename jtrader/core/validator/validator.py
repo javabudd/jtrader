@@ -5,10 +5,17 @@ from pyEX.client import Client
 
 
 class Validator(ABC):
-    def __init__(self, ticker: str, iex_client: Client, is_bullish: Optional[bool] = True):
+    def __init__(
+            self,
+            ticker: str,
+            iex_client: Client,
+            is_bullish: Optional[bool] = True,
+            time_range: Optional[str] = '5d'
+    ):
         self.iex_client = iex_client
         self.ticker = ticker
         self.is_bullish = is_bullish
+        self.time_range = time_range
 
     @abstractmethod
     def validate(self):
@@ -17,6 +24,9 @@ class Validator(ABC):
     @abstractmethod
     def get_validation_chain(self):
         pass
+
+    def get_time_range(self):
+        return self.time_range
 
     def has_lower_low(self, time_range: Optional[str] = '5d'):
         historical_data = self.iex_client.stocks.chart(self.ticker, timeframe=time_range)

@@ -1,3 +1,5 @@
+import numpy as np
+
 from jtrader.core.validator.validator import Validator
 
 
@@ -23,7 +25,19 @@ class BullishRSI(Validator):
         return 'Bullish RSI'
 
     def validate(self):
-        return True
+        data = self.iex_client.stocks.technicals(self.ticker, 'rsi', range=self.time_range)
+
+        if 'chart' not in data:
+            return False
+
+        chart = data['chart']
+
+        if not chart or len(chart) == 1:
+            return False
+
+        average_close = np.mean(list(map(lambda x: x['close'], chart)))
+
+        return average_close <= 30
 
     def get_validation_chain(self):
         return []

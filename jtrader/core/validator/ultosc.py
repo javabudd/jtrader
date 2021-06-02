@@ -29,10 +29,8 @@ class ULTOSCValidator(Validator):
         return 'Ultimate Oscillator'
 
     def validate(self):
-        time_range = '5d'
-
-        if self.has_lower_low(time_range):
-            data = self.iex_client.stocks.technicals(self.ticker, 'ultosc', range=time_range)
+        if self.has_lower_low(self.time_range):
+            data = self.iex_client.stocks.technicals(self.ticker, 'ultosc', range=self.time_range)
             chart = data['chart']
 
             if not chart or len(chart) == 1:

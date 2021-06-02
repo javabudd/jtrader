@@ -26,15 +26,14 @@ class APOValidator(Validator):
         return 'Absolute Price Oscillator'
 
     def validate(self):
-        time_range = '5d'
         if self.is_bullish:
-            return self.signals_bullish(time_range)
+            return self.signals_bullish()
         else:
             return self.signals_bearish()
 
-    def signals_bullish(self, time_range):
-        if self.has_lower_low(time_range):
-            data = self.iex_client.stocks.technicals(self.ticker, 'apo', range=time_range)
+    def signals_bullish(self):
+        if self.has_lower_low(self.time_range):
+            data = self.iex_client.stocks.technicals(self.ticker, 'apo', range=self.time_range)
             for required in ['chart']:
                 if required not in data:
                     return False

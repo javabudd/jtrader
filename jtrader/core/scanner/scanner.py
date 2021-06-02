@@ -36,7 +36,7 @@ class Scanner(IEX):
                 raise RuntimeError
 
     def run(self):
-        chunk_size = 3333
+        chunk_size = 5000
         if self.is_sandbox:
             chunk_size = 6000
 
@@ -78,7 +78,8 @@ class Scanner(IEX):
                                 has_valid_chain = False
                                 break  # break out of validation chain
 
-                            passed_validators[indicator.get_name()].append(validator_chain.get_name())
+                            passed_validators[indicator.get_name()] \
+                                .append(validator_chain.get_name() + f"({validator_chain.get_time_range()})")
                             chain_index += 1
                         if has_valid_chain is False:
                             continue  # continue to the next validator in list
