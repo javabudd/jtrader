@@ -41,7 +41,7 @@ class APOValidator(Validator):
 
             apo_chart = data['chart']
 
-            if not apo_chart:
+            if not apo_chart or len(apo_chart) == 1:
                 return False
 
             highest_apo_low = max(apo_chart[:-1], key=lambda x: x["low"])
