@@ -1,5 +1,4 @@
 import json
-import signal
 
 import jtrader.core.utils as utils
 from jtrader.core.iex import IEX
@@ -9,8 +8,7 @@ class News(IEX):
     def run(self):
         stream_messages = self.iex_client.streaming.newsSSE(
             "SPY",
-            on_data=self.message_callback,
-            exit=signal.CTRL_C_EVENT
+            on_data=self.message_callback
         )
         for messages in stream_messages:
             for message in json.loads(messages.data):
