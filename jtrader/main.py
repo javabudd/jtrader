@@ -1,11 +1,12 @@
 from cement import App, TestApp, init_defaults
 from cement.core.exc import CaughtSignal
 
+from jtrader.core.secrets import IS_SANDBOX
 from .controllers.base import Base
 from .core.exc import JTraderError
 
 CONFIG = init_defaults('jtrader')
-CONFIG['jtrader']['is_sandbox'] = False
+CONFIG['jtrader']['is_sandbox'] = IS_SANDBOX
 
 
 class JTrader(App):
