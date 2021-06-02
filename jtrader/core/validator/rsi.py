@@ -3,7 +3,7 @@ import numpy as np
 from jtrader.core.validator.validator import Validator
 
 
-class BullishRSI(Validator):
+class RSIValidator(Validator):
     """
     The relative strength index (RSI) is a momentum indicator used in technical analysis that measures the magnitude of
     recent price changes to evaluate overbought or oversold conditions in the price of a stock or other asset. The RSI
@@ -22,22 +22,25 @@ class BullishRSI(Validator):
 
     @staticmethod
     def get_name():
-        return 'Bullish RSI'
+        return 'RSI'
 
     def validate(self):
-        data = self.iex_client.stocks.technicals(self.ticker, 'rsi', range=self.time_range)
+        if self.is_bullish:
+            data = self.iex_client.stocks.technicals(self.ticker, 'rsi', range=self.time_range)
 
-        if 'chart' not in data:
-            return False
+            if 'chart' not in data:
+                return False
 
-        chart = data['chart']
+            chart = data['chart']
 
-        if not chart or len(chart) == 1:
-            return False
+            if not chart or len(chart) == 1:
+                return False
 
-        average_close = np.mean(list(map(lambda x: x['close'], chart)))
+            average_close = np.mean(list(map(lambda x: x['close'], chart)))
 
-        return average_close <= 30
+            return average_close <= 30
+
+        return False
 
     def get_validation_chain(self):
         return []

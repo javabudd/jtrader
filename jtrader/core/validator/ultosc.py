@@ -29,21 +29,22 @@ class ULTOSCValidator(Validator):
         return 'Ultimate Oscillator'
 
     def validate(self):
-        if self.has_lower_low(self.time_range):
-            data = self.iex_client.stocks.technicals(self.ticker, 'ultosc', range=self.time_range)
-            chart = data['chart']
+        if self.is_bullish:
+            if self.has_lower_low(self.time_range):
+                data = self.iex_client.stocks.technicals(self.ticker, 'ultosc', range=self.time_range)
+                chart = data['chart']
 
-            if not chart or len(chart) == 1:
-                return False
+                if not chart or len(chart) == 1:
+                    return False
 
-            highest_low = max(chart[:-1], key=lambda x: x["low"])
-            lowest_low = min(chart, key=lambda x: x["low"])
-            latest_low = chart[-1]
+                highest_low = max(chart[:-1], key=lambda x: x["low"])
+                lowest_low = min(chart, key=lambda x: x["low"])
+                latest_low = chart[-1]
 
-            if latest_low['low'] > highest_low['low'] and lowest_low['low'] < 30:
-                return True
+                if latest_low['low'] > highest_low['low'] and lowest_low['low'] < 30:
+                    return True
 
-            return False
+        return False
 
     def get_validation_chain(self):
         return []

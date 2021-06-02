@@ -1,5 +1,5 @@
 from jtrader.core.validator.apo import APOValidator
-from jtrader.core.validator.bullishrsi import BullishRSI
+from jtrader.core.validator.rsi import RSIValidator
 from jtrader.core.validator.ultosc import ULTOSCValidator
 from jtrader.core.validator.validator import Validator
 
@@ -14,7 +14,7 @@ class RobustValidator(Validator):
 
     def get_validation_chain(self):
         return [
-            BullishRSI,
+            RSIValidator,
             APOValidator,
             ULTOSCValidator
         ]
