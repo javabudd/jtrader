@@ -49,7 +49,7 @@ class Scanner(IEX):
         num_lines = len(open(self.stock_list).readlines())
         chunk_size = math.floor(num_lines / 10)
         if self.is_sandbox:
-            chunk_size = math.floor(num_lines / 4)
+            chunk_size = math.floor(num_lines / 1)
 
         stocks = pd.read_csv(self.stock_list, chunksize=chunk_size)
 
@@ -59,8 +59,8 @@ class Scanner(IEX):
                 _thread.start_new_thread(self.loop, (f"Thread-{i}", chunk))
                 i += 1
 
-            self.logger.info('Processing finished, sleeping for an hour...')
-            time.sleep(3600)
+            self.logger.info('Processing finished, sleeping...')
+            time.sleep(901)
 
     def loop(self, thread_name, chunk):
         sleep = .2
@@ -94,8 +94,7 @@ class Scanner(IEX):
                                 has_valid_chain = False
                                 break  # break out of validation chain
 
-                            passed_validators[indicator.get_name()] \
-                                .append(validator_chain.get_name() + f"({validator_chain.get_time_range()})")
+                            passed_validators[indicator.get_name()].append(validator_chain.get_name())
                             chain_index += 1
                         if has_valid_chain is False:
                             continue  # continue to the next validator in list
@@ -120,3 +119,5 @@ class Scanner(IEX):
                     utils.send_slack_message('```' + message_string + '```')
 
             time.sleep(sleep)
+
+        return True
