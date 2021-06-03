@@ -19,7 +19,7 @@ class Validator(ABC):
         self.time_range = time_range
 
     @abstractmethod
-    def validate(self):
+    def is_valid(self):
         pass
 
     @abstractmethod

@@ -74,7 +74,7 @@ class Scanner(IEX):
                 indicator = indicator_class(ticker, self.iex_client)
                 passed_validators = {}
                 try:
-                    is_valid = indicator.validate()
+                    is_valid = indicator.is_valid()
 
                     if is_valid is False:
                         continue
@@ -90,7 +90,7 @@ class Scanner(IEX):
                                 args["time_range"] = self.time_range
 
                             validator_chain = validator_chain(ticker, self.iex_client, **args)
-                            if validator_chain.validate() is False:
+                            if validator_chain.is_valid() is False:
                                 has_valid_chain = False
                                 break  # break out of validation chain
 

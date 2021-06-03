@@ -24,7 +24,7 @@ class RSIValidator(Validator):
     def get_name():
         return 'RSI'
 
-    def validate(self):
+    def is_valid(self):
         if self.is_bullish:
             data = self.iex_client.stocks.intradayDF(self.ticker, IEXOnly=True)
 

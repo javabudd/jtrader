@@ -28,7 +28,7 @@ class MACDValidator(Validator):
     def get_name():
         return 'MACD'
 
-    def validate(self):
+    def is_valid(self):
         if self.is_bullish:
             data = self.iex_client.stocks.intradayDF(self.ticker, IEXOnly=True)
 
