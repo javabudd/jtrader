@@ -10,7 +10,7 @@ class Validator(ABC):
             ticker: str,
             iex_client: Client,
             is_bullish: Optional[bool] = True,
-            time_range: Optional[str] = '1d'
+            time_range: Optional[str] = '5d'
     ):
         self.iex_client = iex_client
         self.ticker = ticker
