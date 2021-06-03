@@ -30,21 +30,30 @@ class MACDValidator(Validator):
 
     def validate(self):
         if self.is_bullish:
-            data = self.iex_client.stocks.technicals(self.ticker, 'macd', range=self.time_range)
+            data = self.iex_client.stocks.intradayDF(self.ticker, IEXOnly=True)
 
-            if 'chart' not in data:
+            if 'close' not in data:
                 return False
 
-            chart = data['chart']
+            data.dropna(inplace=True)
 
-            if not chart or len(chart) == 1:
-                return False
+            closes = data['close']
 
-            average_close = np.mean(list(map(lambda x: x['close'] is not None, chart)))
+            macd = self.get_macd(closes)
+            ema9 = self.get_ema(9, macd)
 
-            return average_close <= 30
+            average_mac = np.mean(macd[:-1])
+            average_ema = np.mean(ema9[:-1])
+
+            return macd[-1] > ema9[-1] and average_mac <= average_ema
 
         return False
 
     def get_validation_chain(self):
         return []
+
+    def get_macd(self, closes: list, slow: int = 26, fast: int = 12):
+        emas_low = self.get_ema(slow, closes)
+        ema_fast = self.get_ema(fast, closes)
+
+        return ema_fast - emas_low

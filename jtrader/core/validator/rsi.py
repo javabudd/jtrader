@@ -26,21 +26,46 @@ class RSIValidator(Validator):
 
     def validate(self):
         if self.is_bullish:
-            data = self.iex_client.stocks.technicals(self.ticker, 'rsi', range=self.time_range)
+            data = self.iex_client.stocks.intradayDF(self.ticker, IEXOnly=True)
 
-            if 'chart' not in data:
+            if 'close' not in data:
                 return False
 
-            chart = data['chart']
+            data.dropna(inplace=True)
 
-            if not chart or len(chart) == 1:
-                return False
+            closes = self.get_rsi(data['close'])
 
-            average_close = np.mean(list(map(lambda x: x['close'] is not None, chart)))
-
-            return average_close <= 30
+            return closes[-1] < 30 and np.mean(closes[:-1]) >= 30
 
         return False
 
     def get_validation_chain(self):
         return []
+
+    @staticmethod
+    def get_rsi(prices: list, n: int = 14):
+        deltas = np.diff(prices)
+        seed = deltas[:n + 1]
+        up = seed[seed >= 0].sum() / n
+        down = -seed[seed < 0].sum() / n
+        rs = up / down
+        rsi = np.zeros_like(prices)
+        rsi[:n] = 100. - 100. / (1. + rs)
+
+        for i in range(n, len(prices)):
+            delta = deltas[i - 1]
+
+            if delta > 0:
+                up_delta = delta
+                down_delta = 0.
+            else:
+                up_delta = 0.
+                down_delta = -delta
+
+            up = (up * (n - 1) + up_delta) / n
+            down = (down * (n - 1) + down_delta) / n
+
+            rs = up / down
+            rsi[i] = 100. - 100. / (1. + rs)
+
+        return rsi
