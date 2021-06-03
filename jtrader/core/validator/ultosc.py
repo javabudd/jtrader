@@ -30,7 +30,7 @@ class ULTOSCValidator(Validator):
 
     def validate(self):
         if self.is_bullish:
-            if self.has_lower_low(self.time_range):
+            if self.has_lower_low():
                 data = self.iex_client.stocks.technicals(self.ticker, 'ultosc', range=self.time_range)
                 chart = data['chart']
 

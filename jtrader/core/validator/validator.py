@@ -28,8 +28,8 @@ class Validator(ABC):
     def get_time_range(self):
         return self.time_range
 
-    def has_lower_low(self, time_range: Optional[str] = '5d'):
-        historical_data = self.iex_client.stocks.chart(self.ticker, timeframe=time_range)
+    def has_lower_low(self):
+        historical_data = self.iex_client.stocks.chart(self.ticker, timeframe=self.time_range)
         quote_data = self.iex_client.stocks.quote(self.ticker)
 
         if not historical_data:

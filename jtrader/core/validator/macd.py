@@ -32,8 +32,6 @@ class MACDValidator(Validator):
         if self.is_bullish:
             data = self.iex_client.stocks.technicals(self.ticker, 'macd', range=self.time_range)
 
-            print(data)
-            exit()
             if 'chart' not in data:
                 return False
 

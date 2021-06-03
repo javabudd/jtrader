@@ -32,7 +32,7 @@ class APOValidator(Validator):
             return self.signals_bearish()
 
     def signals_bullish(self):
-        if self.has_lower_low(self.time_range):
+        if self.has_lower_low():
             data = self.iex_client.stocks.technicals(self.ticker, 'apo', range=self.time_range)
             for required in ['chart']:
                 if required not in data:

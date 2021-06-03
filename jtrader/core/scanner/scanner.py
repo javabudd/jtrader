@@ -1,5 +1,6 @@
 import _thread
 import json
+import math
 import time
 from typing import Optional
 
@@ -36,9 +37,10 @@ class Scanner(IEX):
                 raise RuntimeError
 
     def run(self):
-        chunk_size = 1000
+        num_lines = len(open(self.stock_list).readlines())
+        chunk_size = math.floor(num_lines / 10)
         if self.is_sandbox:
-            chunk_size = 6000
+            chunk_size = math.floor(num_lines / 4)
 
         stocks = pd.read_csv(self.stock_list, chunksize=chunk_size)
 
@@ -48,6 +50,7 @@ class Scanner(IEX):
                 _thread.start_new_thread(self.loop, (f"Thread-{i}", chunk))
                 i += 1
 
+            self.logger.info('Processing finished, sleeping for an hour...')
             time.sleep(3600)
 
     def loop(self, thread_name, chunk):
