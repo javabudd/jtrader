@@ -40,12 +40,12 @@ class MACDValidator(Validator):
             closes = data['close']
 
             macd = self.get_macd(closes)
-            ema9 = self.get_ema(9, macd)
+            signal_line = self.get_ema(9, macd)
 
             average_mac = np.mean(macd[:-1])
-            average_ema = np.mean(ema9[:-1])
+            average_ema = np.mean(signal_line[:-1])
 
-            return macd[-1] > ema9[-1] and average_mac <= average_ema
+            return macd[-1] > signal_line[-1] and average_mac <= average_ema
 
         return False
 

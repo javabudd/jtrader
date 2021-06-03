@@ -69,6 +69,7 @@ class Scanner(IEX):
             sleep = 2
 
         for ticker in chunk[1]['Ticker']:
+            time.sleep(sleep)
             self.logger.info(f"({thread_name}) Processing ticker: {ticker}")
             for indicator_class in self.indicators:
                 indicator = indicator_class(ticker, self.iex_client)
@@ -117,7 +118,5 @@ class Scanner(IEX):
 
                     self.logger.info(message_string)
                     utils.send_slack_message('```' + message_string + '```')
-
-            time.sleep(sleep)
 
         return True
