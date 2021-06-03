@@ -27,7 +27,7 @@ class Scanner(IEX):
 
         self.indicators = []
         if indicators is None:
-            self.indicators.append(__VALIDATION_MAP__['all'])
+            self.indicators = __VALIDATION_MAP__['all']
         else:
             for indicator in indicators:
                 if indicator[0] in __VALIDATION_MAP__:
@@ -36,19 +36,16 @@ class Scanner(IEX):
                 raise RuntimeError
 
     def run(self):
-        chunk_size = 5000
+        chunk_size = 150
         if self.is_sandbox:
             chunk_size = 6000
 
         stocks = pd.read_csv(self.stock_list, chunksize=chunk_size)
 
-        while True:
-            i = 1
-            for chunk in enumerate(stocks):
-                _thread.start_new_thread(self.loop, (f"Thread-{i}", chunk))
-                i += 1
-
-            time.sleep(3600)
+        i = 1
+        for chunk in enumerate(stocks):
+            _thread.start_new_thread(self.loop, (f"Thread-{i}", chunk))
+            i += 1
 
     def loop(self, thread_name, chunk):
         sleep = .2
