@@ -37,8 +37,8 @@ class ULTOSCValidator(Validator):
                 if not chart or len(chart) == 1:
                     return False
 
-                highest_low = max(chart[:-1], key=lambda x: x["low"])
-                lowest_low = min(chart, key=lambda x: x["low"])
+                highest_low = max(chart[:-1], key=lambda x: x["low"] is not None)
+                lowest_low = min(chart, key=lambda x: x["low"] is not None)
                 latest_low = chart[-1]
 
                 if latest_low['low'] > highest_low['low'] and lowest_low['low'] < 30:

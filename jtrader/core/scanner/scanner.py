@@ -15,8 +15,17 @@ from jtrader.core.validator import __VALIDATION_MAP__
 
 
 class Scanner(IEX):
-    def __init__(self, is_sandbox: bool, logger: LogInterface, stocks: Optional[str], indicators: Optional[list]):
+    def __init__(
+            self,
+            is_sandbox: bool,
+            logger: LogInterface,
+            stocks: Optional[str],
+            indicators: Optional[list],
+            time_range: Optional[str] = None
+    ):
         super().__init__(is_sandbox, logger)
+
+        self.time_range = time_range
 
         if stocks is None:
             self.stock_list = __STOCK_CSVS__['all']
@@ -76,7 +85,11 @@ class Scanner(IEX):
                         passed_validators[indicator.get_name()] = []
                         chain_index = 0
                         for validator_chain in chain:
-                            validator_chain = validator_chain(ticker, self.iex_client)
+                            args = {}
+                            if self.time_range is not None:
+                                args["time_range"] = self.time_range
+
+                            validator_chain = validator_chain(ticker, self.iex_client, **args)
                             if validator_chain.validate() is False:
                                 has_valid_chain = False
                                 break  # break out of validation chain

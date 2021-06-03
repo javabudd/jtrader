@@ -10,7 +10,7 @@ class Validator(ABC):
             ticker: str,
             iex_client: Client,
             is_bullish: Optional[bool] = True,
-            time_range: Optional[str] = '5d'
+            time_range: Optional[str] = '1d'
     ):
         self.iex_client = iex_client
         self.ticker = ticker
@@ -35,7 +35,7 @@ class Validator(ABC):
         if not historical_data:
             return False
 
-        lowest_low_historical = min(historical_data, key=lambda x: x["low"])
+        lowest_low_historical = min(historical_data, key=lambda x: x["low"] is not None)
 
         if lowest_low_historical['low'] is None or quote_data['low'] is None:
             return False

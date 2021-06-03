@@ -206,7 +206,8 @@ class Base(Controller):
                         'choices': [
                             'robust',
                             'apo',
-                            'ultosc'
+                            'ultosc',
+                            'rsi'
                         ],
                         'nargs': '+'
                     }

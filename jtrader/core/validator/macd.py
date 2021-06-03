@@ -40,7 +40,7 @@ class MACDValidator(Validator):
             if not chart or len(chart) == 1:
                 return False
 
-            average_close = np.mean(list(map(lambda x: x['close'], chart)))
+            average_close = np.mean(list(map(lambda x: x['close'] is not None, chart)))
 
             return average_close <= 30
 
