@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import Optional
 
+import numpy as np
 from pyEX.client import Client
 
 
@@ -24,6 +25,15 @@ class Validator(ABC):
     @abstractmethod
     def get_validation_chain(self):
         pass
+
+    @staticmethod
+    def get_ema(period, values):
+        weights = np.exp(np.linspace(-1., 0., period))
+        weights /= weights.sum()
+        a = np.convolve(values, weights, mode='full')[:len(values)]
+        a[:period] = a[period]
+
+        return a
 
     def get_time_range(self):
         return self.time_range

@@ -207,7 +207,8 @@ class Base(Controller):
                             'robust',
                             'apo',
                             'ultosc',
-                            'rsi'
+                            'rsi',
+                            'macd'
                         ],
                         'nargs': '+'
                     }
