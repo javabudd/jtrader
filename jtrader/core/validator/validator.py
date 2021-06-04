@@ -1,9 +1,9 @@
 from abc import ABC, abstractmethod
 from typing import Optional
 
-import numpy as np
 from cement.core.log import LogInterface
 from pyEX.client import Client
+from stockstats import StockDataFrame
 
 
 class Validator(ABC):
@@ -29,25 +29,12 @@ class Validator(ABC):
     def get_validation_chain(self):
         pass
 
-    def get_ema(self, period, values):
-        weights = np.exp(np.linspace(-1., 0., period))
-        weights /= weights.sum()
+    @staticmethod
+    def data_frame_to_stock_data_frame(data):
+        data.dropna(inplace=True)
+        data.rename(columns={'numberOfTrades': 'amount'}, inplace=True)
 
-        try:
-            a = np.convolve(values, weights, mode='full')[:len(values)]
-        except TypeError:
-            self.log_ema_fail('np convolve')
-
-            return 0
-
-        try:
-            a[:period] = a[period]
-        except IndexError:
-            self.log_ema_fail('a diff')
-
-            return 0
-
-        return a
+        return StockDataFrame.retype(data)
 
     def get_time_range(self):
         return self.time_range

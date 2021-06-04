@@ -1,5 +1,3 @@
-import numpy as np
-
 from jtrader.core.validator.validator import Validator
 
 
@@ -33,46 +31,21 @@ class RSIValidator(Validator):
 
                 return False
 
-            data.dropna(inplace=True)
+            stock = self.data_frame_to_stock_data_frame(data)
 
-            closes = self.get_rsi(data['close'])
-
-            if (len(closes)) == 0:
-                self.logger.debug(f"{self.ticker} Could not find RSI closings")
+            try:
+                rsi = stock.get('rsi_9')
+            except AttributeError:
+                self.logger.debug(f"{self.ticker} Failed calculating RSI")
 
                 return False
 
-            return closes[-1] < 30 and np.mean(closes[:-1]) >= 30
+            rsi.dropna(inplace=True)
+
+            if rsi[-1] < 30 and rsi.mean() >= 30:
+                return True
 
         return False
 
     def get_validation_chain(self):
         return []
-
-    @staticmethod
-    def get_rsi(prices: list, n: int = 14):
-        deltas = np.diff(prices)
-        seed = deltas[:n + 1]
-        up = seed[seed >= 0].sum() / n
-        down = -seed[seed < 0].sum() / n
-        rs = up / down
-        rsi = np.zeros_like(prices)
-        rsi[:n] = 100. - 100. / (1. + rs)
-
-        for i in range(n, len(prices)):
-            delta = deltas[i - 1]
-
-            if delta > 0:
-                up_delta = delta
-                down_delta = 0.
-            else:
-                up_delta = 0.
-                down_delta = -delta
-
-            up = (up * (n - 1) + up_delta) / n
-            down = (down * (n - 1) + down_delta) / n
-
-            rs = up / down
-            rsi[i] = 100. - 100. / (1. + rs)
-
-        return rsi

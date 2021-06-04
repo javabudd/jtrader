@@ -9,5 +9,6 @@ jinja2==3.0.1
 pyyaml==5.4.1
 colorlog==5.0.1
 pyEX==0.5.0
-pyalgotrade==0.20
+pyalgotrade==0.20 # for backtesting, not used yet
+stockstats==0.3.2
 discord-notify==1.0.0

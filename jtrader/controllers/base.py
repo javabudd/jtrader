@@ -204,7 +204,8 @@ class Base(Controller):
                             'apo',
                             'ultosc',
                             'rsi',
-                            'macd'
+                            'macd',
+                            'coc'
                         ],
                         'nargs': '+'
                     }
