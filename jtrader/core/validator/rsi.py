@@ -48,7 +48,7 @@ class RSIValidator(Validator):
             if len(rsi) <= 1:
                 return False
 
-            if rsi[-1] < 30 and rsi.iloc[:-1].mean() >= 30:
+            if rsi.tail(1).values.item() < 30 and rsi.iloc[:-1].mean() >= 30:
                 return True
 
         return False

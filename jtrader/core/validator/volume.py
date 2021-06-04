@@ -31,13 +31,11 @@ class VolumeValidator(Validator):
             if len(vr) <= 1 or len(vr) <= 1:
                 return False
 
-            coefficients, residuals, _, _, _ = np.polyfit(range(len(vr.index)), vr, 1, full=True)
-            mse = residuals[0] / (len(vr.index))
-            nrmse = np.sqrt(mse) / (vr.max() - vr.min())
-            slope = coefficients[0]
+            last_four = vr.tail(3)
 
-            if slope > 0 and nrmse <= .1:
-                return True
+            average_vr = last_four.head(2).mean()
+
+            return average_vr / last_four.tail(1) > .5
 
         return False
 
