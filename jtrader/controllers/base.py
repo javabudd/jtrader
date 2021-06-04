@@ -222,8 +222,6 @@ class Base(Controller):
         if is_sandbox:
             self.app.log.info('Starting in sandbox mode...')
 
-        data = {
-            'scanner': Scanner(is_sandbox, self.app.log, self.app.pargs.stock_list, self.app.pargs.indicators),
-        }
+        Scanner(is_sandbox, self.app.log, self.app.pargs.stock_list, self.app.pargs.indicators).run()
 
-        self.app.render(data, 'start_pmm_scanner.jinja2')
+        self.app.render({}, 'start_pmm_scanner.jinja2')

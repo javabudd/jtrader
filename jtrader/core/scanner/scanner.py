@@ -1,11 +1,12 @@
 import json
 import math
-import threading
 import time
+from threading import Thread
 from typing import Optional
 
 import pandas as pd
 from cement.core.log import LogInterface
+from cement.utils.shell import spawn_thread
 from pyEX import PyEXception
 
 import jtrader.core.utils as utils
@@ -55,13 +56,18 @@ class Scanner(IEX):
 
         while True:
             i = 1
+            threads: list[Thread] = []
             for chunk in enumerate(stocks):
                 thread_name = f"Thread-{i}"
-                threading.Thread(None, self.loop, thread_name, [thread_name, chunk]).start()
+                thread = spawn_thread(self.loop, True, False, args=(thread_name, chunk), daemon=True)
+                threads.append(thread)
                 i += 1
 
-            while len(threading.enumerate()) > 1:
-                time.sleep(.3)
+            while len(threads) > 0:
+                for thread in threads:
+                    if not thread.is_alive():
+                        threads.remove(thread)
+                    thread.join(1)
 
             self.logger.info('Processing finished, sleeping...')
             time.sleep(901)
