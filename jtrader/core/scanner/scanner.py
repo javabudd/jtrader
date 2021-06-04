@@ -1,6 +1,6 @@
-import _thread
 import json
 import math
+import threading
 import time
 from typing import Optional
 
@@ -49,15 +49,19 @@ class Scanner(IEX):
         num_lines = len(open(self.stock_list).readlines())
         chunk_size = math.floor(num_lines / 10)
         if self.is_sandbox:
-            chunk_size = math.floor(num_lines / 1)
+            chunk_size = math.floor(num_lines / 2)
 
         stocks = pd.read_csv(self.stock_list, chunksize=chunk_size)
 
         while True:
             i = 1
             for chunk in enumerate(stocks):
-                _thread.start_new_thread(self.loop, (f"Thread-{i}", chunk))
+                thread_name = f"Thread-{i}"
+                threading.Thread(None, self.loop, thread_name, [thread_name, chunk]).start()
                 i += 1
+
+            while len(threading.enumerate()) > 1:
+                time.sleep(.3)
 
             self.logger.info('Processing finished, sleeping...')
             time.sleep(901)
