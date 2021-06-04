@@ -1,3 +1,5 @@
+import numpy as np
+
 from jtrader.core.validator.validator import Validator
 
 
@@ -40,9 +42,13 @@ class RSIValidator(Validator):
 
                 return False
 
+            rsi.replace([np.inf, -np.inf], np.nan, inplace=True)
             rsi.dropna(inplace=True)
 
-            if rsi[-1] < 30 and rsi.mean() >= 30:
+            if len(rsi) <= 1:
+                return False
+
+            if rsi[-1] < 30 and rsi.iloc[:-1].mean() >= 30:
                 return True
 
         return False

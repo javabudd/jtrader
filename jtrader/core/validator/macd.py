@@ -1,4 +1,4 @@
-from stockstats import StockDataFrame
+import numpy as np
 
 from jtrader.core.validator.validator import Validator
 
@@ -42,18 +42,15 @@ class MACDValidator(Validator):
             macd = stock.get('macd')
             signal_line = stock.get('macds')
 
+            macd.replace([np.inf, -np.inf], np.nan, inplace=True)
+            signal_line.replace([np.inf, -np.inf], np.nan, inplace=True)
             macd.dropna(inplace=True)
             signal_line.dropna(inplace=True)
 
-            try:
-                average_mac = macd.mean()
-                average_signal = signal_line.mean()
-            except TypeError:
-                self.logger.debug(f"{self.ticker} Could not get an average MACD/EMA")
-
+            if len(macd) <= 1 or len(signal_line) <= 1:
                 return False
 
-            if macd[-1] > signal_line[-1] and average_mac <= average_signal:
+            if macd[-1] > signal_line[-1] and macd.iloc[:-1].mean() <= signal_line.iloc[:-1].mean():
                 return True
 
         return False

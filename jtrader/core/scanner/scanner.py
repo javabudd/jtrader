@@ -1,5 +1,6 @@
 import json
 import math
+import sys
 import time
 from threading import Thread
 from typing import Optional, List
@@ -70,8 +71,8 @@ class Scanner(IEX):
                         threads.remove(thread)
                     thread.join(1)
 
-            self.logger.info('Processing finished, sleeping...')
-            time.sleep(901)
+            self.logger.info('Processing finished')
+            sys.exit(1)
 
     def loop(self, thread_name, chunk):
         sleep = .2

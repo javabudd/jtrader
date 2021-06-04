@@ -201,11 +201,13 @@ class Base(Controller):
                         'dest': 'indicators',
                         'choices': [
                             'robust',
+                            'simple',
                             'apo',
                             'ultosc',
                             'rsi',
                             'macd',
-                            'coc'
+                            'coc',
+                            'volume'
                         ],
                         'nargs': '+'
                     }

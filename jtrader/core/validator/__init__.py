@@ -1,9 +1,11 @@
 from .apo import APOValidator
 from .coc import COCValidator
+from .macd import MACDValidator
 from .robust import RobustValidator
 from .rsi import RSIValidator
+from .simple import SimpleValidator
 from .ultosc import ULTOSCValidator
-from .macd import MACDValidator
+from .volume import VolumeValidator
 
 __VALIDATORS__ = [
     APOValidator,
@@ -11,7 +13,9 @@ __VALIDATORS__ = [
     RobustValidator,
     RSIValidator,
     COCValidator,
-    MACDValidator
+    MACDValidator,
+    SimpleValidator,
+    VolumeValidator
 ]
 
 __VALIDATION_MAP__ = {
@@ -21,5 +25,7 @@ __VALIDATION_MAP__ = {
     'rsi': __VALIDATORS__[3],
     'coc': __VALIDATORS__[4],
     'macd': __VALIDATORS__[5],
+    'simple': __VALIDATORS__[6],
+    'volume': __VALIDATORS__[7],
     'all': __VALIDATORS__
 }
