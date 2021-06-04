@@ -2,6 +2,7 @@ from abc import ABC, abstractmethod
 from typing import Optional
 
 import numpy as np
+from cement.core.log import LogInterface
 from pyEX.client import Client
 
 
@@ -10,10 +11,12 @@ class Validator(ABC):
             self,
             ticker: str,
             iex_client: Client,
+            logger: LogInterface,
             is_bullish: Optional[bool] = True,
             time_range: Optional[str] = '5d'
     ):
         self.iex_client = iex_client
+        self.logger = logger
         self.ticker = ticker
         self.is_bullish = is_bullish
         self.time_range = time_range
@@ -26,12 +29,17 @@ class Validator(ABC):
     def get_validation_chain(self):
         pass
 
-    @staticmethod
-    def get_ema(period, values):
+    def get_ema(self, period, values):
         weights = np.exp(np.linspace(-1., 0., period))
         weights /= weights.sum()
         a = np.convolve(values, weights, mode='full')[:len(values)]
-        a[:period] = a[period]
+
+        try:
+            a[:period] = a[period]
+        except IndexError:
+            self.logger.debug(f"Setting EMA for {self.ticker} to 0 as indexes do not match")
+
+            return 0
 
         return a
 
@@ -51,3 +59,12 @@ class Validator(ABC):
             return False
 
         return quote_data['low'] < lowest_low_historical['low']
+
+    def log_missing_close(self):
+        self.logger.debug(f"{self.ticker} missing close data from IEX")
+
+    def log_missing_chart(self):
+        self.logger.debug(f"{self.ticker} missing chart data from IEX")
+
+    def log_not_enough_chart_data(self):
+        self.logger.debug(f"{self.ticker} has a chart length of one")

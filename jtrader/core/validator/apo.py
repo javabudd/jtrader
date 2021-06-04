@@ -36,11 +36,15 @@ class APOValidator(Validator):
             data = self.iex_client.stocks.technicals(self.ticker, 'apo', range=self.time_range)
             for required in ['chart']:
                 if required not in data:
+                    self.log_missing_chart()
+
                     return False
 
             apo_chart = data['chart']
 
             if not apo_chart or len(apo_chart) == 1:
+                self.log_not_enough_chart_data()
+
                 return False
 
             highest_apo_low = max(apo_chart[:-1], key=lambda x: x["low"] is not None)

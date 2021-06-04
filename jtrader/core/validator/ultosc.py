@@ -32,9 +32,17 @@ class ULTOSCValidator(Validator):
         if self.is_bullish:
             if self.has_lower_low():
                 data = self.iex_client.stocks.technicals(self.ticker, 'ultosc', range=self.time_range)
+
+                if 'chart' not in data:
+                    self.log_missing_chart()
+
+                    return False
+
                 chart = data['chart']
 
                 if not chart or len(chart) == 1:
+                    self.log_not_enough_chart_data()
+
                     return False
 
                 highest_low = max(chart[:-1], key=lambda x: x["low"] is not None)

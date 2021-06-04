@@ -2,7 +2,7 @@ import json
 import math
 import time
 from threading import Thread
-from typing import Optional
+from typing import Optional, List
 
 import pandas as pd
 from cement.core.log import LogInterface
@@ -56,9 +56,10 @@ class Scanner(IEX):
 
         while True:
             i = 1
-            threads: list[Thread] = []
+            threads: List[Thread] = []
             for chunk in enumerate(stocks):
                 thread_name = f"Thread-{i}"
+                """ @thread """
                 thread = spawn_thread(self.loop, True, False, args=(thread_name, chunk), daemon=True)
                 threads.append(thread)
                 i += 1
@@ -82,7 +83,7 @@ class Scanner(IEX):
             time.sleep(sleep)
             self.logger.info(f"({thread_name}) Processing ticker: {ticker}")
             for indicator_class in self.indicators:
-                indicator = indicator_class(ticker, self.iex_client)
+                indicator = indicator_class(ticker, self.iex_client, self.logger)
                 passed_validators = {}
                 try:
                     is_valid = indicator.is_valid()

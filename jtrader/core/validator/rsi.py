@@ -29,6 +29,8 @@ class RSIValidator(Validator):
             data = self.iex_client.stocks.intradayDF(self.ticker, IEXOnly=True)
 
             if 'close' not in data:
+                self.log_missing_close()
+
                 return False
 
             data.dropna(inplace=True)
