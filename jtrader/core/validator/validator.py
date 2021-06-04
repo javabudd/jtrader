@@ -32,12 +32,18 @@ class Validator(ABC):
     def get_ema(self, period, values):
         weights = np.exp(np.linspace(-1., 0., period))
         weights /= weights.sum()
-        a = np.convolve(values, weights, mode='full')[:len(values)]
+
+        try:
+            a = np.convolve(values, weights, mode='full')[:len(values)]
+        except TypeError:
+            self.log_ema_fail('np convolve')
+
+            return 0
 
         try:
             a[:period] = a[period]
         except IndexError:
-            self.logger.debug(f"Setting EMA for {self.ticker} to 0 as indexes do not match")
+            self.log_ema_fail('a diff')
 
             return 0
 
@@ -68,3 +74,6 @@ class Validator(ABC):
 
     def log_not_enough_chart_data(self):
         self.logger.debug(f"{self.ticker} has a chart length of one")
+
+    def log_ema_fail(self, calculation):
+        self.logger.debug(f"{self.ticker} Could not get EMA, setting to 0 ({calculation})")

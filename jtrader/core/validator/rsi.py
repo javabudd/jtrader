@@ -37,6 +37,11 @@ class RSIValidator(Validator):
 
             closes = self.get_rsi(data['close'])
 
+            if (len(closes)) == 0:
+                self.logger.debug(f"{self.ticker} Could not find RSI closings")
+
+                return False
+
             return closes[-1] < 30 and np.mean(closes[:-1]) >= 30
 
         return False

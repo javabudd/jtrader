@@ -101,7 +101,7 @@ class Scanner(IEX):
                             if self.time_range is not None:
                                 args["time_range"] = self.time_range
 
-                            validator_chain = validator_chain(ticker, self.iex_client, **args)
+                            validator_chain = validator_chain(ticker, self.iex_client, self.logger, **args)
                             if validator_chain.is_valid() is False:
                                 has_valid_chain = False
                                 break  # break out of validation chain
@@ -128,6 +128,6 @@ class Scanner(IEX):
                     message_string = json.dumps(message)
 
                     self.logger.info(message_string)
-                    utils.send_slack_message('```' + message_string + '```')
+                    utils.send_notification('```' + message_string + '```')
 
         return True

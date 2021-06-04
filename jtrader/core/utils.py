@@ -1,5 +1,6 @@
 from typing import Optional
 
+import discord_notify as dn
 from slack_sdk import WebClient
 from slack_sdk.errors import SlackApiError
 
@@ -11,16 +12,25 @@ def chunks(lst, n):
         yield lst[item:item + n]
 
 
-def send_slack_message(message: str, channel: Optional[str] = '#stock-scanner', **kwargs):
+def send_notification(message: str, channel: Optional[str] = '#stock-scanner', **kwargs):
     client = WebClient(token=SLACK_TOKEN)
+    discord_url = None
 
     if IS_SANDBOX:
         channel = '#stock-scanner-dev'
+        discord_url = None
 
     try:
         client.chat_postMessage(channel=channel, text=message, **kwargs)
     except SlackApiError as e:
         print(f"Got an error: {e.response['error']}")
+
+    if discord_url is not None:
+        try:
+            notifier = dn.Notifier(discord_url)
+            notifier.send(message, print_message=False)
+        except Exception as e:
+            print(f"Got an error: {e.args[0]}")
 
 
 def send_slack_file(filename, title, channel: Optional[str] = '#stock-scanner', **kwargs):

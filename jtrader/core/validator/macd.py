@@ -44,8 +44,13 @@ class MACDValidator(Validator):
             macd = self.get_macd(closes)
             signal_line = self.get_ema(9, macd)
 
-            average_mac = np.mean(macd[:-1])
-            average_ema = np.mean(signal_line[:-1])
+            try:
+                average_mac = np.mean(macd[:-1])
+                average_ema = np.mean(signal_line[:-1])
+            except TypeError:
+                self.logger.debug(f"{self.ticker} Could not get an average MACD/EMA")
+
+                return False
 
             return macd[-1] > signal_line[-1] and average_mac <= average_ema
 

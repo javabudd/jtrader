@@ -148,11 +148,9 @@ class Base(Controller):
     def get_pmm_stats(self):
         """Start Pre Market Momentum Scanner Command"""
 
-        data = {
-            'scanner': PreMarketMomentum(self.app.config.get('jtrader', 'is_sandbox'), self.app.log),
-        }
+        PreMarketMomentum(self.app.config.get('jtrader', 'is_sandbox'), self.app.log).run()
 
-        self.app.render(data, 'start_pmm_scanner.jinja2')
+        self.app.render({}, 'start_pmm_scanner.jinja2')
 
     @ex(
         help='Get market momentum stats',
@@ -175,11 +173,9 @@ class Base(Controller):
         if is_sandbox:
             self.app.log.info('Starting in sandbox mode...')
 
-        data = {
-            'scanner': Momentum(is_sandbox, self.app.log),
-        }
+        Momentum(is_sandbox, self.app.log).run()
 
-        self.app.render(data, 'start_pmm_scanner.jinja2')
+        self.app.render({}, 'start_mm_scanner.jinja2')
 
     @ex(
         help='Start stock scanner',
@@ -224,4 +220,4 @@ class Base(Controller):
 
         Scanner(is_sandbox, self.app.log, self.app.pargs.stock_list, self.app.pargs.indicators).run()
 
-        self.app.render({}, 'start_pmm_scanner.jinja2')
+        self.app.render({}, 'start_scanner.jinja2')
