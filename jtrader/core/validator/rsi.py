@@ -1,4 +1,5 @@
 import numpy as np
+import talib
 
 from jtrader.core.validator.validator import Validator
 
@@ -33,14 +34,7 @@ class RSIValidator(Validator):
 
                 return False
 
-            stock = self.data_frame_to_stock_data_frame(data)
-
-            try:
-                rsi = stock.get('rsi_9')
-            except AttributeError:
-                self.logger.debug(f"{self.ticker} Failed calculating RSI")
-
-                return False
+            rsi = talib.RSI(data['close'], timeperiod=9)
 
             rsi.replace([np.inf, -np.inf], np.nan, inplace=True)
             rsi.dropna(inplace=True)
@@ -48,7 +42,7 @@ class RSIValidator(Validator):
             if len(rsi) <= 1:
                 return False
 
-            if rsi.tail(1).values.item() < 30 and rsi.iloc[:-1].mean() >= 30:
+            if rsi[-1] < 30 and rsi.iloc[:-1].mean() >= 30:
                 return True
 
         return False
