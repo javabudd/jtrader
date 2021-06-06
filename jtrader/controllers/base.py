@@ -6,6 +6,7 @@ from jtrader.core.lqm import LowQualityMomentum
 from jtrader.core.momentum import Momentum
 from jtrader.core.news import News
 from jtrader.core.premarketmomentum import PreMarketMomentum
+from jtrader.core.scanner.cryptoscanner import CryptoScanner
 from jtrader.core.scanner.scanner import Scanner
 from jtrader.core.value import Value
 from ..core.version import get_version
@@ -222,5 +223,52 @@ class Base(Controller):
             self.app.log.info('Starting in sandbox mode...')
 
         Scanner(is_sandbox, self.app.log, self.app.pargs.stock_list, self.app.pargs.indicators).run()
+
+        self.app.render({}, 'start_scanner.jinja2')
+
+    @ex(
+        help='Start crypto stock scanner',
+
+        arguments=[
+            (
+                    ['-c', '--crypto-list'],
+                    {
+                        'help': 'change the default crypto list',
+                        'action': 'store',
+                        'dest': 'stock_list',
+                        'choices': [
+                            'all'
+                        ]
+                    }
+            ),
+            (
+                    ['-t', '--technical-indicators'],
+                    {
+                        'help': 'which technicals indicators to scan against',
+                        'action': 'append',
+                        'dest': 'indicators',
+                        'choices': [
+                            'robust',
+                            'simple',
+                            'apo',
+                            'ultosc',
+                            'rsi',
+                            'macd',
+                            'coc',
+                            'volume'
+                        ],
+                        'nargs': '+'
+                    }
+            ),
+        ],
+    )
+    def start_crypto_scanner(self):
+        """Start Crypto Scanner Command"""
+        is_sandbox = self.app.config.get('jtrader', 'is_sandbox')
+
+        if is_sandbox:
+            self.app.log.info('Starting in sandbox mode...')
+
+        CryptoScanner(is_sandbox, self.app.log, self.app.pargs.stock_list, self.app.pargs.indicators).run()
 
         self.app.render({}, 'start_scanner.jinja2')
