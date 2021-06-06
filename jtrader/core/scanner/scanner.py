@@ -10,7 +10,6 @@ from cement.core.log import LogInterface
 from cement.utils.shell import spawn_thread
 from pyEX import PyEXception
 
-import jtrader.core.utils as utils
 from jtrader import __STOCK_CSVS__
 from jtrader.core.iex import IEX
 from jtrader.core.validator import __VALIDATION_MAP__
@@ -129,6 +128,6 @@ class Scanner(IEX):
                     message_string = json.dumps(message)
 
                     self.logger.info(message_string)
-                    utils.send_notification('```' + message_string + '```')
+                    self.send_notification('```' + message_string + '```')
 
         return True

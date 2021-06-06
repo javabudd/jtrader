@@ -212,11 +212,19 @@ class Base(Controller):
                         'nargs': '+'
                     }
             ),
+            (
+                    ['--sandbox'],
+                    {
+                        'help': 'start in sandbox mode',
+                        'action': 'store_true',
+                        'dest': 'is_sandbox'
+                    }
+            ),
         ],
     )
     def start_scanner(self):
         """Start Scanner Command"""
-        is_sandbox = self.app.config.get('jtrader', 'is_sandbox')
+        is_sandbox = self.app.pargs.is_sandbox
 
         if is_sandbox:
             self.app.log.info('Starting in sandbox mode...')

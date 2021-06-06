@@ -1,6 +1,5 @@
 import json
 
-import jtrader.core.utils as utils
 from jtrader.core.iex import IEX
 
 
@@ -12,9 +11,8 @@ class News(IEX):
         )
         for messages in stream_messages:
             for message in json.loads(messages.data):
-                utils.send_notification(message['headline'] + "\n" + message['url'], '#stock-news')
+                self.send_notification(message['headline'] + "\n" + message['url'], '#stock-news')
 
-    @staticmethod
-    def message_callback(stream_messages):
+    def message_callback(self, stream_messages):
         for message in stream_messages:
-            utils.send_notification(message['headline'] + "\n" + message['url'], '#stock-news')
+            self.send_notification(message['headline'] + "\n" + message['url'], '#stock-news')
