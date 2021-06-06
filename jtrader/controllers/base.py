@@ -222,7 +222,7 @@ class Base(Controller):
         if is_sandbox:
             self.app.log.info('Starting in sandbox mode...')
 
-        Scanner(is_sandbox, self.app.log, self.app.pargs.stock_list, self.app.pargs.indicators).run()
+        Scanner(is_sandbox, self.app.log, self.app.pargs.crypto_list, self.app.pargs.indicators).run()
 
         self.app.render({}, 'start_scanner.jinja2')
 
@@ -230,17 +230,6 @@ class Base(Controller):
         help='Start crypto stock scanner',
 
         arguments=[
-            (
-                    ['-c', '--crypto-list'],
-                    {
-                        'help': 'change the default crypto list',
-                        'action': 'store',
-                        'dest': 'stock_list',
-                        'choices': [
-                            'all'
-                        ]
-                    }
-            ),
             (
                     ['-t', '--technical-indicators'],
                     {
@@ -269,6 +258,6 @@ class Base(Controller):
         if is_sandbox:
             self.app.log.info('Starting in sandbox mode...')
 
-        CryptoScanner(is_sandbox, self.app.log, self.app.pargs.stock_list, self.app.pargs.indicators).run()
+        CryptoScanner(is_sandbox, self.app.log, self.app.pargs.indicators).run()
 
         self.app.render({}, 'start_scanner.jinja2')

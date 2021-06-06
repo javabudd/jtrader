@@ -12,12 +12,14 @@ class Validator(ABC):
             ticker: str,
             iex_client: Client,
             logger: LogInterface,
+            is_crypto: Optional[bool] = False,
             is_bullish: Optional[bool] = True,
             time_range: Optional[str] = '5d'
     ):
         self.iex_client = iex_client
         self.logger = logger
         self.ticker = ticker
+        self.is_crypto = is_crypto
         self.is_bullish = is_bullish
         self.time_range = time_range
 

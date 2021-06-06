@@ -27,7 +27,10 @@ class RSIValidator(Validator):
 
     def is_valid(self):
         if self.is_bullish:
-            data = self.iex_client.stocks.intradayDF(self.ticker, IEXOnly=True)
+            if self.is_crypto:
+                data = self.iex_client.crypto.quote(self.ticker)
+            else:
+                data = self.iex_client.stocks.intradayDF(self.ticker, IEXOnly=True)
 
             if 'close' not in data:
                 self.log_missing_close()
