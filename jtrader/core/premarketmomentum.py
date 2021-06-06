@@ -6,7 +6,6 @@ import time
 
 import pandas as pd
 
-import jtrader.core.utils as utils
 from jtrader.core.iex import IEX
 
 stocks = pd.read_csv('files/all_stocks.csv')
@@ -31,7 +30,7 @@ class PreMarketMomentum(IEX):
     def run(self):
         df = pd.DataFrame(columns=csv_columns)
 
-        symbol_groups = list(utils.chunks(stocks['Ticker'], 100))
+        symbol_groups = list(self.chunks(stocks['Ticker'], 100))
         symbol_strings = []
         for i in range(0, len(symbol_groups)):
             symbol_strings.append(','.join(symbol_groups[i]))
@@ -125,7 +124,7 @@ class PreMarketMomentum(IEX):
         writer.save()
 
         with open(file_name, 'rb') as f:
-            utils.send_slack_file(file_name, 'PreMarketMomentum.xlsx', file=io.BytesIO(f.read()))
+            self.send_slack_file(file_name, 'PreMarketMomentum.xlsx', file=io.BytesIO(f.read()))
 
     def stock_qualifies(self, stock_data):
         if 'quote' not in stock_data:
