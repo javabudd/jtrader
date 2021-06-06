@@ -1,10 +1,20 @@
-import numpy as np
+import talib
 
 from jtrader.core.validator.validator import Validator
 
 
 class VolumeValidator(Validator):
     """
+    The Chaikin Oscillator is essentially a momentum indicator, but of the Accumulation-Distribution line rather than
+    merely price. It looks at both the strength of price moves and the underlying buying and selling pressure during a
+    given time period.
+
+    Buy signals:
+    A Chaikin Oscillator reading above zero indicates net buying pressure, while one below zero registers net selling
+    pressure. Divergence between the indicator and pure price moves are the most common signals from the indicator, and
+    often flag market turning points.
+
+    Sell signals:
 
     """
 
@@ -21,21 +31,15 @@ class VolumeValidator(Validator):
 
                 return False
 
-            stock = self.data_frame_to_stock_data_frame(data)
+            df = talib.ADOSC(data['high'], data['low'], data['close'], data['volume'])
 
-            vr = stock.get('vr')
+            self.clean_dataframe(df)
 
-            vr.replace([np.inf, -np.inf], np.nan, inplace=True)
-            vr.dropna(inplace=True)
-
-            if len(vr) <= 1 or len(vr) <= 1:
+            if len(df) <= 1 or len(df) <= 1:
                 return False
 
-            last_four = vr.tail(3)
-
-            average_vr = last_four.head(2).mean()
-
-            return average_vr / last_four.tail(1) > .5
+            if df[-1] > 0 and df.iloc[:-1].mean() <= 0:
+                return True
 
         return False
 
