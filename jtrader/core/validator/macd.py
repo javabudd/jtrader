@@ -1,5 +1,3 @@
-import numpy as np
-
 from jtrader.core.validator.validator import Validator
 
 
@@ -42,10 +40,8 @@ class MACDValidator(Validator):
             macd = stock.get('macd')
             signal_line = stock.get('macds')
 
-            macd.replace([np.inf, -np.inf], np.nan, inplace=True)
-            signal_line.replace([np.inf, -np.inf], np.nan, inplace=True)
-            macd.dropna(inplace=True)
-            signal_line.dropna(inplace=True)
+            self.clean_dataframe(macd)
+            self.clean_dataframe(signal_line)
 
             if len(macd) <= 1 or len(signal_line) <= 1:
                 return False

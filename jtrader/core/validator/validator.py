@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import Optional
 
+import numpy as np
 from cement.core.log import LogInterface
 from pyEX.client import Client
 from stockstats import StockDataFrame
@@ -35,6 +36,11 @@ class Validator(ABC):
         data.rename(columns={'numberOfTrades': 'amount'}, inplace=True)
 
         return StockDataFrame.retype(data)
+
+    @staticmethod
+    def clean_dataframe(dataframe):
+        dataframe.replace([np.inf, -np.inf], np.nan, inplace=True)
+        dataframe.dropna(inplace=True)
 
     def get_time_range(self):
         return self.time_range

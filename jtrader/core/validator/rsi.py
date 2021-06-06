@@ -1,4 +1,3 @@
-import numpy as np
 import talib
 
 from jtrader.core.validator.validator import Validator
@@ -36,8 +35,7 @@ class RSIValidator(Validator):
 
             rsi = talib.RSI(data['close'], timeperiod=9)
 
-            rsi.replace([np.inf, -np.inf], np.nan, inplace=True)
-            rsi.dropna(inplace=True)
+            self.clean_dataframe(rsi)
 
             if len(rsi) <= 1:
                 return False
