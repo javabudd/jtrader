@@ -10,7 +10,7 @@ class RobustValidator(Validator):
     def get_name():
         return 'Robust (Chain)'
 
-    def is_valid(self):
+    def is_valid(self, data=None):
         return True
 
     def get_validation_chain(self):

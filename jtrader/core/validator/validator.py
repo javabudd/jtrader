@@ -11,19 +11,19 @@ class Validator(ABC):
     def __init__(
             self,
             ticker: str,
-            iex_client: Client,
-            logger: LogInterface,
+            logger: Optional[LogInterface] = None,
+            iex_client: Optional[Client] = None,
             is_bullish: Optional[bool] = True,
             time_range: Optional[str] = '5d'
     ):
-        self.iex_client = iex_client
-        self.logger = logger
+        self.iex_client_prop = iex_client
+        self.logger_prop = logger
         self.ticker = ticker
         self.is_bullish = is_bullish
         self.time_range = time_range
 
     @abstractmethod
-    def is_valid(self):
+    def is_valid(self, data=None):
         pass
 
     @abstractmethod
@@ -41,6 +41,22 @@ class Validator(ABC):
     def clean_dataframe(dataframe):
         dataframe.replace([np.inf, -np.inf], np.nan, inplace=True)
         dataframe.dropna(inplace=True)
+
+        return dataframe
+
+    @property
+    def iex_client(self):
+        if self.iex_client is None:
+            raise RuntimeError
+
+        return self.iex_client_prop
+
+    @property
+    def logger(self):
+        if self.logger_prop is None:
+            raise RuntimeError
+
+        return self.iex_client_prop
 
     def get_time_range(self):
         return self.time_range

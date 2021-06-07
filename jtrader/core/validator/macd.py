@@ -26,7 +26,7 @@ class MACDValidator(Validator):
     def get_name():
         return 'MACD'
 
-    def is_valid(self):
+    def is_valid(self, data=None):
         if self.is_bullish:
             data = self.iex_client.stocks.intradayDF(self.ticker, IEXOnly=True)
 
@@ -35,18 +35,17 @@ class MACDValidator(Validator):
 
                 return False
 
+            self.clean_dataframe(data)
+
             stock = self.data_frame_to_stock_data_frame(data)
 
             macd = stock.get('macd')
             signal_line = stock.get('macds')
 
-            self.clean_dataframe(macd)
-            self.clean_dataframe(signal_line)
-
             if len(macd) <= 1 or len(signal_line) <= 1:
                 return False
 
-            if macd[-1] > signal_line[-1] and macd.iloc[:-1].mean() <= signal_line.iloc[:-1].mean():
+            if macd[-1] > signal_line[-1]:
                 return True
 
         return False

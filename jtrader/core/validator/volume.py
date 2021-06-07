@@ -22,8 +22,8 @@ class VolumeValidator(Validator):
     def get_name():
         return 'Volume'
 
-    def is_valid(self):
-        if self.is_bullish:
+    def is_valid(self, data=None):
+        if data is None:
             data = self.iex_client.stocks.intradayDF(self.ticker, IEXOnly=True)
 
             if 'close' not in data:
@@ -31,14 +31,21 @@ class VolumeValidator(Validator):
 
                 return False
 
+        data = self.clean_dataframe(data)
+
+        try:
             df = talib.ADOSC(data['high'], data['low'], data['close'], data['volume'])
+        except Exception:
+            return False
 
-            self.clean_dataframe(df)
+        if len(df) <= 1 or len(df) <= 1:
+            return False
 
-            if len(df) <= 1 or len(df) <= 1:
-                return False
-
+        if self.is_bullish:
             if df[-1] > 0 and df.iloc[:-1].mean() <= 0:
+                return True
+        else:
+            if df[-1] < 0 and df.iloc[:-1].mean() >= 0:
                 return True
 
         return False

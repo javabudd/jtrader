@@ -1,5 +1,4 @@
 numpy==1.17.4
-pandas==0.25.3
 scipy==1.5.2
 XlsxWriter==1.2.2
 slack_sdk==3.5.1
@@ -13,3 +12,4 @@ pyalgotrade==0.20 # for backtesting, not used yet
 stockstats==0.3.2
 discord-notify==1.0.0
 TA-Lib==0.4.19
+zipline==1.4.1

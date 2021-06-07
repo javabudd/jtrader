@@ -24,8 +24,8 @@ class RSIValidator(Validator):
     def get_name():
         return 'RSI'
 
-    def is_valid(self):
-        if self.is_bullish:
+    def is_valid(self, data=None):
+        if data is None:
             data = self.iex_client.stocks.intradayDF(self.ticker, IEXOnly=True)
 
             if 'close' not in data:
@@ -33,14 +33,23 @@ class RSIValidator(Validator):
 
                 return False
 
-            rsi = talib.RSI(data['close'], timeperiod=9)
+        close = self.clean_dataframe(data['close'])
 
-            self.clean_dataframe(rsi)
+        try:
+            rsi = talib.RSI(close, timeperiod=9)
+        except Exception:
+            return False
 
-            if len(rsi) <= 1:
-                return False
+        try:
+            last_rsi = rsi[-1]
+        except IndexError:
+            return False
 
-            if rsi[-1] < 30 and rsi.iloc[:-1].mean() >= 30:
+        if self.is_bullish:
+            if last_rsi < 30 and rsi.iloc[:-1].mean() >= 30:
+                return True
+        else:
+            if last_rsi > 30 and rsi.iloc[:-1].mean() <= 30:
                 return True
 
         return False

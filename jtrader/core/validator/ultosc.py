@@ -28,7 +28,7 @@ class ULTOSCValidator(Validator):
     def get_name():
         return 'Ultimate Oscillator'
 
-    def is_valid(self):
+    def is_valid(self, data=None):
         if self.is_bullish:
             if self.has_lower_low():
                 data = self.iex_client.stocks.technicals(self.ticker, 'ultosc', range=self.time_range)

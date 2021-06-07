@@ -25,7 +25,7 @@ class APOValidator(Validator):
     def get_name():
         return 'Absolute Price Oscillator'
 
-    def is_valid(self):
+    def is_valid(self, data=None):
         if self.is_bullish:
             return self.signals_bullish()
         else:
