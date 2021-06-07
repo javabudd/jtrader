@@ -13,6 +13,6 @@ class SimpleValidator(Validator):
 
     def get_validation_chain(self):
         return [
+            RSIValidator,
             VolumeValidator,
-            RSIValidator
         ]

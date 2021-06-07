@@ -46,7 +46,7 @@ class Validator(ABC):
 
     @property
     def iex_client(self):
-        if self.iex_client is None:
+        if self.iex_client_prop is None:
             raise RuntimeError
 
         return self.iex_client_prop
@@ -56,7 +56,7 @@ class Validator(ABC):
         if self.logger_prop is None:
             raise RuntimeError
 
-        return self.iex_client_prop
+        return self.logger_prop
 
     def get_time_range(self):
         return self.time_range

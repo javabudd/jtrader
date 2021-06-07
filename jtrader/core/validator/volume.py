@@ -1,4 +1,6 @@
+import pandas as pd
 import talib
+from scipy.cluster.vq import kmeans
 
 from jtrader.core.validator.validator import Validator
 
@@ -20,7 +22,7 @@ class VolumeValidator(Validator):
 
     @staticmethod
     def get_name():
-        return 'Volume'
+        return 'ADOSC (Chaikin Oscillator))'
 
     def is_valid(self, data=None):
         if data is None:
@@ -31,21 +33,28 @@ class VolumeValidator(Validator):
 
                 return False
 
-        data = self.clean_dataframe(data)
+        self.clean_dataframe(data)
 
         try:
-            df = talib.ADOSC(data['high'], data['low'], data['close'], data['volume'])
+            adosc = talib.ADOSC(data['high'], data['low'], data['close'], data['volume'])
         except Exception:
             return False
 
-        if len(df) <= 1 or len(df) <= 1:
+        self.clean_dataframe(adosc)
+
+        if len(adosc) <= 1:
             return False
 
+        frame = pd.DataFrame(adosc[:-1]).round(0)
+        centroids, _ = kmeans(frame, 2)
+        resistance = max(centroids)
+        support = min(centroids)
+
         if self.is_bullish:
-            if df[-1] > 0 and df.iloc[:-1].mean() <= 0:
+            if adosc[-1] > resistance[0]:
                 return True
         else:
-            if df[-1] < 0 and df.iloc[:-1].mean() >= 0:
+            if adosc[-1] < support[0]:
                 return True
 
         return False
