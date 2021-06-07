@@ -36,7 +36,7 @@ class RSIValidator(Validator):
         close = self.clean_dataframe(data['close'])
 
         try:
-            rsi = talib.RSI(close, timeperiod=9)
+            rsi = talib.RSI(close, timeperiod=14)
         except Exception:
             return False
 
@@ -45,12 +45,10 @@ class RSIValidator(Validator):
         except IndexError:
             return False
 
-        if self.is_bullish:
-            if last_rsi < 30 and rsi.iloc[:-1].mean() >= 30:
-                return True
-        else:
-            if last_rsi > 30 and rsi.iloc[:-1].mean() <= 30:
-                return True
+        if self.is_bullish and last_rsi < 30:
+            return True
+        elif not self.is_bullish and last_rsi > 80:
+            return True
 
         return False
 
