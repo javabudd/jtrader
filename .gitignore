@@ -108,3 +108,4 @@ venv.bak/
 *.xlsx
 *.pickle
 out.csv
+docker-compose.override.yml

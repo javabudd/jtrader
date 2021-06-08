@@ -1,0 +1,10 @@
+version: '3'
+
+services:
+  jtrader:
+    build:
+      context: ./.docker
+      dockerfile: Dockerfile-development
+    volumes:
+      - ./:/src
+    privileged: true

@@ -1,0 +1,13 @@
+version: '3'
+
+services:
+  jtrader:
+    build:
+      context: ./
+      dockerfile: .docker/Dockerfile
+    privileged: true
+    ulimits:
+      nproc: 65535
+      nofile:
+        soft: 65535
+        hard: 65535

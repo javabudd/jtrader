@@ -1,0 +1,25 @@
+FROM python:3.6-alpine
+
+MAINTAINER Andres OBrien <oban0601@gmail.com>
+
+ENV PS1="\[\e[0;33m\]|> jtrader <| \[\e[1;35m\]\W\[\e[0m\] \[\e[0m\]# "
+
+WORKDIR /src
+
+RUN apk update && \
+    apk add \
+    automake \
+    make \
+    gcc \
+    g++ \
+    openblas-dev
+
+RUN pip install virtualenv
+
+COPY entrypoint-development.sh /entrypoint.sh
+
+RUN chmod +x /entrypoint.sh
+
+ENTRYPOINT ["/entrypoint.sh"]
+
+CMD ["jtrader", "--sandbox"]
