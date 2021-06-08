@@ -1,4 +1,3 @@
-import numpy as np
 import talib
 
 from jtrader.core.validator.validator import Validator
@@ -25,8 +24,8 @@ class RSIValidator(Validator):
     def get_name():
         return 'RSI'
 
-    def is_valid(self):
-        if self.is_bullish:
+    def is_valid(self, data=None):
+        if data is None:
             data = self.iex_client.stocks.intradayDF(self.ticker, IEXOnly=True)
 
             if 'close' not in data:
@@ -34,16 +33,22 @@ class RSIValidator(Validator):
 
                 return False
 
-            rsi = talib.RSI(data['close'], timeperiod=9)
+        close = self.clean_dataframe(data['close'])
 
-            rsi.replace([np.inf, -np.inf], np.nan, inplace=True)
-            rsi.dropna(inplace=True)
+        try:
+            rsi = talib.RSI(close, timeperiod=14)
+        except Exception:
+            return False
 
-            if len(rsi) <= 1:
-                return False
+        try:
+            last_rsi = rsi[-1]
+        except IndexError:
+            return False
 
-            if rsi[-1] < 30 and rsi.iloc[:-1].mean() >= 30:
-                return True
+        if self.is_bullish and last_rsi < 30:
+            return True
+        elif not self.is_bullish and last_rsi > 80:
+            return True
 
         return False
 

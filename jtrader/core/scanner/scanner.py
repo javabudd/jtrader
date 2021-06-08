@@ -48,7 +48,7 @@ class Scanner(IEX):
 
     def run(self):
         num_lines = len(open(self.stock_list).readlines())
-        chunk_size = math.floor(num_lines / 10)
+        chunk_size = math.floor(num_lines / 25)
         if self.is_sandbox:
             chunk_size = math.floor(num_lines / 2)
 
@@ -83,7 +83,7 @@ class Scanner(IEX):
             time.sleep(sleep)
             self.logger.info(f"({thread_name}) Processing ticker: {ticker}")
             for indicator_class in self.indicators:
-                indicator = indicator_class(ticker, self.iex_client, self.logger)
+                indicator = indicator_class(ticker, self.logger, self.iex_client)
                 passed_validators = {}
                 try:
                     is_valid = indicator.is_valid()
@@ -101,7 +101,7 @@ class Scanner(IEX):
                             if self.time_range is not None:
                                 args["time_range"] = self.time_range
 
-                            validator_chain = validator_chain(ticker, self.iex_client, self.logger, **args)
+                            validator_chain = validator_chain(ticker, self.logger, self.iex_client, **args)
                             if validator_chain.is_valid() is False:
                                 has_valid_chain = False
                                 break  # break out of validation chain

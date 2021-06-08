@@ -1,3 +1,4 @@
+import pandas as pd
 from cement import Controller, ex
 from cement.utils.version import get_version_banner
 
@@ -37,28 +38,42 @@ class Base(Controller):
         self.app.args.print_help()
 
     @ex(
+        help='Process a backtest file into CSV'
+    )
+    def process_backtest(self):
+        def process_performance(file_name):
+            perf = pd.read_pickle('{}.pickle'.format(file_name))
+            perf.to_csv('{}.csv'.format(file_name))
+            perf.index = perf.index.normalize()
+
+            return perf
+
+        process_performance(file_name='out')
+
+    @ex(
         help='Start a news stream',
 
         arguments=[
             (
-                    ['-f', '--foo'],
+                    ['--sandbox'],
                     {
-                        'help': 'notorious foo option',
-                        'action': 'store',
-                        'dest': 'foo'
+                        'help': 'start in sandbox mode',
+                        'action': 'store_true',
+                        'dest': 'is_sandbox'
                     }
             ),
         ],
     )
     def start_news_stream(self):
         """News Stream Command"""
+        is_sandbox = self.app.pargs.is_sandbox
+
+        if is_sandbox:
+            self.app.log.info('Starting in sandbox mode...')
 
         data = {
-            'news_stream': News(self.app.config.get('jtrader', 'is_sandbox'), self.app.log),
+            'news_stream': News(is_sandbox, self.app.log),
         }
-
-        # if self.app.pargs.foo is not None:
-        #     data['foo'] = self.app.pargs.foo
 
         self.app.render(data, 'start_news_stream.jinja2')
 
@@ -67,20 +82,24 @@ class Base(Controller):
 
         arguments=[
             (
-                    ['-f', '--foo'],
+                    ['--sandbox'],
                     {
-                        'help': 'notorious foo option',
-                        'action': 'store',
-                        'dest': 'foo'
+                        'help': 'start in sandbox mode',
+                        'action': 'store_true',
+                        'dest': 'is_sandbox'
                     }
             ),
         ],
     )
     def get_lqm_stats(self):
         """LQM Stats Command"""
+        is_sandbox = self.app.pargs.is_sandbox
+
+        if is_sandbox:
+            self.app.log.info('Starting in sandbox mode...')
 
         data = {
-            'stats': LowQualityMomentum(self.app.config.get('jtrader', 'is_sandbox'), self.app.log),
+            'stats': LowQualityMomentum(is_sandbox, self.app.log),
         }
 
         self.app.render(data, 'get_lqm_stats.jinja2')
@@ -90,20 +109,24 @@ class Base(Controller):
 
         arguments=[
             (
-                    ['-f', '--foo'],
+                    ['--sandbox'],
                     {
-                        'help': 'notorious foo option',
-                        'action': 'store',
-                        'dest': 'foo'
+                        'help': 'start in sandbox mode',
+                        'action': 'store_true',
+                        'dest': 'is_sandbox'
                     }
             ),
         ],
     )
     def get_hqm_stats(self):
         """HQM Stats Command"""
+        is_sandbox = self.app.pargs.is_sandbox
+
+        if is_sandbox:
+            self.app.log.info('Starting in sandbox mode...')
 
         data = {
-            'stats': HighQualityMomentum(self.app.config.get('jtrader', 'is_sandbox'), self.app.log),
+            'stats': HighQualityMomentum(is_sandbox, self.app.log),
         }
 
         self.app.render(data, 'get_hqm_stats.jinja2')
@@ -113,20 +136,24 @@ class Base(Controller):
 
         arguments=[
             (
-                    ['-f', '--foo'],
+                    ['--sandbox'],
                     {
-                        'help': 'notorious foo option',
-                        'action': 'store',
-                        'dest': 'foo'
+                        'help': 'start in sandbox mode',
+                        'action': 'store_true',
+                        'dest': 'is_sandbox'
                     }
             ),
         ],
     )
     def get_value_stats(self):
         """Deep Value Stats Command"""
+        is_sandbox = self.app.pargs.is_sandbox
+
+        if is_sandbox:
+            self.app.log.info('Starting in sandbox mode...')
 
         data = {
-            'stats': Value(self.app.config.get('jtrader', 'is_sandbox'), self.app.log),
+            'stats': Value(is_sandbox, self.app.log),
         }
 
         self.app.render(data, 'get_value_stats.jinja2')
@@ -136,19 +163,23 @@ class Base(Controller):
 
         arguments=[
             (
-                    ['-f', '--foo'],
+                    ['--sandbox'],
                     {
-                        'help': 'notorious foo option',
-                        'action': 'store',
-                        'dest': 'foo'
+                        'help': 'start in sandbox mode',
+                        'action': 'store_true',
+                        'dest': 'is_sandbox'
                     }
             ),
         ],
     )
     def get_pmm_stats(self):
         """Start Pre Market Momentum Scanner Command"""
+        is_sandbox = self.app.pargs.is_sandbox
 
-        PreMarketMomentum(self.app.config.get('jtrader', 'is_sandbox'), self.app.log).run()
+        if is_sandbox:
+            self.app.log.info('Starting in sandbox mode...')
+
+        PreMarketMomentum(is_sandbox, self.app.log).run()
 
         self.app.render({}, 'start_pmm_scanner.jinja2')
 
@@ -157,18 +188,18 @@ class Base(Controller):
 
         arguments=[
             (
-                    ['-f', '--foo'],
+                    ['--sandbox'],
                     {
-                        'help': 'notorious foo option',
-                        'action': 'store',
-                        'dest': 'foo'
+                        'help': 'start in sandbox mode',
+                        'action': 'store_true',
+                        'dest': 'is_sandbox'
                     }
             ),
         ],
     )
     def get_mm_stats(self):
         """Start Market Momentum Scanner Command"""
-        is_sandbox = self.app.config.get('jtrader', 'is_sandbox')
+        is_sandbox = self.app.pargs.is_sandbox
 
         if is_sandbox:
             self.app.log.info('Starting in sandbox mode...')

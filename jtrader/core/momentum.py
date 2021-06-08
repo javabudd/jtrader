@@ -59,6 +59,11 @@ class Momentum(IEX):
                         ignore_index=True
                     )
 
+        if df.empty:
+            self.send_notification('No stocks on MM radar.')
+
+            return
+
         df.sort_values([gap, relative_volume, change_from_close], ascending=False, inplace=True)
         df.reset_index(inplace=True, drop=True)
 
@@ -140,9 +145,10 @@ class Momentum(IEX):
 
         # if the latest price is gaping 10%+
         if quote['changePercent'] >= .1:
-            # if the PM volume is already 30%+ of the average trading volume
-            if quote['latestVolume'] != 0 and quote['avgTotalVolume'] != 0 and \
-                    quote['latestVolume'] / quote['avgTotalVolume'] >= .3:
+            # if the PM volume is already 20%+ of the average trading volume
+            if quote['latestVolume'] != 0 and quote['avgTotalVolume'] != 0 \
+                    and quote['latestVolume'] > quote['avgTotalVolume'] \
+                    and (quote['latestVolume'] / quote['avgTotalVolume']) - 1 >= .2:
                 # make sure the stock has some news
                 data = self.iex_client.stocks.news(quote['symbol'])
 
