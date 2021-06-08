@@ -59,6 +59,11 @@ class PreMarketMomentum(IEX):
                         ignore_index=True
                     )
 
+        if df.empty:
+            self.send_notification('No stocks on PMM radar.')
+
+            return
+
         df.sort_values([gap, relative_volume, change_from_close], ascending=False, inplace=True)
         df.reset_index(inplace=True, drop=True)
 
