@@ -34,5 +34,4 @@ def handle_data(context, data: BarData):
         if rsi_validator.is_valid(data_frame) and volume_validator.is_valid(data_frame):
             order_target(context.asset, 0)
 
-    # Save values for later inspection
     record(Asset=data.current(context.asset, 'close'))

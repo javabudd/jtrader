@@ -60,7 +60,7 @@ class Momentum(IEX):
                     )
 
         if df.empty:
-            self.send_notification('No stocks on MM radar.')
+            self.logger.info('No stocks on PMM radar')
 
             return
 
@@ -145,10 +145,9 @@ class Momentum(IEX):
 
         # if the latest price is gaping 10%+
         if quote['changePercent'] >= .1:
-            # if the PM volume is already 20%+ of the average trading volume
+            # @TODO this needs tweaking depending on time of day?
             if quote['latestVolume'] != 0 and quote['avgTotalVolume'] != 0 \
-                    and quote['latestVolume'] > quote['avgTotalVolume'] \
-                    and (quote['latestVolume'] / quote['avgTotalVolume']) - 1 >= .2:
+                    and ((quote['avgTotalVolume'] - quote['latestVolume']) / quote['latestVolume'] / 100) <= 10:
                 # make sure the stock has some news
                 data = self.iex_client.stocks.news(quote['symbol'])
 

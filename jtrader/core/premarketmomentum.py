@@ -60,7 +60,7 @@ class PreMarketMomentum(IEX):
                     )
 
         if df.empty:
-            self.send_notification('No stocks on PMM radar.')
+            self.logger.info('No stocks on PMM radar')
 
             return
 
@@ -137,15 +137,14 @@ class PreMarketMomentum(IEX):
 
         quote = stock_data['quote']
 
-        if 'previousClose' not in quote or 'extendedPrice' not in quote or quote['previousClose'] is None \
-                or quote['extendedPrice'] is None or quote['latestVolume'] is None or quote['avgTotalVolume'] is None:
+        try:
+            self.validate_data(quote)
+        except ValueError:
             return False
 
-        # if the latest price is gaping 10%+
-        if quote['extendedChangePercent'] >= .1:
-            # if the PM volume is already 20%+ of the average trading volume
-            if quote['latestVolume'] != 0 and quote['latestVolume'] > quote['avgTotalVolume'] \
-                    and (quote['latestVolume'] / quote['avgTotalVolume']) - 1 >= .2:
+        if ((quote['avgTotalVolume'] - quote['latestVolume']) / quote['latestVolume'] / 100) <= 10:
+            # if the latest price is gaping 10%+
+            if quote['extendedChangePercent'] >= .1:
                 # make sure the stock has some news
                 data = self.iex_client.stocks.news(quote['symbol'])
 
@@ -159,3 +158,12 @@ class PreMarketMomentum(IEX):
                 return has_news
 
         return False
+
+    @staticmethod
+    def validate_data(quote):
+        if quote['latestVolume'] is None or 'avgTotalVolume' not in quote or quote['avgTotalVolume'] is None \
+                or quote['avgTotalVolume'] is None \
+                or quote['extendedChangePercent'] is None \
+                or quote['latestVolume'] == 0 \
+                or quote['avgTotalVolume'] == 0:
+            raise ValueError
