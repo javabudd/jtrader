@@ -109,3 +109,4 @@ venv.bak/
 *.pickle
 out.csv
 docker-compose.override.yml
+**.db
