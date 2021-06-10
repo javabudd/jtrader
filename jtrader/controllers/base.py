@@ -238,6 +238,8 @@ class Base(Controller):
                             'rsi',
                             'macd',
                             'coc',
+                            'adx',
+                            'obv',
                             'volume'
                         ],
                         'nargs': '+'
