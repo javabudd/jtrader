@@ -1,3 +1,4 @@
+import datetime
 import json
 import math
 import sys
@@ -47,6 +48,9 @@ class Scanner(IEX):
                 raise RuntimeError
 
     def run(self):
+        start = datetime.datetime.now()
+        self.send_notification(f"*Scanner started at {start.strftime('%Y-%m-%d %H:%M:%S')}*")
+
         num_lines = len(open(self.stock_list).readlines())
         chunk_size = math.floor(num_lines / 25)
         if self.is_sandbox:
@@ -70,7 +74,9 @@ class Scanner(IEX):
                         threads.remove(thread)
                     thread.join(1)
 
+            end = datetime.datetime.now()
             self.logger.info('Processing finished')
+            self.send_notification(f"*Scanner finished at {end.strftime('%Y-%m-%d %H:%M:%S')}*")
             sys.exit(1)
 
     def loop(self, thread_name, chunk):
