@@ -13,21 +13,21 @@ class ADXValidator(Validator):
         return 'ADX'
 
     def is_valid(self, data=None):
+        data = self.iex_client.stocks.intradayDF(self.ticker, IEXOnly=self.iex_only)
+
+        if 'close' not in data:
+            self.log_missing_close()
+
+            return False
+
+        self.clean_dataframe(data)
+
+        adx = talib.ADX(data['high'], data['low'], data['close'])
+
         if self.is_bullish:
-            data = self.iex_client.stocks.intradayDF(self.ticker, IEXOnly=True)
-
-            if 'close' not in data:
-                self.log_missing_close()
-
-                return False
-
-            self.clean_dataframe(data)
-
-            adx = talib.ADX(data['high'], data['low'], data['close'])
-
+            return adx > 20
+        else:
             return adx < 20
-
-        return False
 
     def get_validation_chain(self):
         return []

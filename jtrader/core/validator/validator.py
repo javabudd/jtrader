@@ -14,13 +14,15 @@ class Validator(ABC):
             logger: Optional[LogInterface] = None,
             iex_client: Optional[Client] = None,
             is_bullish: Optional[bool] = True,
-            time_range: Optional[str] = '5d'
+            time_range: Optional[str] = '5d',
+            iex_only: Optional[bool] = True
     ):
         self.iex_client_prop = iex_client
         self.logger_prop = logger
         self.ticker = ticker
         self.is_bullish = is_bullish
         self.time_range = time_range
+        self.iex_only = iex_only
 
     @abstractmethod
     def is_valid(self, data=None):

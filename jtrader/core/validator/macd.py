@@ -28,7 +28,7 @@ class MACDValidator(Validator):
 
     def is_valid(self, data=None):
         if self.is_bullish:
-            data = self.iex_client.stocks.intradayDF(self.ticker, IEXOnly=True)
+            data = self.iex_client.stocks.intradayDF(self.ticker, IEXOnly=self.iex_only)
 
             if 'close' not in data:
                 self.log_missing_close()
