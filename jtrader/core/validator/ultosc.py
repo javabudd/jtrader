@@ -1,3 +1,5 @@
+import talib
+
 from jtrader.core.validator.validator import Validator
 
 
@@ -30,26 +32,31 @@ class ULTOSCValidator(Validator):
 
     def is_valid(self, data=None):
         if self.is_bullish:
-            if self.has_lower_low():
-                data = self.iex_client.stocks.technicals(self.ticker, 'ultosc', range=self.time_range)
+            if self.has_lower_low(data):
+                if data is None:
+                    data = self.iex_client.stocks.technicals(self.ticker, 'ultosc', range=self.time_range)
 
-                if 'chart' not in data:
-                    self.log_missing_chart()
+                    if 'chart' not in data:
+                        self.log_missing_chart()
 
-                    return False
+                        return False
 
-                chart = data['chart']
+                    chart = data['chart']
 
-                if not chart or len(chart) == 1:
-                    self.log_not_enough_chart_data()
+                    if not chart or len(chart) == 1:
+                        self.log_not_enough_chart_data()
 
-                    return False
+                        return False
+                else:
+                    chart = talib.ULTOSC(data['high'], data['low'], data['close'])
 
-                highest_low = max(chart[:-1], key=lambda x: x["low"] is not None)
-                lowest_low = min(chart, key=lambda x: x["low"] is not None)
-                latest_low = chart[-1]
+                self.clean_dataframe(chart)
 
-                if latest_low['low'] > highest_low['low'] and lowest_low['low'] < 30:
+                highest_low = max(chart[:-1])
+                lowest_low = min(chart[:-1])
+                latest_low = chart.iloc[-1]
+
+                if latest_low > highest_low and lowest_low < 30:
                     return True
 
         return False

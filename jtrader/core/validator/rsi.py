@@ -40,8 +40,10 @@ class RSIValidator(Validator):
         except Exception:
             return False
 
+        self.clean_dataframe(rsi)
+
         try:
-            last_rsi = rsi[-1]
+            last_rsi = rsi.iloc[-1]
         except IndexError:
             return False
 
