@@ -253,6 +253,14 @@ class Base(Controller):
                         'dest': 'is_sandbox'
                     }
             ),
+            (
+                    ['--no-notifications'],
+                    {
+                        'help': 'disable notifications',
+                        'action': 'store_true',
+                        'dest': 'no_notifications'
+                    }
+            ),
         ],
     )
     def start_intraday_scanner(self):
@@ -262,7 +270,13 @@ class Base(Controller):
         if is_sandbox:
             self.app.log.info('Starting in sandbox mode...')
 
-        Scanner(is_sandbox, self.app.log, self.app.pargs.indicators, self.app.pargs.stock_list).run()
+        Scanner(
+            is_sandbox,
+            self.app.log,
+            self.app.pargs.indicators,
+            self.app.pargs.stock_list,
+            no_notifications=self.app.pargs.no_notifications
+        ).run()
 
         self.app.render({}, 'start_scanner.jinja2')
 
