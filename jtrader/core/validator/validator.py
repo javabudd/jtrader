@@ -2,6 +2,7 @@ from abc import ABC, abstractmethod
 from typing import Optional
 
 import numpy as np
+import pandas as pd
 from cement.core.log import LogInterface
 from pyEX.client import Client
 from stockstats import StockDataFrame
@@ -63,19 +64,17 @@ class Validator(ABC):
     def get_time_range(self):
         return self.time_range
 
-    def has_lower_low(self):
-        historical_data = self.iex_client.stocks.chart(self.ticker, timeframe=self.time_range)
-        quote_data = self.iex_client.stocks.quote(self.ticker)
+    def has_lower_low(self, data=None):
+        if data is None:
+            historical_data = pd.DataFrame(self.iex_client.stocks.chart(self.ticker, timeframe=self.time_range))
+            quote_data = self.iex_client.stocks.quote(self.ticker)
+        else:
+            historical_data = data.iloc[:-1]
+            quote_data = data.iloc[-1]
 
-        if not historical_data:
-            return False
+        lowest_low_historical = min(historical_data['low'])
 
-        lowest_low_historical = min(historical_data, key=lambda x: x["low"] is not None)
-
-        if lowest_low_historical['low'] is None or quote_data['low'] is None:
-            return False
-
-        return quote_data['low'] < lowest_low_historical['low']
+        return quote_data['low'] < lowest_low_historical
 
     def log_missing_close(self):
         self.logger.debug(f"{self.ticker} missing close data from IEX")

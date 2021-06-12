@@ -42,6 +42,10 @@ class PreMarketMomentum(IEX):
                     continue
 
                 if self.stock_qualifies(data[symbol]):
+                    news = None
+                    if 'news' in data[symbol]['quote']:
+                        news = data[symbol]['quote']['news']
+
                     df = df.append(
                         pd.Series(
                             [
@@ -52,7 +56,7 @@ class PreMarketMomentum(IEX):
                                 1 - (data[symbol]['quote']['avgTotalVolume'] / data[symbol]['quote']['latestVolume']),
                                 1 - (data[symbol]['quote']['previousClose'] / data[symbol]['quote']['extendedPrice']),
                                 data[symbol]['quote']['changePercent'],
-                                data[symbol]['quote']['news']['url']
+                                news
                             ],
                             index=csv_columns
                         ),
@@ -142,20 +146,18 @@ class PreMarketMomentum(IEX):
         except ValueError:
             return False
 
-        if ((quote['avgTotalVolume'] - quote['latestVolume']) / quote['latestVolume'] / 100) <= 10:
+        if (quote['latestVolume'] - quote['avgTotalVolume']) / quote['avgTotalVolume'] >= .1:
             # if the latest price is gaping 10%+
             if quote['extendedChangePercent'] >= .1:
-                # make sure the stock has some news
+                # get some news for the stocks
                 data = self.iex_client.stocks.news(quote['symbol'])
 
-                has_news = False
                 for news in data:
                     if time.time() - news['datetime'] < 10800:
-                        has_news = True
                         quote['news'] = news
                         break
 
-                return has_news
+                return True
 
         return False
 

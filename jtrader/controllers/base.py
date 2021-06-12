@@ -16,6 +16,19 @@ Trade them thangs %s
 %s
 """ % (get_version(), get_version_banner())
 
+indicators = [
+    'robust',
+    'simple',
+    'apo',
+    'ultosc',
+    'rsi',
+    'macd',
+    'coc',
+    'adx',
+    'obv',
+    'volume'
+]
+
 
 class Base(Controller):
     class Meta:
@@ -209,7 +222,7 @@ class Base(Controller):
         self.app.render({}, 'start_mm_scanner.jinja2')
 
     @ex(
-        help='Start stock scanner',
+        help='Start intraday stock scanner',
 
         arguments=[
             (
@@ -230,18 +243,7 @@ class Base(Controller):
                         'help': 'which technicals indicators to scan against',
                         'action': 'append',
                         'dest': 'indicators',
-                        'choices': [
-                            'robust',
-                            'simple',
-                            'apo',
-                            'ultosc',
-                            'rsi',
-                            'macd',
-                            'coc',
-                            'adx',
-                            'obv',
-                            'volume'
-                        ],
+                        'choices': indicators,
                         'nargs': '+'
                     }
             ),
@@ -255,6 +257,49 @@ class Base(Controller):
             ),
         ],
     )
+    def start_intraday_scanner(self):
+        """Start Scanner Command"""
+        is_sandbox = self.app.pargs.is_sandbox
+
+        if is_sandbox:
+            self.app.log.info('Starting in sandbox mode...')
+
+        Scanner(is_sandbox, self.app.log, self.app.pargs.indicators, self.app.pargs.stock_list).run()
+
+        self.app.render({}, 'start_scanner.jinja2')
+
+    @ex(
+        help='Start stock scanner',
+
+        arguments=[
+            (
+                    ['-t', '--technical-indicators'],
+                    {
+                        'help': 'which technicals indicators to scan against',
+                        'action': 'append',
+                        'dest': 'indicators',
+                        'choices': indicators,
+                        'nargs': '+'
+                    }
+            ),
+            (
+                    ['--sandbox'],
+                    {
+                        'help': 'start in sandbox mode',
+                        'action': 'store_true',
+                        'dest': 'is_sandbox'
+                    }
+            ),
+            (
+                    ['--no-notifications'],
+                    {
+                        'help': 'disable notifications',
+                        'action': 'store_true',
+                        'dest': 'no_notifications'
+                    }
+            ),
+        ],
+    )
     def start_scanner(self):
         """Start Scanner Command"""
         is_sandbox = self.app.pargs.is_sandbox
@@ -262,6 +307,14 @@ class Base(Controller):
         if is_sandbox:
             self.app.log.info('Starting in sandbox mode...')
 
-        Scanner(is_sandbox, self.app.log, self.app.pargs.stock_list, self.app.pargs.indicators).run()
+        Scanner(
+            is_sandbox,
+            self.app.log,
+            self.app.pargs.indicators,
+            None,
+            None,
+            False,
+            self.app.pargs.no_notifications
+        ).run()
 
         self.app.render({}, 'start_scanner.jinja2')

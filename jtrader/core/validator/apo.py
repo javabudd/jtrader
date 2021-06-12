@@ -1,3 +1,5 @@
+import talib
+
 from jtrader.core.validator.validator import Validator
 
 
@@ -27,30 +29,35 @@ class APOValidator(Validator):
 
     def is_valid(self, data=None):
         if self.is_bullish:
-            return self.signals_bullish()
+            return self.signals_bullish(data)
         else:
             return self.signals_bearish()
 
-    def signals_bullish(self):
-        if self.has_lower_low():
-            data = self.iex_client.stocks.technicals(self.ticker, 'apo', range=self.time_range)
-            for required in ['chart']:
-                if required not in data:
-                    self.log_missing_chart()
+    def signals_bullish(self, data=None):
+        if self.has_lower_low(data):
+            if data is None:
+                data = self.iex_client.stocks.technicals(self.ticker, 'apo', range=self.time_range)
+                for required in ['chart']:
+                    if required not in data:
+                        self.log_missing_chart()
 
-                    return False
+                        return False
 
-            apo_chart = data['chart']
+                apo_chart = data['chart']
+            else:
+                apo_chart = talib.APO(data['close'])
 
-            if not apo_chart or len(apo_chart) == 1:
+            self.clean_dataframe(apo_chart)
+
+            if len(apo_chart) <= 1:
                 self.log_not_enough_chart_data()
 
                 return False
 
-            highest_apo_low = max(apo_chart[:-1], key=lambda x: x["low"] is not None)
-            latest_apo_low = apo_chart[-1]
+            highest_apo_low = max(apo_chart[:-1])
+            latest_apo_low = apo_chart.iloc[-1]
 
-            if latest_apo_low['low'] > highest_apo_low['low']:
+            if latest_apo_low > highest_apo_low:
                 return True
 
         return False

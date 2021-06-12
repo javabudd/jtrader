@@ -45,16 +45,16 @@ class VolumeValidator(Validator):
         if len(adosc) <= 1:
             return False
 
-        frame = pd.DataFrame(adosc[:-1]).round(0)
+        frame = pd.DataFrame(adosc.iloc[:-1]).round(0)
         centroids, _ = kmeans(frame, 2)
         resistance = max(centroids)
         support = min(centroids)
 
         if self.is_bullish:
-            if adosc[-1] > resistance[0]:
+            if adosc.iloc[-1] > resistance[0]:
                 return True
         else:
-            if adosc[-1] < support[0]:
+            if adosc.iloc[-1] < support[0]:
                 return True
 
         return False
