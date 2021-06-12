@@ -2,13 +2,13 @@ import pandas as pd
 from cement import Controller, ex
 from cement.utils.version import get_version_banner
 
-from jtrader.core.hqm import HighQualityMomentum
-from jtrader.core.lqm import LowQualityMomentum
-from jtrader.core.momentum import Momentum
 from jtrader.core.news import News
-from jtrader.core.premarketmomentum import PreMarketMomentum
+from jtrader.core.scanner.hqm import HighQualityMomentum
+from jtrader.core.scanner.lqm import LowQualityMomentum
+from jtrader.core.scanner.momentum import Momentum
+from jtrader.core.scanner.premarketmomentum import PreMarketMomentum
 from jtrader.core.scanner.scanner import Scanner
-from jtrader.core.value import Value
+from jtrader.core.scanner.value import Value
 from ..core.version import get_version
 
 VERSION_BANNER = """

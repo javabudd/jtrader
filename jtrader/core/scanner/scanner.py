@@ -254,6 +254,10 @@ class Scanner(IEX):
                 break
 
             if len(passed_validators) > 0:
+                # test the theories
+
+
+                # notify if successful
                 message = {
                     "ticker": ticker,
                     "signal_type": "bullish",
