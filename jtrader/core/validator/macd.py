@@ -1,3 +1,5 @@
+import talib
+
 from jtrader.core.validator.validator import Validator
 
 
@@ -28,24 +30,22 @@ class MACDValidator(Validator):
 
     def is_valid(self, data=None):
         if self.is_bullish:
-            data = self.iex_client.stocks.intradayDF(self.ticker, IEXOnly=self.iex_only)
+            if data is None:
+                data = self.iex_client.stocks.intradayDF(self.ticker, IEXOnly=self.iex_only)
 
-            if 'close' not in data:
-                self.log_missing_close()
+                if 'close' not in data:
+                    self.log_missing_close()
 
-                return False
+                    return False
 
-            self.clean_dataframe(data)
-
-            stock = self.data_frame_to_stock_data_frame(data)
-
-            macd = stock.get('macd')
-            signal_line = stock.get('macds')
+            macd, signal_line, histogram = talib.MACD(data['close'])
+            self.clean_dataframe(macd)
+            self.clean_dataframe(signal_line)
 
             if len(macd) <= 1 or len(signal_line) <= 1:
                 return False
 
-            if macd[-1] > signal_line[-1]:
+            if macd.iloc[-1] > signal_line.iloc[-1]:
                 return True
 
         return False

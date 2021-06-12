@@ -5,7 +5,6 @@ import numpy as np
 import pandas as pd
 from cement.core.log import LogInterface
 from pyEX.client import Client
-from stockstats import StockDataFrame
 
 
 class Validator(ABC):
@@ -32,13 +31,6 @@ class Validator(ABC):
     @abstractmethod
     def get_validation_chain(self):
         pass
-
-    @staticmethod
-    def data_frame_to_stock_data_frame(data):
-        data.dropna(inplace=True)
-        data.rename(columns={'numberOfTrades': 'amount'}, inplace=True)
-
-        return StockDataFrame.retype(data)
 
     @staticmethod
     def clean_dataframe(dataframe):
