@@ -17,8 +17,6 @@ Trade them thangs %s
 """ % (get_version(), get_version_banner())
 
 indicators = [
-    'robust',
-    'simple',
     'apo',
     'ultosc',
     'rsi',

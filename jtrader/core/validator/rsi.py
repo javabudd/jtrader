@@ -36,7 +36,8 @@ class RSIValidator(Validator):
         close = self.clean_dataframe(data['close'])
 
         try:
-            rsi = talib.RSI(close, timeperiod=14)
+            # key 1 in the output is the smoothed line
+            rsi = talib.STOCHRSI(close, timeperiod=14)[1]
         except Exception:
             return False
 

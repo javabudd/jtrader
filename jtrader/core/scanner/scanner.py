@@ -15,6 +15,7 @@ from jtrader import __STOCK_CSVS__
 from jtrader.core.db import DB
 from jtrader.core.iex import IEX
 from jtrader.core.validator import __VALIDATION_MAP__
+from jtrader.core.validator.chain import ChainValidator
 
 
 class Scanner(IEX):
@@ -46,9 +47,10 @@ class Scanner(IEX):
         if indicators is None:
             self.indicators = __VALIDATION_MAP__['all']
         else:
+            indicators = map(lambda x: x[0], indicators)
             for indicator in indicators:
-                if indicator[0] in __VALIDATION_MAP__:
-                    self.indicators.append(__VALIDATION_MAP__[indicator[0]])
+                if indicator in __VALIDATION_MAP__ and indicator:
+                    self.indicators.append(__VALIDATION_MAP__[indicator])
             if len(self.indicators) == 0:
                 raise RuntimeError
 
@@ -100,7 +102,8 @@ class Scanner(IEX):
             'changePercent'
         ]
 
-        start = today + relativedelta(days=-60)
+        delta = 60
+        start = today + relativedelta(days=-delta)
         for chunk in enumerate(stocks):
             for stock in chunk[1]['Ticker']:
                 results = self.db.get_historical_stock_range(
@@ -120,6 +123,11 @@ class Scanner(IEX):
                         if self.db.get_historical_stock_day(stock, result['date']):
                             continue
 
+                        if 'uOpen' not in result:
+                            self.logger.info(f"Could not get unadjusted close data for {stock}")
+
+                            continue
+
                         stock_day = self.db.StockDay(
                             stock,
                             datetime.strptime(result['date'], '%Y-%m-%d'),
@@ -128,7 +136,7 @@ class Scanner(IEX):
                             result['low'],
                             result['open'],
                             result['volume'],
-                            result['updated'],
+                            result['updated'] if 'updated' in result else None,
                             result['changeOverTime'],
                             result['marketChangeOverTime'],
                             result['uOpen'],
@@ -201,8 +209,14 @@ class Scanner(IEX):
         if self.as_intraday:
             period = 'intraday'
 
+        if len(self.indicators) > 1:
+            self.indicators = [ChainValidator(ticker, self.indicators, logger=self.logger, iex_client=self.iex_client)]
+
         for indicator_class in self.indicators:
-            indicator = indicator_class(ticker, self.logger, self.iex_client)
+            indicator = indicator_class
+            if not isinstance(indicator, ChainValidator):
+                indicator = indicator(ticker, logger=self.logger, iex_client=self.iex_client)
+
             passed_validators = {}
             try:
                 is_valid = indicator.is_valid(data)
