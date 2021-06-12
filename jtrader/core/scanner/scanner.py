@@ -16,6 +16,7 @@ from jtrader.core.db import DB
 from jtrader.core.iex import IEX
 from jtrader.core.validator import __VALIDATION_MAP__
 from jtrader.core.validator.chain import ChainValidator
+from jtrader.core.validator.validator import Validator
 
 
 class Scanner(IEX):
@@ -23,7 +24,7 @@ class Scanner(IEX):
             self,
             is_sandbox: bool,
             logger: LogInterface,
-            indicators: Optional[list],
+            indicators: Optional[Validator],
             stocks: Optional[str] = None,
             time_range: Optional[str] = None,
             as_intraday: Optional[bool] = True,
@@ -51,6 +52,7 @@ class Scanner(IEX):
             for indicator in indicators:
                 if indicator in __VALIDATION_MAP__ and indicator:
                     self.indicators.append(__VALIDATION_MAP__[indicator])
+
             if len(self.indicators) == 0:
                 raise RuntimeError
 
@@ -224,9 +226,9 @@ class Scanner(IEX):
                 if is_valid is False:
                     continue
 
-                chain = indicator.get_validation_chain()
-                has_valid_chain = True
-                if len(chain) > 0:
+                if isinstance(indicator, ChainValidator):
+                    chain = indicator.get_validation_chain()
+                    has_valid_chain = True
                     passed_validators[indicator.get_name()] = []
                     chain_index = 0
                     for validator_chain in chain:
