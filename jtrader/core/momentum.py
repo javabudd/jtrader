@@ -147,7 +147,7 @@ class Momentum(IEX):
         if quote['changePercent'] >= .1:
             # @TODO this needs tweaking depending on time of day?
             if quote['latestVolume'] != 0 and quote['avgTotalVolume'] != 0 \
-                    and ((quote['avgTotalVolume'] - quote['latestVolume']) / quote['latestVolume'] / 100) <= 10:
+                    and (quote['latestVolume'] - quote['avgTotalVolume']) / quote['avgTotalVolume'] >= .1:
                 # make sure the stock has some news
                 data = self.iex_client.stocks.news(quote['symbol'])
 
