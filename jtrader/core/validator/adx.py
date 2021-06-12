@@ -32,6 +32,3 @@ class ADXValidator(Validator):
             return adx.iloc[-1] > 20
         else:
             return adx.iloc[-1] < 20
-
-    def get_validation_chain(self):
-        return []

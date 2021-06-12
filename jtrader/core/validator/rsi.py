@@ -54,6 +54,3 @@ class RSIValidator(Validator):
             return True
 
         return False
-
-    def get_validation_chain(self):
-        return []

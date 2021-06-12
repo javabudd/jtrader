@@ -28,10 +28,6 @@ class Validator(ABC):
     def is_valid(self, data=None):
         pass
 
-    @abstractmethod
-    def get_validation_chain(self):
-        pass
-
     @staticmethod
     def clean_dataframe(dataframe):
         dataframe.replace([np.inf, -np.inf], np.nan, inplace=True)

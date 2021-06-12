@@ -31,6 +31,3 @@ class OBVValidator(Validator):
             return last > 0 and max_last_nine > 0 and last - max_last_nine / max_last_nine >= .5
         else:
             return last < max_last_nine
-
-    def get_validation_chain(self):
-        return []

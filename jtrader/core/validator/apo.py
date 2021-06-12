@@ -65,6 +65,3 @@ class APOValidator(Validator):
     # nothing yet
     def signals_bearish(self):
         return False
-
-    def get_validation_chain(self):
-        return []
