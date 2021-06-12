@@ -42,6 +42,10 @@ class Momentum(IEX):
                     continue
 
                 if self.stock_qualifies(data[symbol]):
+                    news = None
+                    if 'news' in data[symbol]['quote']:
+                        news = data[symbol]['quote']['news']
+
                     df = df.append(
                         pd.Series(
                             [
@@ -52,7 +56,7 @@ class Momentum(IEX):
                                 1 - (data[symbol]['quote']['avgTotalVolume'] / data[symbol]['quote']['latestVolume']),
                                 data[symbol]['quote']['changePercent'],
                                 1 - (data[symbol]['quote']['previousClose'] / data[symbol]['quote']['latestPrice']),
-                                data[symbol]['quote']['news']['url']
+                                news
                             ],
                             index=csv_columns
                         ),
@@ -148,16 +152,14 @@ class Momentum(IEX):
             # @TODO this needs tweaking depending on time of day?
             if quote['latestVolume'] != 0 and quote['avgTotalVolume'] != 0 \
                     and (quote['latestVolume'] - quote['avgTotalVolume']) / quote['avgTotalVolume'] >= .1:
-                # make sure the stock has some news
+                # get some news for the stocks
                 data = self.iex_client.stocks.news(quote['symbol'])
 
-                has_news = False
                 for news in data:
                     if time.time() - news['datetime'] < 10800:
-                        has_news = True
                         quote['news'] = news
                         break
 
-                return has_news
+                return True
 
         return False

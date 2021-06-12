@@ -43,7 +43,6 @@ class PreMarketMomentum(IEX):
 
                 if self.stock_qualifies(data[symbol]):
                     news = None
-
                     if 'news' in data[symbol]['quote']:
                         news = data[symbol]['quote']['news']
 
