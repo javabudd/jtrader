@@ -25,9 +25,10 @@ class Scanner(IEX):
             indicators: Optional[list],
             stocks: Optional[str] = None,
             time_range: Optional[str] = None,
-            as_intraday: Optional[bool] = True
+            as_intraday: Optional[bool] = True,
+            no_notifications: Optional[bool] = False
     ):
-        super().__init__(is_sandbox, logger)
+        super().__init__(is_sandbox, logger, no_notifications=no_notifications)
 
         self.time_range = time_range
         self.as_intraday = as_intraday

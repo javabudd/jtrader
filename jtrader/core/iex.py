@@ -15,10 +15,12 @@ class IEX(ABC):
             self,
             is_sandbox: bool,
             logger: LogInterface,
-            version: Optional[str] = 'stable'
+            version: Optional[str] = 'stable',
+            no_notifications: Optional[bool] = False
     ):
         self.is_sandbox = is_sandbox
         self.logger = logger
+        self.no_notifications = no_notifications
 
         token = IEX_CLOUD_API_TOKEN
         if self.is_sandbox:
@@ -37,6 +39,9 @@ class IEX(ABC):
             yield lst[item:item + n]
 
     def send_notification(self, message: str, slack_channel: Optional[str] = '#stock-scanner', **kwargs):
+        if self.no_notifications:
+            return
+
         client = WebClient(token=SLACK_TOKEN)
         discord_url = None
 
