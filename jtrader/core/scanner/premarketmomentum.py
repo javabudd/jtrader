@@ -8,8 +8,6 @@ import pandas as pd
 
 from jtrader.core.iex import IEX
 
-stocks = pd.read_csv('files/all_stocks.csv')
-
 relative_volume = 'Relative Volume (30 Day)'
 change_from_close = 'Change From Close (%)'
 gap = 'Gap(%)'
@@ -28,6 +26,8 @@ csv_columns = [
 
 class PreMarketMomentum(IEX):
     def run(self):
+        stocks = pd.read_csv('files/all_stocks.csv')
+
         df = pd.DataFrame(columns=csv_columns)
 
         symbol_groups = list(self.chunks(stocks['Ticker'], 100))

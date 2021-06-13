@@ -358,8 +358,8 @@ class Base(Controller):
             ),
         ],
     )
-    def run_backtest(self):
-        """Start Run Backtest Command"""
+    def start_backtest(self):
+        """Start Backtest Command"""
         backtester = Backtester(
             self.app.log,
             self.app.pargs.ticker,

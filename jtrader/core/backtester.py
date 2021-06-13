@@ -13,7 +13,7 @@ class Backtester:
     CAPITAL_BASE = 1000000
     ORDER_AMOUNT = 5000
     DATA_FREQUENCY = 'daily'
-    DATA_BUNDLE = 'quandl'
+    DATA_BUNDLE = 'iex'
 
     def __init__(
             self,

@@ -9,8 +9,6 @@ from scipy import stats
 
 from jtrader.core.iex import IEX
 
-stocks = pd.read_csv('files/all_stocks.csv')
-
 csv_columns = [
     'Ticker',
     'Price',
@@ -35,6 +33,8 @@ time_periods = [
 
 class LowQualityMomentum(IEX):
     def run(self):
+        stocks = pd.read_csv('files/all_stocks.csv')
+
         df = pd.DataFrame(columns=csv_columns)
 
         symbol_groups = list(self.chunks(stocks['Ticker'], 100))
