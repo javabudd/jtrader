@@ -1,4 +1,3 @@
-import pandas as pd
 import pyEX as IEXClient
 from cement import Controller, ex
 from cement.utils.version import get_version_banner
@@ -341,10 +340,31 @@ class Base(Controller):
                         'required': True
                     }
             ),
+            (
+                    ['--start'],
+                    {
+                        'help': 'Backtest start date',
+                        'action': 'store',
+                        'dest': 'start_date'
+                    }
+            ),
+            (
+                    ['--end'],
+                    {
+                        'help': 'Backtest end date',
+                        'action': 'store',
+                        'dest': 'end_date'
+                    }
+            ),
         ],
     )
     def run_backtest(self):
         """Start Run Backtest Command"""
-        backtester = Backtester(self.app.log, self.app.pargs.ticker)
+        backtester = Backtester(
+            self.app.log,
+            self.app.pargs.ticker,
+            self.app.pargs.start_date,
+            self.app.pargs.end_date,
+        )
 
         backtester.run()

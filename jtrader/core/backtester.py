@@ -8,9 +8,29 @@ from jtrader.core.validator.volume import VolumeValidator
 
 
 class Backtester:
-    def __init__(self, logger, ticker: str):
+    def __init__(
+            self,
+            logger,
+            ticker: str,
+            start_date: str,
+            end_date: str
+    ):
         self.logger = logger
         self.ticker = ticker
+
+        try:
+            self.start_date = pd.to_datetime(start_date, utc=True)
+        except TypeError as e:
+            self.logger.error('Could not parse start date')
+
+            raise e
+
+        try:
+            self.end_date = pd.to_datetime(end_date, utc=True)
+        except TypeError as e:
+            self.logger.error('Could not parse end date')
+
+            raise e
 
     @staticmethod
     def handle_data(context, data: BarData):
@@ -49,5 +69,6 @@ class Backtester:
             initialize=self.initialize,
             handle_data=self.handle_data,
             bundle='quandl',
-            start=pd.to_datetime('2017-1-3', utc=True),
-            end=pd.to_datetime('2021-1-4', utc=True)).to_csv('out.csv')
+            start=self.start_date,
+            end=self.end_date
+        ).to_csv('out.csv')
