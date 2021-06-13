@@ -23,20 +23,8 @@ class Backtester:
         self.ticker = ticker
         self.frequency = frequency
         self.bar_count = bar_count
-
-        try:
-            self.start_date = pd.to_datetime(start_date, utc=True)
-        except TypeError as e:
-            self.logger.error('Could not parse start date')
-
-            raise e
-
-        try:
-            self.end_date = pd.to_datetime(end_date, utc=True)
-        except TypeError as e:
-            self.logger.error('Could not parse end date')
-
-            raise e
+        self.start_date = pd.to_datetime(start_date, utc=True)
+        self.end_date = pd.to_datetime(end_date, utc=True)
 
     def handle_data(self, context, data: BarData):
         context.i += 1
