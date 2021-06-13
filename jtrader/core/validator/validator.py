@@ -64,6 +64,42 @@ class Validator(ABC):
 
         return quote_data['low'] < lowest_low_historical
 
+    def has_lower_high(self, data=None):
+        if data is None:
+            historical_data = pd.DataFrame(self.iex_client.stocks.chart(self.ticker, timeframe=self.time_range))
+            quote_data = self.iex_client.stocks.quote(self.ticker)
+        else:
+            historical_data = data.iloc[:-1]
+            quote_data = data.iloc[-1]
+
+        lowest_high_historical = min(historical_data['high'])
+
+        return quote_data['high'] < lowest_high_historical
+
+    def has_higher_low(self, data=None):
+        if data is None:
+            historical_data = pd.DataFrame(self.iex_client.stocks.chart(self.ticker, timeframe=self.time_range))
+            quote_data = self.iex_client.stocks.quote(self.ticker)
+        else:
+            historical_data = data.iloc[:-1]
+            quote_data = data.iloc[-1]
+
+        highest_low_historical = max(historical_data['low'])
+
+        return quote_data['low'] > highest_low_historical
+
+    def has_higher_high(self, data=None):
+        if data is None:
+            historical_data = pd.DataFrame(self.iex_client.stocks.chart(self.ticker, timeframe=self.time_range))
+            quote_data = self.iex_client.stocks.quote(self.ticker)
+        else:
+            historical_data = data.iloc[:-1]
+            quote_data = data.iloc[-1]
+
+        highest_high_historical = max(historical_data['high'])
+
+        return quote_data['high'] > highest_high_historical
+
     def log_missing_close(self):
         self.logger.debug(f"{self.ticker} missing close data from IEX")
 
