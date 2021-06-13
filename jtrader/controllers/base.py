@@ -1,4 +1,5 @@
 import pandas as pd
+import pyEX as IEXClient
 from cement import Controller, ex
 from cement.utils.version import get_version_banner
 
@@ -9,6 +10,8 @@ from jtrader.core.scanner.momentum import Momentum
 from jtrader.core.scanner.premarketmomentum import PreMarketMomentum
 from jtrader.core.scanner.scanner import Scanner
 from jtrader.core.scanner.value import Value
+from jtrader.core.secrets import IEX_CLOUD_API_TOKEN, IEX_CLOUD_SANDBOX_API_TOKEN
+from jtrader.core.worker import Worker
 from ..core.version import get_version
 
 VERSION_BANNER = """
@@ -43,6 +46,15 @@ class Base(Controller):
             ),
         ]
 
+    @staticmethod
+    def get_iex_client(is_sandbox: bool, version: str = 'stable'):
+        token = IEX_CLOUD_API_TOKEN
+        if is_sandbox:
+            version = 'sandbox'
+            token = IEX_CLOUD_SANDBOX_API_TOKEN
+
+        return IEXClient.Client(token, version)
+
     def _default(self):
         """Default action if no sub-command is passed."""
 
@@ -63,7 +75,6 @@ class Base(Controller):
 
     @ex(
         help='Start a news stream',
-
         arguments=[
             (
                     ['--sandbox'],
@@ -90,7 +101,6 @@ class Base(Controller):
 
     @ex(
         help='Get low quality momentum stats',
-
         arguments=[
             (
                     ['--sandbox'],
@@ -117,7 +127,6 @@ class Base(Controller):
 
     @ex(
         help='Get high quality momentum stats',
-
         arguments=[
             (
                     ['--sandbox'],
@@ -144,7 +153,6 @@ class Base(Controller):
 
     @ex(
         help='Get deep value stats',
-
         arguments=[
             (
                     ['--sandbox'],
@@ -171,7 +179,6 @@ class Base(Controller):
 
     @ex(
         help='Get pre market momentum stats',
-
         arguments=[
             (
                     ['--sandbox'],
@@ -196,7 +203,6 @@ class Base(Controller):
 
     @ex(
         help='Get market momentum stats',
-
         arguments=[
             (
                     ['--sandbox'],
@@ -221,7 +227,6 @@ class Base(Controller):
 
     @ex(
         help='Start intraday stock scanner',
-
         arguments=[
             (
                     ['-s', '--stock-list'],
@@ -278,11 +283,8 @@ class Base(Controller):
             no_notifications=self.app.pargs.no_notifications
         ).run()
 
-        self.app.render({}, 'start_scanner.jinja2')
-
     @ex(
         help='Start stock scanner',
-
         arguments=[
             (
                     ['-t', '--technical-indicators'],
@@ -329,4 +331,12 @@ class Base(Controller):
             self.app.pargs.no_notifications
         ).run()
 
-        self.app.render({}, 'start_scanner.jinja2')
+    @ex(
+        help='Start the worker',
+        arguments=[],
+    )
+    def start_worker(self):
+        """Start Worker Command"""
+        worker = Worker(self.get_iex_client(False), self.app.log)
+
+        worker.run()

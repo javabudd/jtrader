@@ -108,59 +108,6 @@ class Scanner(IEX):
         start = today + relativedelta(days=-delta)
         for chunk in enumerate(stocks):
             for stock in chunk[1]['Ticker']:
-                results = self.db.get_historical_stock_range(
-                    stock,
-                    start,
-                    today
-                ).all()
-
-                if len(results) == 0:
-                    try:
-                        historical = self.iex_client.stocks.chart(stock, timeframe="1y")
-                    except PyEXception:
-                        continue
-
-                    stocks = []
-                    for result in historical:
-                        if self.db.get_historical_stock_day(stock, result['date']):
-                            continue
-
-                        if 'uOpen' not in result:
-                            self.logger.info(f"Could not get unadjusted close data for {stock}")
-
-                            continue
-
-                        stock_day = self.db.StockDay(
-                            stock,
-                            datetime.strptime(result['date'], '%Y-%m-%d'),
-                            result['close'],
-                            result['high'],
-                            result['low'],
-                            result['open'],
-                            result['volume'],
-                            result['updated'] if 'updated' in result else None,
-                            result['changeOverTime'],
-                            result['marketChangeOverTime'],
-                            result['uOpen'],
-                            result['uClose'],
-                            result['uHigh'],
-                            result['uLow'],
-                            result['uVolume'],
-                            result['fOpen'],
-                            result['fClose'],
-                            result['fHigh'],
-                            result['fLow'],
-                            result['fVolume'],
-                            result['change'],
-                            result['changePercent']
-                        )
-
-                        stocks.append(stock_day)
-
-                    session = self.db.create_session()
-                    session.bulk_save_objects(stocks)
-                    session.commit()
-
                 data = pd.DataFrame(
                     self.db.get_historical_stock_range(
                         stock,
