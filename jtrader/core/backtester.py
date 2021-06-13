@@ -92,11 +92,10 @@ class Backtester:
 
         for validator in self.buy_indicators:
             if validator in self.cached_buy_indicators:
-                return self.cached_buy_indicators[validator]
-
-            validator_instance = self.get_validator(validator, stock, True)
-
-            self.cached_buy_indicators[validator] = validator_instance
+                validator_instance = self.cached_buy_indicators[validator]
+            else:
+                validator_instance = self.get_validator(validator, stock, True)
+                self.cached_buy_indicators[validator] = validator_instance
 
             if not validator_instance.is_valid(data_frame):
                 return False
@@ -106,11 +105,10 @@ class Backtester:
     def stock_qualifies_bearish(self, stock: str, data_frame: pd.DataFrame):
         for validator in self.sell_indicators:
             if validator in self.cached_sell_indicators:
-                return self.cached_sell_indicators[validator]
-
-            validator_instance = self.get_validator(validator, stock, False)
-
-            self.cached_sell_indicators[validator] = validator_instance
+                validator_instance = self.cached_sell_indicators[validator]
+            else:
+                validator_instance = self.get_validator(validator, stock, False)
+                self.cached_sell_indicators[validator] = validator_instance
 
             if not validator_instance.is_valid(data_frame):
                 return False
