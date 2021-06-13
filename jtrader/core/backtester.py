@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, List
 
 import numpy as np
 import pandas as pd
@@ -21,8 +21,8 @@ class Backtester:
             ticker: str,
             start_date: str,
             end_date: str,
-            buy_indicators: list,
-            sell_indicators: list,
+            buy_indicators: List[str],
+            sell_indicators: List[str],
             frequency: Optional[str] = '1d',
             bar_count: Optional[int] = 45
     ):
@@ -41,6 +41,10 @@ class Backtester:
             return
 
         stock = context.asset
+
+        if not data.can_trade(stock):
+            return
+
         high = data.history(stock, 'high', bar_count=self.bar_count, frequency=self.frequency)
         low = data.history(stock, 'low', bar_count=self.bar_count, frequency=self.frequency)
         close = data.history(stock, 'close', bar_count=self.bar_count, frequency=self.frequency)
@@ -49,13 +53,7 @@ class Backtester:
 
         record(asset=data.current(stock, 'close'))
 
-        if self.stock_qualifies_bullish(stock, data_frame):
-            cash_left = context.portfolio.cash
-            price = data.current(stock, 'price')
-
-            if price * self.ORDER_AMOUNT > cash_left or not data.can_trade(stock):
-                return
-
+        if self.stock_qualifies_bullish(context, data.current(stock, 'price'), data_frame):
             order(stock, self.ORDER_AMOUNT)
         elif self.stock_qualifies_bearish(stock, data_frame):
             order_target(stock, 0)
@@ -82,7 +80,13 @@ class Backtester:
 
         raise Exception
 
-    def stock_qualifies_bullish(self, stock: str, data_frame: pd.DataFrame):
+    def stock_qualifies_bullish(self, context, price, data_frame: pd.DataFrame):
+        cash_left = context.portfolio.cash
+        stock = context.asset
+
+        if price * self.ORDER_AMOUNT > cash_left:
+            return False
+
         for validator in self.buy_indicators:
             validator = self.get_validator(validator, stock, True)
 

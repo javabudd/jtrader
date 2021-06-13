@@ -5,6 +5,7 @@ from datetime import datetime
 from threading import Thread
 from typing import Optional, List
 
+import numpy as np
 import pandas as pd
 from cement.core.log import LogInterface
 from cement.utils.shell import spawn_thread
@@ -24,7 +25,7 @@ class Scanner(IEX):
             self,
             is_sandbox: bool,
             logger: LogInterface,
-            indicators: Optional[Validator],
+            indicators: Optional[List[Validator]],
             stocks: Optional[str] = None,
             time_range: Optional[str] = None,
             as_intraday: Optional[bool] = True,
@@ -48,7 +49,7 @@ class Scanner(IEX):
         if indicators is None:
             self.indicators = __VALIDATION_MAP__['all']
         else:
-            indicators = map(lambda x: x[0], indicators)
+            indicators = np.array(indicators).flatten()
             for indicator in indicators:
                 if indicator in __VALIDATION_MAP__ and indicator:
                     self.indicators.append(__VALIDATION_MAP__[indicator])
@@ -202,7 +203,6 @@ class Scanner(IEX):
 
             if len(passed_validators) > 0:
                 # test the theories
-
 
                 # notify if successful
                 message = {
