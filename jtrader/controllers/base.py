@@ -341,6 +341,28 @@ class Base(Controller):
                     }
             ),
             (
+                    ['-b', '--buy-indicators'],
+                    {
+                        'help': 'which technicals indicators to buy against',
+                        'action': 'append',
+                        'dest': 'buy_indicators',
+                        'choices': indicators,
+                        'nargs': '+',
+                        'required': True
+                    }
+            ),
+            (
+                    ['-s', '--sell-indicators'],
+                    {
+                        'help': 'which technicals indicators to sell against',
+                        'action': 'append',
+                        'dest': 'sell_indicators',
+                        'choices': indicators,
+                        'nargs': '+',
+                        'required': True
+                    }
+            ),
+            (
                     ['--start'],
                     {
                         'help': 'Backtest start date',
@@ -365,6 +387,8 @@ class Base(Controller):
             self.app.pargs.ticker,
             self.app.pargs.start_date,
             self.app.pargs.end_date,
+            self.app.pargs.buy_indicators,
+            self.app.pargs.sell_indicators,
         )
 
         backtester.run()

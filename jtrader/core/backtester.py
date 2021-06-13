@@ -1,12 +1,12 @@
 from typing import Optional
 
+import numpy as np
 import pandas as pd
 from zipline import run_algorithm
 from zipline.api import order, order_target, record, symbol
 from zipline.protocol import BarData
 
-from jtrader.core.validator.rsi import RSIValidator
-from jtrader.core.validator.volume import VolumeValidator
+from jtrader.core.validator import __VALIDATION_MAP__
 
 
 class Backtester:
@@ -21,11 +21,15 @@ class Backtester:
             ticker: str,
             start_date: str,
             end_date: str,
+            buy_indicators: list,
+            sell_indicators: list,
             frequency: Optional[str] = '1d',
             bar_count: Optional[int] = 45
     ):
         self.logger = logger
         self.ticker = ticker
+        self.buy_indicators = np.array(buy_indicators).flatten()
+        self.sell_indicators = np.array(sell_indicators).flatten()
         self.frequency = frequency
         self.bar_count = bar_count
         self.start_date = pd.to_datetime(start_date, utc=True)
@@ -41,16 +45,11 @@ class Backtester:
         low = data.history(stock, 'low', bar_count=self.bar_count, frequency=self.frequency)
         close = data.history(stock, 'close', bar_count=self.bar_count, frequency=self.frequency)
         volume = data.history(stock, 'volume', bar_count=self.bar_count, frequency=self.frequency)
-
-        # Currently only using an RSI buy and RSI+Volume sell strategy
-        # @TODO grab strategies dynamically through command args
-        rsi_validator = RSIValidator(stock)
-        volume_validator = VolumeValidator(stock)
         data_frame = pd.DataFrame({"high": high, "low": low, "close": close, "volume": volume})
 
         record(asset=data.current(stock, 'close'))
 
-        if rsi_validator.is_valid(data_frame):
+        if self.stock_qualifies_bullish(stock, data_frame):
             cash_left = context.portfolio.cash
             price = data.current(stock, 'price')
 
@@ -58,11 +57,8 @@ class Backtester:
                 return
 
             order(stock, self.ORDER_AMOUNT)
-        else:
-            volume_validator.is_bullish = False
-            rsi_validator.is_bullish = False
-            if rsi_validator.is_valid(data_frame) and volume_validator.is_valid(data_frame):
-                order_target(stock, 0)
+        elif self.stock_qualifies_bearish(stock, data_frame):
+            order_target(stock, 0)
 
     def initialize(self, context):
         context.i = 0
@@ -78,3 +74,28 @@ class Backtester:
             start=self.start_date,
             end=self.end_date
         ).to_csv('out.csv')
+
+    @staticmethod
+    def get_validator(validator_name: str, ticker: str, is_bullish: bool):
+        if validator_name in __VALIDATION_MAP__:
+            return __VALIDATION_MAP__[validator_name](ticker, is_bullish=is_bullish)
+
+        raise Exception
+
+    def stock_qualifies_bullish(self, stock: str, data_frame: pd.DataFrame):
+        for validator in self.buy_indicators:
+            validator = self.get_validator(validator, stock, True)
+
+            if not validator.is_valid(data_frame):
+                return False
+
+        return True
+
+    def stock_qualifies_bearish(self, stock: str, data_frame: pd.DataFrame):
+        for validator in self.sell_indicators:
+            validator = self.get_validator(validator, stock, False)
+
+            if not validator.is_valid(data_frame):
+                return False
+
+        return True
