@@ -2,7 +2,7 @@ from typing import Optional
 
 import pandas as pd
 from zipline import run_algorithm
-from zipline.api import order_target, record, symbol
+from zipline.api import order, order_target, record, symbol
 from zipline.protocol import BarData
 
 from jtrader.core.validator.rsi import RSIValidator
@@ -11,7 +11,7 @@ from jtrader.core.validator.volume import VolumeValidator
 
 class Backtester:
     CAPITAL_BASE = 1000000
-    ORDER_AMOUNT = 5000
+    ORDER_AMOUNT = 100
     DATA_FREQUENCY = 'daily'
     DATA_BUNDLE = 'iex'
 
@@ -36,26 +36,33 @@ class Backtester:
         if context.i < self.bar_count:
             return
 
-        high = data.history(context.asset, 'high', bar_count=self.bar_count, frequency=self.frequency)
-        low = data.history(context.asset, 'low', bar_count=self.bar_count, frequency=self.frequency)
-        close = data.history(context.asset, 'close', bar_count=self.bar_count, frequency=self.frequency)
-        volume = data.history(context.asset, 'volume', bar_count=self.bar_count, frequency=self.frequency)
+        stock = context.asset
+        high = data.history(stock, 'high', bar_count=self.bar_count, frequency=self.frequency)
+        low = data.history(stock, 'low', bar_count=self.bar_count, frequency=self.frequency)
+        close = data.history(stock, 'close', bar_count=self.bar_count, frequency=self.frequency)
+        volume = data.history(stock, 'volume', bar_count=self.bar_count, frequency=self.frequency)
 
         # Currently only using an RSI buy and RSI+Volume sell strategy
         # @TODO grab strategies dynamically through command args
-        rsi_validator = RSIValidator(context.asset)
-        volume_validator = VolumeValidator(context.asset)
+        rsi_validator = RSIValidator(stock)
+        volume_validator = VolumeValidator(stock)
         data_frame = pd.DataFrame({"high": high, "low": low, "close": close, "volume": volume})
 
         if rsi_validator.is_valid(data_frame):
-            order_target(context.asset, self.ORDER_AMOUNT)
+            cash_left = context.portfolio.cash
+            price = data.current(stock, 'price')
+
+            if price * self.ORDER_AMOUNT > cash_left or not data.can_trade(stock):
+                return
+
+            order(stock, self.ORDER_AMOUNT)
         else:
             volume_validator.is_bullish = False
             rsi_validator.is_bullish = False
             if rsi_validator.is_valid(data_frame) and volume_validator.is_valid(data_frame):
-                order_target(context.asset, 0)
+                order_target(stock, 0)
 
-        record(Asset=data.current(context.asset, 'close'))
+        record(Asset=data.current(stock, 'close'))
 
     def initialize(self, context):
         context.i = 0
