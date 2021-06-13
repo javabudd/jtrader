@@ -72,19 +72,6 @@ class Base(Controller):
         worker.run()
 
     @ex(
-        help='Process a backtest file into CSV'
-    )
-    def process_backtest(self):
-        def process_performance(file_name):
-            perf = pd.read_pickle('{}.pickle'.format(file_name))
-            perf.to_csv('{}.csv'.format(file_name))
-            perf.index = perf.index.normalize()
-
-            return perf
-
-        process_performance(file_name='out')
-
-    @ex(
         help='Start a news stream',
         arguments=[
             (

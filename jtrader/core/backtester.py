@@ -12,10 +12,6 @@ class Backtester:
         self.logger = logger
         self.ticker = ticker
 
-    def initialize(self, context):
-        context.i = 0
-        context.asset = symbol(self.ticker)
-
     @staticmethod
     def handle_data(context, data: BarData):
         bar_count = 100
@@ -42,12 +38,16 @@ class Backtester:
 
         record(Asset=data.current(context.asset, 'close'))
 
+    def initialize(self, context):
+        context.i = 0
+        context.asset = symbol(self.ticker)
+
     def run(self):
         run_algorithm(
             capital_base=1000000,
-            data_frequency='minute',
+            data_frequency='daily',
             initialize=self.initialize,
             handle_data=self.handle_data,
-            bundle='bundle',
-            start=pd.to_datetime('2018-1-3', utc=True),
-            end=pd.to_datetime('2019-1-4', utc=True))
+            bundle='quandl',
+            start=pd.to_datetime('2017-1-3', utc=True),
+            end=pd.to_datetime('2021-1-4', utc=True)).to_csv('out.csv')
