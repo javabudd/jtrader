@@ -1,3 +1,5 @@
+from typing import Optional
+
 import pandas as pd
 from zipline import run_algorithm
 from zipline.api import order_target, record, symbol
@@ -13,10 +15,14 @@ class Backtester:
             logger,
             ticker: str,
             start_date: str,
-            end_date: str
+            end_date: str,
+            frequency: Optional[str] = '1d',
+            bar_count: Optional[int] = 45
     ):
         self.logger = logger
         self.ticker = ticker
+        self.frequency = frequency
+        self.bar_count = bar_count
 
         try:
             self.start_date = pd.to_datetime(start_date, utc=True)
@@ -32,17 +38,15 @@ class Backtester:
 
             raise e
 
-    @staticmethod
-    def handle_data(context, data: BarData):
-        bar_count = 100
+    def handle_data(self, context, data: BarData):
         context.i += 1
-        if context.i < bar_count:
+        if context.i < self.bar_count:
             return
 
-        high = data.history(context.asset, 'high', bar_count=bar_count, frequency="1d")
-        low = data.history(context.asset, 'low', bar_count=bar_count, frequency="1d")
-        close = data.history(context.asset, 'close', bar_count=bar_count, frequency="1d")
-        volume = data.history(context.asset, 'volume', bar_count=bar_count, frequency="1d")
+        high = data.history(context.asset, 'high', bar_count=self.bar_count, frequency=self.frequency)
+        low = data.history(context.asset, 'low', bar_count=self.bar_count, frequency=self.frequency)
+        close = data.history(context.asset, 'close', bar_count=self.bar_count, frequency=self.frequency)
+        volume = data.history(context.asset, 'volume', bar_count=self.bar_count, frequency=self.frequency)
 
         rsi_validator = RSIValidator(context.asset)
         volume_validator = VolumeValidator(context.asset)
