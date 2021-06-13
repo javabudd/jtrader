@@ -11,6 +11,7 @@ from jtrader.core.validator.volume import VolumeValidator
 
 class Backtester:
     CAPITAL_BASE = 1000000
+    ORDER_AMOUNT = 5000
     DATA_FREQUENCY = 'daily'
     DATA_BUNDLE = 'quandl'
 
@@ -47,7 +48,7 @@ class Backtester:
         data_frame = pd.DataFrame({"high": high, "low": low, "close": close, "volume": volume})
 
         if rsi_validator.is_valid(data_frame):
-            order_target(context.asset, 5000)
+            order_target(context.asset, self.ORDER_AMOUNT)
         else:
             volume_validator.is_bullish = False
             rsi_validator.is_bullish = False
