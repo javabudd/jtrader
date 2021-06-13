@@ -10,6 +10,10 @@ from jtrader.core.validator.volume import VolumeValidator
 
 
 class Backtester:
+    CAPITAL_BASE = 1000000
+    DATA_FREQUENCY = 'daily'
+    DATA_BUNDLE = 'quandl'
+
     def __init__(
             self,
             logger,
@@ -36,6 +40,8 @@ class Backtester:
         close = data.history(context.asset, 'close', bar_count=self.bar_count, frequency=self.frequency)
         volume = data.history(context.asset, 'volume', bar_count=self.bar_count, frequency=self.frequency)
 
+        # Currently only using an RSI buy and RSI+Volume sell strategy
+        # @TODO grab strategies dynamically through command args
         rsi_validator = RSIValidator(context.asset)
         volume_validator = VolumeValidator(context.asset)
         data_frame = pd.DataFrame({"high": high, "low": low, "close": close, "volume": volume})
@@ -56,11 +62,11 @@ class Backtester:
 
     def run(self):
         run_algorithm(
-            capital_base=1000000,
-            data_frequency='daily',
+            capital_base=self.CAPITAL_BASE,
+            data_frequency=self.DATA_FREQUENCY,
             initialize=self.initialize,
             handle_data=self.handle_data,
-            bundle='quandl',
+            bundle=self.DATA_BUNDLE,
             start=self.start_date,
             end=self.end_date
         ).to_csv('out.csv')
