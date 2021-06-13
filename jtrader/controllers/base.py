@@ -3,6 +3,7 @@ import pyEX as IEXClient
 from cement import Controller, ex
 from cement.utils.version import get_version_banner
 
+from jtrader.core.backtester import Backtester
 from jtrader.core.news import News
 from jtrader.core.scanner.hqm import HighQualityMomentum
 from jtrader.core.scanner.lqm import LowQualityMomentum
@@ -59,6 +60,16 @@ class Base(Controller):
         """Default action if no sub-command is passed."""
 
         self.app.args.print_help()
+
+    @ex(
+        help='Start the worker',
+        arguments=[],
+    )
+    def start_worker(self):
+        """Start Worker Command"""
+        worker = Worker(self.get_iex_client(False), self.app.log)
+
+        worker.run()
 
     @ex(
         help='Process a backtest file into CSV'
@@ -332,11 +343,21 @@ class Base(Controller):
         ).run()
 
     @ex(
-        help='Start the worker',
-        arguments=[],
+        help='Run a backtest',
+        arguments=[
+            (
+                    ['-t', '--ticker'],
+                    {
+                        'help': 'Ticker to process',
+                        'action': 'store',
+                        'dest': 'ticker',
+                        'required': True
+                    }
+            ),
+        ],
     )
-    def start_worker(self):
-        """Start Worker Command"""
-        worker = Worker(self.get_iex_client(False), self.app.log)
+    def run_backtest(self):
+        """Start Run Backtest Command"""
+        backtester = Backtester(self.app.log, self.app.pargs.ticker)
 
-        worker.run()
+        backtester.run()
