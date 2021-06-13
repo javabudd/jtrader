@@ -35,6 +35,9 @@ class Backtester:
         self.start_date = pd.to_datetime(start_date, utc=True)
         self.end_date = pd.to_datetime(end_date, utc=True)
 
+        self.cached_buy_indicators = {}
+        self.cached_sell_indicators = {}
+
     def handle_data(self, context, data: BarData):
         context.i += 1
         if context.i < self.bar_count:
@@ -88,18 +91,28 @@ class Backtester:
             return False
 
         for validator in self.buy_indicators:
-            validator = self.get_validator(validator, stock, True)
+            if validator in self.cached_buy_indicators:
+                return self.cached_buy_indicators[validator]
 
-            if not validator.is_valid(data_frame):
+            validator_instance = self.get_validator(validator, stock, True)
+
+            self.cached_buy_indicators[validator] = validator_instance
+
+            if not validator_instance.is_valid(data_frame):
                 return False
 
         return True
 
     def stock_qualifies_bearish(self, stock: str, data_frame: pd.DataFrame):
         for validator in self.sell_indicators:
-            validator = self.get_validator(validator, stock, False)
+            if validator in self.cached_sell_indicators:
+                return self.cached_sell_indicators[validator]
 
-            if not validator.is_valid(data_frame):
+            validator_instance = self.get_validator(validator, stock, False)
+
+            self.cached_sell_indicators[validator] = validator_instance
+
+            if not validator_instance.is_valid(data_frame):
                 return False
 
         return True
