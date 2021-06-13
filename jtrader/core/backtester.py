@@ -48,6 +48,8 @@ class Backtester:
         volume_validator = VolumeValidator(stock)
         data_frame = pd.DataFrame({"high": high, "low": low, "close": close, "volume": volume})
 
+        record(asset=data.current(stock, 'close'))
+
         if rsi_validator.is_valid(data_frame):
             cash_left = context.portfolio.cash
             price = data.current(stock, 'price')
@@ -61,8 +63,6 @@ class Backtester:
             rsi_validator.is_bullish = False
             if rsi_validator.is_valid(data_frame) and volume_validator.is_valid(data_frame):
                 order_target(stock, 0)
-
-        record(Asset=data.current(stock, 'close'))
 
     def initialize(self, context):
         context.i = 0
