@@ -53,8 +53,9 @@ class PreMarketMomentum(IEX):
                                 data[symbol]['quote']['extendedPrice'],
                                 data[symbol]['quote']['latestVolume'],
                                 data[symbol]['stats']['sharesOutstanding'],
-                                1 - (data[symbol]['quote']['avgTotalVolume'] / data[symbol]['quote']['latestVolume']),
-                                1 - (data[symbol]['quote']['previousClose'] / data[symbol]['quote']['extendedPrice']),
+                                (data[symbol]['quote']['latestVolume'] - data[symbol]['quote']['avgTotalVolume'])
+                                / data[symbol]['quote']['avgTotalVolume'],
+                                data[symbol]['quote']['extendedChangePercent'],
                                 data[symbol]['quote']['changePercent'],
                                 news
                             ],
@@ -146,18 +147,17 @@ class PreMarketMomentum(IEX):
         except ValueError:
             return False
 
-        if (quote['latestVolume'] - quote['avgTotalVolume']) / quote['avgTotalVolume'] >= .1:
-            # if the latest price is gaping 10%+
-            if quote['extendedChangePercent'] >= .1:
-                # get some news for the stocks
-                data = self.iex_client.stocks.news(quote['symbol'])
+        # if the latest price is gaping 5%+
+        if quote['extendedChangePercent'] >= .05:
+            # get some news for the stocks
+            data = self.iex_client.stocks.news(quote['symbol'])
 
-                for news in data:
-                    if time.time() - news['datetime'] < 10800:
-                        quote['news'] = news
-                        break
+            for news in data:
+                if time.time() - news['datetime'] < 10800:
+                    quote['news'] = news
+                    break
 
-                return True
+            return True
 
         return False
 
