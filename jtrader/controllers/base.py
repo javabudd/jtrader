@@ -27,7 +27,8 @@ indicators = [
     'coc',
     'adx',
     'obv',
-    'volume'
+    'volume',
+    'pairs'
 ]
 
 
@@ -294,6 +295,18 @@ class Base(Controller):
                     }
             ),
             (
+                    ['-s', '--stock-list'],
+                    {
+                        'help': 'change the default stock list',
+                        'action': 'store',
+                        'dest': 'stock_list',
+                        'choices': [
+                            'sp500',
+                            'all'
+                        ]
+                    }
+            ),
+            (
                     ['--sandbox'],
                     {
                         'help': 'start in sandbox mode',
@@ -322,7 +335,7 @@ class Base(Controller):
             is_sandbox,
             self.app.log,
             self.app.pargs.indicators,
-            None,
+            self.app.pargs.stock_list,
             None,
             False,
             self.app.pargs.no_notifications
