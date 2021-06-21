@@ -29,11 +29,13 @@ class Scanner(IEX):
             stocks: Optional[str] = None,
             time_range: Optional[str] = None,
             as_intraday: Optional[bool] = True,
-            no_notifications: Optional[bool] = False
+            no_notifications: Optional[bool] = False,
+            comparison_ticker: Optional[str] = None
     ):
         super().__init__(is_sandbox, logger, no_notifications=no_notifications)
 
         self.time_range = time_range
+        self.comparison_ticker = comparison_ticker
         self.as_intraday = as_intraday
         self.db = DB()
 
@@ -72,13 +74,13 @@ class Scanner(IEX):
         if self.as_intraday:
             self.process_intraday(stocks)
         else:
-            self.process(stocks)
+            self.process_timeframe(stocks)
 
         end = datetime.now()
         self.logger.info('Processing finished')
         self.send_notification(f"*Scanner finished at {end.strftime('%Y-%m-%d %H:%M:%S')}*")
 
-    def process(self, stocks):
+    def process_timeframe(self, stocks):
         today = datetime.today()
         columns = [
             'ticker',
@@ -105,8 +107,23 @@ class Scanner(IEX):
             'changePercent'
         ]
 
-        delta = 60
+        # hardcoded to two years for now, n33d m04r d4t4
+        delta = 730
         start = today + relativedelta(days=-delta)
+
+        comparison_data = None
+        if self.comparison_ticker is not None:
+            comparison_data = pd.DataFrame(
+                self.db.get_historical_stock_range(self.comparison_ticker, start, today).all()
+            )
+
+            if len(comparison_data) <= 0:
+                self.logger.warning(f"Retrieved empty data set for stock {self.comparison_ticker}")
+
+                return
+
+            comparison_data.columns = columns
+
         for chunk in enumerate(stocks):
             for stock in chunk[1]['Ticker']:
                 data = pd.DataFrame(
@@ -123,7 +140,7 @@ class Scanner(IEX):
                     continue
 
                 data.columns = columns
-                self.init_indicators(stock, data)
+                self.init_indicators(stock, data, comparison_data)
 
     def process_intraday(self, stocks):
         i = 1
@@ -154,7 +171,7 @@ class Scanner(IEX):
 
         return True
 
-    def init_indicators(self, ticker, data=None):
+    def init_indicators(self, ticker, data=None, comparison_data=None):
         period = 'swing'
         if self.as_intraday:
             period = 'intraday'
@@ -169,7 +186,7 @@ class Scanner(IEX):
 
             passed_validators = {}
             try:
-                is_valid = indicator.is_valid(data)
+                is_valid = indicator.is_valid(data, comparison_data)
 
                 if is_valid is False:
                     continue
@@ -185,7 +202,7 @@ class Scanner(IEX):
                             args["time_range"] = self.time_range
 
                         validator_chain = validator_chain(ticker, self.logger, self.iex_client, **args)
-                        if validator_chain.is_valid(data) is False:
+                        if validator_chain.is_valid(data, comparison_data) is False:
                             has_valid_chain = False
                             break  # break out of validation chain
 
