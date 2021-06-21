@@ -30,7 +30,7 @@ class ULTOSCValidator(Validator):
     def get_name():
         return 'Ultimate Oscillator'
 
-    def is_valid(self, data=None):
+    def is_valid(self, data=None, comparison_data=None):
         if self.is_bullish:
             if self.has_lower_low(data):
                 if data is None:

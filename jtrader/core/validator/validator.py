@@ -8,6 +8,18 @@ from pyEX.client import Client
 
 
 class Validator(ABC):
+    WINDOW_SIZES = [
+        10,
+        14,
+        20,
+        28,
+        40,
+        57,
+        80,
+        113,
+        160
+    ]
+
     def __init__(
             self,
             ticker: str,
@@ -25,7 +37,7 @@ class Validator(ABC):
         self.iex_only = iex_only
 
     @abstractmethod
-    def is_valid(self, data=None):
+    def is_valid(self, data=None, comparison_data=None):
         pass
 
     @staticmethod

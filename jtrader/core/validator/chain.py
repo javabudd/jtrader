@@ -11,7 +11,7 @@ class ChainValidator(Validator):
     def get_name():
         return 'Chain'
 
-    def is_valid(self, data=None):
+    def is_valid(self, data=None, comparison_data=None):
         return True
 
     def get_validation_chain(self):

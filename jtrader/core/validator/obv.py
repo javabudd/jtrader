@@ -1,4 +1,5 @@
 import talib
+import pandas as pd
 
 from jtrader.core.validator.validator import Validator
 
@@ -14,7 +15,7 @@ class OBVValidator(Validator):
     def get_name():
         return 'OBV'
 
-    def is_valid(self, data=None):
+    def is_valid(self, data=None, comparison_data=None):
         if data is None:
             data = self.iex_client.stocks.intradayDF(self.ticker, IEXOnly=self.iex_only)
 
@@ -25,19 +26,23 @@ class OBVValidator(Validator):
 
         self.clean_dataframe(data)
 
-        obv = talib.OBV(data['close'], data['volume'])
-        max_last_nine = max(obv[:-1][-9:])
-        last = obv[-1]
-
         price_has_lower_low = self.has_lower_low(data)
         price_has_lower_high = self.has_lower_high(data)
         price_has_higher_low = self.has_higher_low(data)
         price_has_higher_high = self.has_higher_high(data)
 
-        obv_not_has_lower_low = self.has_lower_low(obv) is False
-        obv_not_has_lower_high = self.has_lower_high(obv) is False
-        obv_not_has_higher_low = self.has_higher_low(obv) is False
-        obv_not_has_higher_high = self.has_higher_high(obv) is False
+        obv = talib.OBV(data['close'], data['volume'])
+        df = pd.DataFrame(obv).reset_index()
+        df.columns = ['date', 'low']
+
+        obv_not_has_lower_low = self.has_lower_low(df) is False
+        obv_not_has_higher_low = self.has_higher_low(df) is False
+
+        df2 = pd.DataFrame(obv).reset_index()
+        df2.columns = ['date', 'high']
+
+        obv_not_has_lower_high = self.has_lower_high(df2) is False
+        obv_not_has_higher_high = self.has_higher_high(df2) is False
 
         # if obv_has_steep_downslope or obv_has_less_steep_downslope and price_trend_not_same:
         #     return True

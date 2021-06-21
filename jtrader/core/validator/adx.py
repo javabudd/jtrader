@@ -12,7 +12,7 @@ class ADXValidator(Validator):
     def get_name():
         return 'ADX'
 
-    def is_valid(self, data=None):
+    def is_valid(self, data=None, comparison_data=None):
         if data is None:
             data = self.iex_client.stocks.intradayDF(self.ticker, IEXOnly=self.iex_only)
 

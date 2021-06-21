@@ -27,7 +27,7 @@ class APOValidator(Validator):
     def get_name():
         return 'Absolute Price Oscillator'
 
-    def is_valid(self, data=None):
+    def is_valid(self, data=None, comparison_data=None):
         if self.is_bullish:
             return self.signals_bullish(data)
         else:
@@ -43,11 +43,9 @@ class APOValidator(Validator):
 
                         return False
 
-                apo_chart = data['chart']
+                apo_chart = data['chart'][-self.WINDOW_SIZES["ten"]:]
             else:
                 apo_chart = talib.APO(data['close'])
-
-            self.clean_dataframe(apo_chart)
 
             if len(apo_chart) <= 1:
                 self.log_not_enough_chart_data()
