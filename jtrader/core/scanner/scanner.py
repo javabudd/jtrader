@@ -35,7 +35,7 @@ class Scanner(IEX):
         super().__init__(is_sandbox, logger, no_notifications=no_notifications)
 
         self.time_range = time_range
-        self.comparison_ticker = comparison_ticker
+        self.comparison_ticker = comparison_ticker[0]
         self.as_intraday = as_intraday
         self.db = DB()
 

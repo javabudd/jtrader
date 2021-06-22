@@ -295,6 +295,14 @@ class Base(Controller):
                     }
             ),
             (
+                    ['-c', '--comparison-ticker'],
+                    {
+                        'help': 'which ticker to compare against',
+                        'action': 'append',
+                        'dest': 'comparison_ticker'
+                    }
+            ),
+            (
                     ['-s', '--stock-list'],
                     {
                         'help': 'change the default stock list',
@@ -338,7 +346,8 @@ class Base(Controller):
             self.app.pargs.stock_list,
             None,
             False,
-            self.app.pargs.no_notifications
+            self.app.pargs.no_notifications,
+            self.app.pargs.comparison_ticker,
         ).run()
 
     @ex(
