@@ -69,7 +69,7 @@ class PreMarketMomentum(IEX):
 
             return
 
-        df.sort_values([gap, relative_volume, change_from_close], ascending=False, inplace=True)
+        df.sort_values([gap, 'Volume Today'], ascending=False, inplace=True)
         df.reset_index(inplace=True, drop=True)
 
         file_name = 'PreMarketMomentum.xlsx'
@@ -147,8 +147,8 @@ class PreMarketMomentum(IEX):
         except ValueError:
             return False
 
-        # if the latest price is gaping 5%+
-        if quote['extendedChangePercent'] >= .05:
+        # if the latest price is gaping 2%+
+        if quote['extendedChangePercent'] >= .02:
             # get some news for the stocks
             data = self.iex_client.stocks.news(quote['symbol'])
 
