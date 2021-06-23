@@ -4,14 +4,13 @@ from datetime import datetime
 import pandas as pd
 import pyEX as IEXClient
 from cement.core.log import LogInterface
+from dateutil.relativedelta import relativedelta
 from pyEX import PyEXception
 
 from jtrader.core.db import DB
 
 
 class Worker:
-    TEST = 1
-
     def __init__(self, iex_client: IEXClient, logger: LogInterface):
         self.iex_client = iex_client
         self.logger = logger
@@ -19,7 +18,7 @@ class Worker:
 
     def run(self):
         while True:
-            stock_list = 'sp_500_stocks'
+            stock_list = 'all_stocks'
 
             self.logger.info(f"Processing stock list {stock_list}...")
 
@@ -34,8 +33,21 @@ class Worker:
 
             time.sleep(sleep_time)
 
-    def insert_stocks(self, stocks: pd.DataFrame, timeframe: str = '5d'):
+    def insert_stocks(self, stocks: pd.DataFrame, timeframe: str = '2y'):
+        days = self.timeframe_to_days(timeframe)
+        today = datetime.today()
+        start = today + relativedelta(days=-days)
+
         for stock in stocks['Ticker']:
+            self.logger.info(f"Processing ticker {stock}...")
+
+            entries_in_db = self.db.get_historical_stock_range(stock, start, today).count()
+
+            if entries_in_db != 0 and self.timeframe_to_days(timeframe, True) / entries_in_db + - 2 <= 1:
+                self.logger.warning(f"Skipping record insertion for {stock}...")
+
+                continue
+
             try:
                 historical = self.iex_client.stocks.chart(stock, timeframe=timeframe)
             except PyEXception:
@@ -44,11 +56,6 @@ class Worker:
             stocks_to_persist = []
             for result in historical:
                 if self.db.get_historical_stock_day(stock, result['date']):
-                    continue
-
-                if 'uOpen' not in result:
-                    self.logger.info(f"Could not get unadjusted close data for {stock}")
-
                     continue
 
                 stock_day = self.db.StockDay(
@@ -62,16 +69,16 @@ class Worker:
                     result['updated'] if 'updated' in result else None,
                     result['changeOverTime'],
                     result['marketChangeOverTime'],
-                    result['uOpen'],
-                    result['uClose'],
-                    result['uHigh'],
-                    result['uLow'],
-                    result['uVolume'],
-                    result['fOpen'],
-                    result['fClose'],
-                    result['fHigh'],
-                    result['fLow'],
-                    result['fVolume'],
+                    result['uOpen'] if 'uOpen' in result else None,
+                    result['uClose'] if 'uClose' in result else None,
+                    result['uHigh'] if 'uHigh' in result else None,
+                    result['uLow'] if 'uLow' in result else None,
+                    result['uVolume'] if 'uVolume' in result else None,
+                    result['fOpen'] if 'fOpen' in result else None,
+                    result['fClose'] if 'fClose' in result else None,
+                    result['fHigh'] if 'fHigh' in result else None,
+                    result['fLow'] if 'fLow' in result else None,
+                    result['fVolume'] if 'fVolume' in result else None,
                     result['change'],
                     result['changePercent']
                 )
@@ -81,3 +88,15 @@ class Worker:
             session = self.db.create_session()
             session.bulk_save_objects(stocks_to_persist)
             session.commit()
+
+    @staticmethod
+    def timeframe_to_days(timeframe, as_stock_frame: bool = False) -> int:
+        if timeframe.find('d') != -1:
+            return int(timeframe.strip('d')) if as_stock_frame else int(timeframe.strip('d')) + 2
+
+        if timeframe.find('y') != -1:
+            year = timeframe.strip('y')
+
+            return int(year) * 252 if as_stock_frame else int(year) * 365
+
+        raise ValueError
