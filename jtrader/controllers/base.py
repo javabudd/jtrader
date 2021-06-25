@@ -4,6 +4,7 @@ from cement.utils.version import get_version_banner
 
 from jtrader.core.backtester import Backtester
 from jtrader.core.news import News
+from jtrader.core.pairs import Pairs
 from jtrader.core.scanner.hqm import HighQualityMomentum
 from jtrader.core.scanner.lqm import LowQualityMomentum
 from jtrader.core.scanner.momentum import Momentum
@@ -295,14 +296,6 @@ class Base(Controller):
                     }
             ),
             (
-                    ['-c', '--comparison-ticker'],
-                    {
-                        'help': 'which ticker to compare against',
-                        'action': 'append',
-                        'dest': 'comparison_ticker'
-                    }
-            ),
-            (
                     ['-s', '--stock-list'],
                     {
                         'help': 'change the default stock list',
@@ -346,8 +339,7 @@ class Base(Controller):
             self.app.pargs.stock_list,
             None,
             False,
-            self.app.pargs.no_notifications,
-            self.app.pargs.comparison_ticker,
+            self.app.pargs.no_notifications
         ).run()
 
     @ex(
@@ -414,3 +406,26 @@ class Base(Controller):
         )
 
         backtester.run()
+
+    @ex(
+        help='Run a Pairs analysis',
+        arguments=[
+            (
+                    ['-c', '--comparison-ticker'],
+                    {
+                        'help': 'which ticker to compare against',
+                        'action': 'append',
+                        'dest': 'comparison_ticker',
+                        'required': True
+                    }
+            ),
+        ],
+    )
+    def start_pairs(self):
+        """Start Pairs Command"""
+        pairs = Pairs(
+            self.app.log,
+            self.app.pargs.comparison_ticker,
+        )
+
+        pairs.run_detection()

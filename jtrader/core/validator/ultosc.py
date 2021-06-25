@@ -30,25 +30,10 @@ class ULTOSCValidator(Validator):
     def get_name():
         return 'Ultimate Oscillator'
 
-    def is_valid(self, data=None, comparison_data=None):
+    def is_valid(self, data, comparison_data=None):
         if self.is_bullish:
             if self.has_lower_low(data):
-                if data is None:
-                    data = self.iex_client.stocks.technicals(self.ticker, 'ultosc', range=self.time_range)
-
-                    if 'chart' not in data:
-                        self.log_missing_chart()
-
-                        return False
-
-                    chart = data['chart']
-
-                    if not chart or len(chart) == 1:
-                        self.log_not_enough_chart_data()
-
-                        return False
-                else:
-                    chart = talib.ULTOSC(data['high'], data['low'], data['close'])
+                chart = talib.ULTOSC(data['high'], data['low'], data['close'])
 
                 self.clean_dataframe(chart)
 

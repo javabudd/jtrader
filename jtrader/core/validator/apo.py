@@ -27,7 +27,7 @@ class APOValidator(Validator):
     def get_name():
         return 'Absolute Price Oscillator'
 
-    def is_valid(self, data=None, comparison_data=None):
+    def is_valid(self, data, comparison_data=None):
         if self.is_bullish:
             return self.signals_bullish(data)
         else:
@@ -35,17 +35,7 @@ class APOValidator(Validator):
 
     def signals_bullish(self, data=None):
         if self.has_lower_low(data):
-            if data is None:
-                data = self.iex_client.stocks.technicals(self.ticker, 'apo', range=self.time_range)
-                for required in ['chart']:
-                    if required not in data:
-                        self.log_missing_chart()
-
-                        return False
-
-                apo_chart = data['chart'][-self.WINDOW_SIZES["ten"]:]
-            else:
-                apo_chart = talib.APO(data['close'])
+            apo_chart = talib.APO(data['close'])
 
             if len(apo_chart) <= 1:
                 self.log_not_enough_chart_data()

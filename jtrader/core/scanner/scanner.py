@@ -1,5 +1,4 @@
 import json
-import math
 import time
 from datetime import datetime
 from threading import Thread
@@ -15,6 +14,7 @@ from pyEX import PyEXception
 from jtrader import __STOCK_CSVS__
 from jtrader.core.db import DB
 from jtrader.core.iex import IEX
+from jtrader.core.utils.csv import get_stocks_chunked, CSV_COLUMNS
 from jtrader.core.validator import __VALIDATION_MAP__
 from jtrader.core.validator.chain import ChainValidator
 from jtrader.core.validator.validator import Validator
@@ -29,13 +29,11 @@ class Scanner(IEX):
             stocks: Optional[str] = None,
             time_range: Optional[str] = None,
             as_intraday: Optional[bool] = True,
-            no_notifications: Optional[bool] = False,
-            comparison_ticker: Optional[str] = None
+            no_notifications: Optional[bool] = False
     ):
         super().__init__(is_sandbox, logger, no_notifications=no_notifications)
 
         self.time_range = time_range
-        self.comparison_ticker = comparison_ticker[0]
         self.as_intraday = as_intraday
         self.db = DB()
 
@@ -64,12 +62,7 @@ class Scanner(IEX):
 
         self.send_notification(f"*Scanner started at {start.strftime('%Y-%m-%d %H:%M:%S')}*")
 
-        num_lines = len(open(self.stock_list).readlines())
-        chunk_size = math.floor(num_lines / 25)
-        if self.is_sandbox:
-            chunk_size = math.floor(num_lines / 2)
-
-        stocks = pd.read_csv(self.stock_list, chunksize=chunk_size)
+        stocks = get_stocks_chunked(self.stock_list, self.is_sandbox)
 
         if self.as_intraday:
             self.process_intraday(stocks)
@@ -82,47 +75,10 @@ class Scanner(IEX):
 
     def process_timeframe(self, stocks):
         today = datetime.today()
-        columns = [
-            'ticker',
-            'date',
-            'close',
-            'high',
-            'low',
-            'open',
-            'volume',
-            'updated',
-            'changeOverTime',
-            'marketChangeOverTime',
-            'uOpen',
-            'uClose',
-            'uHigh',
-            'uLow',
-            'uVolume',
-            'fOpen',
-            'fClose',
-            'fHigh',
-            'fLow',
-            'fVolume',
-            'change',
-            'changePercent'
-        ]
 
         # hardcoded to two years for now, n33d m04r d4t4
         delta = 730
         start = today + relativedelta(days=-delta)
-
-        comparison_data = None
-        if self.comparison_ticker is not None:
-            comparison_data = pd.DataFrame(
-                self.db.get_historical_stock_range(self.comparison_ticker, start, today).all()
-            )
-
-            if len(comparison_data) <= 0:
-                self.logger.warning(f"Retrieved empty data set for stock {self.comparison_ticker}")
-
-                return
-
-            comparison_data.columns = columns
 
         for chunk in enumerate(stocks):
             for stock in chunk[1]['Ticker']:
@@ -139,8 +95,8 @@ class Scanner(IEX):
 
                     continue
 
-                data.columns = columns
-                self.init_indicators(stock, data, comparison_data)
+                data.columns = CSV_COLUMNS
+                self.init_indicators(stock, data)
 
     def process_intraday(self, stocks):
         i = 1
@@ -171,10 +127,17 @@ class Scanner(IEX):
 
         return True
 
-    def init_indicators(self, ticker, data=None, comparison_data=None):
+    def init_indicators(self, ticker, data=None):
         period = 'swing'
         if self.as_intraday:
             period = 'intraday'
+            if data is None:
+                data = self.iex_client.stocks.intradayDF(ticker, IEXOnly=True)
+
+                if 'close' not in data:
+                    self.logger.error(f"{ticker} Could not find closing intraday")
+
+                    return False
 
         if len(self.indicators) > 1:
             self.indicators = [ChainValidator(ticker, self.indicators, logger=self.logger, iex_client=self.iex_client)]
@@ -186,7 +149,7 @@ class Scanner(IEX):
 
             passed_validators = {}
             try:
-                is_valid = indicator.is_valid(data, comparison_data)
+                is_valid = indicator.is_valid(data)
 
                 if is_valid is False:
                     continue
@@ -202,7 +165,7 @@ class Scanner(IEX):
                             args["time_range"] = self.time_range
 
                         validator_chain = validator_chain(ticker, self.logger, self.iex_client, **args)
-                        if validator_chain.is_valid(data, comparison_data) is False:
+                        if validator_chain.is_valid(data) is False:
                             has_valid_chain = False
                             break  # break out of validation chain
 

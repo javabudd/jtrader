@@ -37,7 +37,7 @@ class Validator(ABC):
         self.iex_only = iex_only
 
     @abstractmethod
-    def is_valid(self, data=None, comparison_data=None):
+    def is_valid(self, data, comparison_data=None):
         pass
 
     @staticmethod

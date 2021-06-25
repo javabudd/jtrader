@@ -28,16 +28,8 @@ class MACDValidator(Validator):
     def get_name():
         return 'MACD'
 
-    def is_valid(self, data=None, comparison_data=None):
+    def is_valid(self, data, comparison_data=None):
         if self.is_bullish:
-            if data is None:
-                data = self.iex_client.stocks.intradayDF(self.ticker, IEXOnly=self.iex_only)
-
-                if 'close' not in data:
-                    self.log_missing_close()
-
-                    return False
-
             macd, signal_line, histogram = talib.MACD(data['close'])
             self.clean_dataframe(macd)
             self.clean_dataframe(signal_line)
@@ -45,6 +37,7 @@ class MACDValidator(Validator):
             if len(macd) <= 1 or len(signal_line) <= 1:
                 return False
 
+            # @TODO This needs a more robust divergence check
             if macd.iloc[-1] > signal_line.iloc[-1]:
                 return True
 

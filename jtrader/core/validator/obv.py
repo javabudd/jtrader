@@ -1,5 +1,5 @@
-import talib
 import pandas as pd
+import talib
 
 from jtrader.core.validator.validator import Validator
 
@@ -15,15 +15,7 @@ class OBVValidator(Validator):
     def get_name():
         return 'OBV'
 
-    def is_valid(self, data=None, comparison_data=None):
-        if data is None:
-            data = self.iex_client.stocks.intradayDF(self.ticker, IEXOnly=self.iex_only)
-
-            if 'close' not in data:
-                self.log_missing_close()
-
-                return False
-
+    def is_valid(self, data, comparison_data=None):
         self.clean_dataframe(data)
 
         price_has_lower_low = self.has_lower_low(data)
