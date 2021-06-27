@@ -7,14 +7,14 @@ from cement.core.log import LogInterface
 from dateutil.relativedelta import relativedelta
 from pyEX import PyEXception
 
-from jtrader.core.db import DB
+from jtrader.core.odm import ODM
 
 
 class Worker:
     def __init__(self, iex_client: IEXClient, logger: LogInterface):
         self.iex_client = iex_client
         self.logger = logger
-        self.db = DB()
+        self.odm = ODM()
 
     def run(self):
         while True:
@@ -35,59 +35,32 @@ class Worker:
 
     def insert_stocks(self, stocks: pd.DataFrame, timeframe: str = '2y'):
         days = self.timeframe_to_days(timeframe)
-        today = datetime.today()
-        start = today + relativedelta(days=-days)
+        start = datetime.today() + relativedelta(days=-days)
 
         for stock in stocks['Ticker']:
             self.logger.info(f"Processing ticker {stock}...")
 
-            entries_in_db = self.db.get_historical_stock_range(stock, start, today).count()
+            odm_entry_length = len(self.odm.get_historical_stock_range(stock, start))
 
-            if entries_in_db != 0 and self.timeframe_to_days(timeframe, True) / entries_in_db + - 2 <= 1:
+            try:
+                iex_entries = self.iex_client.stocks.chart(stock, timeframe=timeframe)
+            except PyEXception:
+                continue
+
+            if odm_entry_length >= len(iex_entries):
                 self.logger.warning(f"Skipping record insertion for {stock}...")
 
                 continue
 
-            try:
-                historical = self.iex_client.stocks.chart(stock, timeframe=timeframe)
-            except PyEXception:
-                continue
+            self.logger.debug('odm count: ' + str(odm_entry_length))
+            self.logger.debug('iex count: ' + str(len(iex_entries)))
 
-            stocks_to_persist = []
-            for result in historical:
-                if self.db.get_historical_stock_day(stock, result['date']):
-                    continue
+            with self.odm.table.batch_writer() as batch:
+                for result in iex_entries:
+                    if self.odm.get_historical_stock_day(stock, result.date) is not None:
+                        continue
 
-                stock_day = self.db.StockDay(
-                    stock,
-                    datetime.strptime(result['date'], '%Y-%m-%d'),
-                    result['close'],
-                    result['high'],
-                    result['low'],
-                    result['open'],
-                    result['volume'],
-                    result['updated'] if 'updated' in result else None,
-                    result['changeOverTime'],
-                    result['marketChangeOverTime'],
-                    result['uOpen'] if 'uOpen' in result else None,
-                    result['uClose'] if 'uClose' in result else None,
-                    result['uHigh'] if 'uHigh' in result else None,
-                    result['uLow'] if 'uLow' in result else None,
-                    result['uVolume'] if 'uVolume' in result else None,
-                    result['fOpen'] if 'fOpen' in result else None,
-                    result['fClose'] if 'fClose' in result else None,
-                    result['fHigh'] if 'fHigh' in result else None,
-                    result['fLow'] if 'fLow' in result else None,
-                    result['fVolume'] if 'fVolume' in result else None,
-                    result['change'],
-                    result['changePercent']
-                )
-
-                stocks_to_persist.append(stock_day)
-
-            session = self.db.create_session()
-            session.bulk_save_objects(stocks_to_persist)
-            session.commit()
+                    self.odm.put_item(batch, stock, result)
 
     @staticmethod
     def timeframe_to_days(timeframe, as_stock_frame: bool = False) -> int:

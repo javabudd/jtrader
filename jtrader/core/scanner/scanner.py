@@ -12,8 +12,8 @@ from dateutil.relativedelta import relativedelta
 from pyEX import PyEXception
 
 from jtrader import __STOCK_CSVS__
-from jtrader.core.db import DB
 from jtrader.core.iex import IEX
+from jtrader.core.odm import ODM
 from jtrader.core.utils.csv import get_stocks_chunked, CSV_COLUMNS
 from jtrader.core.validator import __VALIDATION_MAP__
 from jtrader.core.validator.chain import ChainValidator
@@ -35,7 +35,7 @@ class Scanner(IEX):
 
         self.time_range = time_range
         self.as_intraday = as_intraday
-        self.db = DB()
+        self.odm = ODM()
 
         if stocks is None:
             self.stock_list = __STOCK_CSVS__['sp500']
@@ -83,10 +83,9 @@ class Scanner(IEX):
         for chunk in enumerate(stocks):
             for stock in chunk[1]['Ticker']:
                 data = pd.DataFrame(
-                    self.db.get_historical_stock_range(
+                    self.odm.get_historical_stock_range(
                         stock,
-                        start,
-                        today
+                        start
                     ).all()
                 )
 

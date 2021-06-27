@@ -10,7 +10,7 @@ from sklearn.metrics import r2_score
 from sklearn.model_selection import train_test_split
 
 from jtrader import __STOCK_CSVS__
-from jtrader.core.db import DB
+from jtrader.core.odm import ODM
 from jtrader.core.utils.csv import get_stocks_chunked, CSV_COLUMNS
 
 
@@ -24,7 +24,7 @@ class Pairs:
             comparison_ticker: str
     ):
         self.logger = logger
-        self.db = DB()
+        self.odm = ODM()
         self.comparison_ticker = comparison_ticker[0]
 
     def run_detection(self):
@@ -36,7 +36,7 @@ class Pairs:
         stocks = get_stocks_chunked(stock_list)
 
         comparison_data = pd.DataFrame(
-            self.db.get_historical_stock_range(self.comparison_ticker, start, today).all()
+            self.odm.get_historical_stock_range(self.comparison_ticker, start).all()
         )
 
         if len(comparison_data) <= 0:
@@ -49,10 +49,9 @@ class Pairs:
         for chunk in enumerate(stocks):
             for stock in chunk[1]['Ticker']:
                 data = pd.DataFrame(
-                    self.db.get_historical_stock_range(
+                    self.odm.get_historical_stock_range(
                         stock,
-                        start,
-                        today
+                        start
                     ).all()
                 )
 
