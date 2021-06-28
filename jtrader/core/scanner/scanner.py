@@ -172,11 +172,7 @@ class Scanner(IEX):
                     passed_validators[indicator.get_name()] = []
                     chain_index = 0
                     for validator_chain in chain:
-                        args = {}
-                        if self.time_range is not None:
-                            args["time_range"] = self.time_range
-
-                        validator_chain = validator_chain(ticker, self.logger, self.client, **args)
+                        validator_chain = validator_chain(ticker, self.logger)
                         is_valid = validator_chain.is_valid(data)
                         if is_valid is None:
                             has_valid_chain = False
