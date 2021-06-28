@@ -31,17 +31,16 @@ class ULTOSCValidator(Validator):
         return 'Ultimate Oscillator'
 
     def is_valid(self, data, comparison_data=None):
-        if self.is_bullish:
-            if self.has_lower_low(data):
-                chart = talib.ULTOSC(data['high'], data['low'], data['close'])
+        if self.has_lower_low(data):
+            chart = talib.ULTOSC(data['high'], data['low'], data['close'])
 
-                self.clean_dataframe(chart)
+            self.clean_dataframe(chart)
 
-                highest_low = max(chart[:-1])
-                lowest_low = min(chart[:-1])
-                latest_low = chart.iloc[-1]
+            highest_low = max(chart[:-1])
+            lowest_low = min(chart[:-1])
+            latest_low = chart.iloc[-1]
 
-                if latest_low > highest_low and lowest_low < 30:
-                    return self.BULLISH
+            if latest_low > highest_low and lowest_low < 30:
+                return self.BULLISH
 
         return

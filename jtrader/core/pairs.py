@@ -111,7 +111,6 @@ class Pairs:
         lower_threshold = -2
         upper_threshold = 3
 
-        # if self.is_bullish:
         if spread > upper_threshold:
             self.logger.info(f"{ticker} SELL SELL SELL!")
 

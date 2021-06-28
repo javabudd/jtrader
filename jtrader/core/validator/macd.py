@@ -29,16 +29,15 @@ class MACDValidator(Validator):
         return 'MACD'
 
     def is_valid(self, data, comparison_data=None):
-        if self.is_bullish:
-            macd, signal_line, histogram = talib.MACD(data['close'])
-            self.clean_dataframe(macd)
-            self.clean_dataframe(signal_line)
+        macd, signal_line, histogram = talib.MACD(data['close'])
+        self.clean_dataframe(macd)
+        self.clean_dataframe(signal_line)
 
-            if len(macd) <= 1 or len(signal_line) <= 1:
-                return
+        if len(macd) <= 1 or len(signal_line) <= 1:
+            return
 
-            # @TODO This needs a more robust divergence check
-            if macd.iloc[-1] > signal_line.iloc[-1]:
-                return self.BULLISH
+        # @TODO This needs a more robust divergence check
+        if macd.iloc[-1] > signal_line.iloc[-1]:
+            return self.BULLISH
 
         return

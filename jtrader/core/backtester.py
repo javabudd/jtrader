@@ -7,6 +7,7 @@ from zipline.api import order, order_target, record, symbol
 from zipline.protocol import BarData
 
 from jtrader.core.validator import __VALIDATION_MAP__
+from jtrader.core.validator.validator import Validator
 
 
 class Backtester:
@@ -77,9 +78,9 @@ class Backtester:
         ).to_csv('out.csv')
 
     @staticmethod
-    def get_validator(validator_name: str, ticker: str, is_bullish: bool):
+    def get_validator(validator_name: str, ticker: str):
         if validator_name in __VALIDATION_MAP__:
-            return __VALIDATION_MAP__[validator_name](ticker, is_bullish=is_bullish)
+            return __VALIDATION_MAP__[validator_name](ticker)
 
         raise Exception
 
@@ -94,23 +95,23 @@ class Backtester:
             if validator in self.cached_buy_indicators:
                 validator_instance = self.cached_buy_indicators[validator]
             else:
-                validator_instance = self.get_validator(validator, stock, True)
+                validator_instance = self.get_validator(validator, stock)
                 self.cached_buy_indicators[validator] = validator_instance
 
-            if not validator_instance.is_valid(data_frame):
-                return False
+            if validator_instance.is_valid(data_frame) == Validator.BULLISH:
+                return True
 
-        return True
+        return False
 
     def stock_qualifies_bearish(self, stock: str, data_frame: pd.DataFrame):
         for validator in self.sell_indicators:
             if validator in self.cached_sell_indicators:
                 validator_instance = self.cached_sell_indicators[validator]
             else:
-                validator_instance = self.get_validator(validator, stock, False)
+                validator_instance = self.get_validator(validator, stock)
                 self.cached_sell_indicators[validator] = validator_instance
 
-            if not validator_instance.is_valid(data_frame):
-                return False
+            if validator_instance.is_valid(data_frame) == Validator.BEARISH:
+                return True
 
-        return True
+        return False
