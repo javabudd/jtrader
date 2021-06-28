@@ -42,6 +42,6 @@ class ULTOSCValidator(Validator):
                 latest_low = chart.iloc[-1]
 
                 if latest_low > highest_low and lowest_low < 30:
-                    return True
+                    return self.BULLISH
 
-        return False
+        return

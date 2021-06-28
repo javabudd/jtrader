@@ -43,9 +43,9 @@ class OBVValidator(Validator):
         #     return True
 
         if price_has_lower_low and obv_not_has_lower_low or price_has_higher_low and obv_not_has_higher_low:
-            return True
+            return self.BULLISH
 
         if price_has_lower_high and obv_not_has_lower_high or price_has_higher_high and obv_not_has_higher_high:
-            return True
+            return self.BULLISH
 
         return False

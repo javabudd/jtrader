@@ -69,7 +69,7 @@ class Worker:
         start = today + relativedelta(days=-days)
 
         for stock in chunk[1]['Ticker']:
-            self.logger.info(f"T{thread_id} - Processing ticker {stock}...")
+            self.logger.info(f"{thread_id} - Processing ticker {stock}...")
 
             odm_entry_length = len(self.odm.get_historical_stock_range(stock, start))
 

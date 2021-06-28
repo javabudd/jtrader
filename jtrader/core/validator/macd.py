@@ -35,10 +35,10 @@ class MACDValidator(Validator):
             self.clean_dataframe(signal_line)
 
             if len(macd) <= 1 or len(signal_line) <= 1:
-                return False
+                return
 
             # @TODO This needs a more robust divergence check
             if macd.iloc[-1] > signal_line.iloc[-1]:
-                return True
+                return self.BULLISH
 
-        return False
+        return

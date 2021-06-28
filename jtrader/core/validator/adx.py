@@ -18,9 +18,10 @@ class ADXValidator(Validator):
         self.clean_dataframe(adx)
 
         if adx.empty:
-            return False
+            return
 
-        if self.is_bullish:
-            return adx.iloc[-1] > 20
-        else:
-            return adx.iloc[-1] < 20
+        if adx.iloc[-1] > 20:
+            return self.BULLISH
+
+        if adx.iloc[-1] < 20:
+            return self.BEARISH

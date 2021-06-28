@@ -31,18 +31,19 @@ class RSIValidator(Validator):
             # key 1 in the output is the smoothed line
             rsi = talib.STOCHRSI(close, timeperiod=14)[1]
         except Exception:
-            return False
+            return
 
         self.clean_dataframe(rsi)
 
         try:
             last_rsi = rsi.iloc[-1]
         except IndexError:
-            return False
+            return
 
-        if self.is_bullish and last_rsi < 30:
-            return True
-        elif not self.is_bullish and last_rsi > 80:
-            return True
+        if last_rsi < 30:
+            return self.BULLISH
 
-        return False
+        if last_rsi > 80:
+            return self.BEARISH
+
+        return

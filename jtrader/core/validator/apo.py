@@ -28,10 +28,11 @@ class APOValidator(Validator):
         return 'Absolute Price Oscillator'
 
     def is_valid(self, data, comparison_data=None):
-        if self.is_bullish:
-            return self.signals_bullish(data)
-        else:
-            return self.signals_bearish()
+        if self.signals_bullish(data):
+            return self.BULLISH
+
+        if self.signals_bearish(data):
+            return self.BEARISH
 
     def signals_bullish(self, data=None):
         if self.has_lower_low(data):
@@ -51,5 +52,5 @@ class APOValidator(Validator):
         return False
 
     # nothing yet
-    def signals_bearish(self):
+    def signals_bearish(self, data=None):
         return False

@@ -20,6 +20,9 @@ class Validator(ABC):
         160
     ]
 
+    BULLISH = 0x0
+    BEARISH = 0x1
+
     def __init__(
             self,
             ticker: str,

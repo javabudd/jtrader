@@ -12,8 +12,8 @@ from dateutil.relativedelta import relativedelta
 from pyEX import PyEXception
 
 from jtrader import __STOCK_CSVS__
-from jtrader.core.provider.iex import IEX
 from jtrader.core.odm import ODM
+from jtrader.core.provider.iex import IEX
 from jtrader.core.utils.csv import get_stocks_chunked, CSV_COLUMNS
 from jtrader.core.validator import __VALIDATION_MAP__
 from jtrader.core.validator.chain import ChainValidator
@@ -56,6 +56,17 @@ class Scanner(IEX):
 
             if len(self.indicators) == 0:
                 raise RuntimeError
+
+    @staticmethod
+    def get_signal_string(is_valid):
+        if is_valid == Validator.BULLISH:
+            signal_type = 'bullish'
+        elif is_valid == Validator.BEARISH:
+            signal_type = 'bearish'
+        else:
+            raise ValueError
+
+        return signal_type
 
     def run(self):
         start = datetime.now()
@@ -150,8 +161,10 @@ class Scanner(IEX):
             try:
                 is_valid = indicator.is_valid(data)
 
-                if is_valid is False:
+                if is_valid is None:
                     continue
+
+                signal_type = self.get_signal_string(is_valid)
 
                 if isinstance(indicator, ChainValidator):
                     chain = indicator.get_validation_chain()
@@ -164,16 +177,24 @@ class Scanner(IEX):
                             args["time_range"] = self.time_range
 
                         validator_chain = validator_chain(ticker, self.logger, self.client, **args)
-                        if validator_chain.is_valid(data) is False:
+                        is_valid = validator_chain.is_valid(data)
+                        if is_valid is None:
                             has_valid_chain = False
                             break  # break out of validation chain
 
-                        passed_validators[indicator.get_name()].append(validator_chain.get_name())
+                        signal_type = self.get_signal_string(is_valid)
+
+                        passed_validators[indicator.get_name()].append(
+                            {
+                                "signal_type": signal_type,
+                                "indicator": validator_chain.get_name()
+                            }
+                        )
                         chain_index += 1
                     if has_valid_chain is False:
                         continue  # continue to the next validator in list
                 else:
-                    passed_validators = [indicator.get_name()]
+                    passed_validators = {"signal_type": signal_type, "indicator": indicator.get_name()}
 
             except PyEXception as e:
                 self.logger.error(e.args[0] + ' ' + e.args[1])
@@ -186,7 +207,6 @@ class Scanner(IEX):
                 # notify if successful
                 message = {
                     "ticker": ticker,
-                    "signal_type": "bullish",
                     "signal_period": period,
                     "indicators_triggered": passed_validators
                 }
