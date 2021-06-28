@@ -5,8 +5,8 @@ import pandas as pd
 import pyEX as IEXClient
 from cement.core.log import LogInterface
 from dateutil.relativedelta import relativedelta
-from pyEX import PyEXception
 
+from jtrader.core.db import DB
 from jtrader.core.odm import ODM
 
 
@@ -15,6 +15,7 @@ class Worker:
         self.iex_client = iex_client
         self.logger = logger
         self.odm = ODM()
+        self.db = DB()
 
     def run(self):
         while True:
@@ -41,22 +42,23 @@ class Worker:
             self.logger.info(f"Processing ticker {stock}...")
 
             odm_entry_length = len(self.odm.get_historical_stock_range(stock, start))
+            db_entries = self.db.get_historical_stock_range(stock, start)
 
-            try:
-                iex_entries = self.iex_client.stocks.chart(stock, timeframe=timeframe)
-            except PyEXception:
-                continue
+            # try:
+            #     db_entries = self.iex_client.stocks.chart(stock, timeframe=timeframe)
+            # except PyEXception:
+            #     continue
 
-            if odm_entry_length >= len(iex_entries):
+            if odm_entry_length >= len(db_entries):
                 self.logger.warning(f"Skipping record insertion for {stock}...")
 
                 continue
 
             self.logger.debug('odm count: ' + str(odm_entry_length))
-            self.logger.debug('iex count: ' + str(len(iex_entries)))
+            self.logger.debug('db count: ' + str(len(db_entries)))
 
             with self.odm.table.batch_writer() as batch:
-                for result in iex_entries:
+                for result in db_entries:
                     if self.odm.get_historical_stock_day(stock, result.date) is not None:
                         continue
 

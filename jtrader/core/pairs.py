@@ -11,7 +11,7 @@ from sklearn.model_selection import train_test_split
 
 from jtrader import __STOCK_CSVS__
 from jtrader.core.odm import ODM
-from jtrader.core.utils.csv import get_stocks_chunked, CSV_COLUMNS
+from jtrader.core.utils.csv import get_stocks_chunked
 
 
 class Pairs:
@@ -36,7 +36,7 @@ class Pairs:
         stocks = get_stocks_chunked(stock_list)
 
         comparison_data = pd.DataFrame(
-            self.odm.get_historical_stock_range(self.comparison_ticker, start).all()
+            self.odm.get_historical_stock_range(self.comparison_ticker, start)
         )
 
         if len(comparison_data) <= 0:
@@ -44,15 +44,13 @@ class Pairs:
 
             return
 
-        comparison_data.columns = CSV_COLUMNS
-
         for chunk in enumerate(stocks):
             for stock in chunk[1]['Ticker']:
                 data = pd.DataFrame(
                     self.odm.get_historical_stock_range(
                         stock,
                         start
-                    ).all()
+                    )
                 )
 
                 if data.empty:
@@ -60,7 +58,6 @@ class Pairs:
 
                     continue
 
-                data.columns = CSV_COLUMNS
                 self.validate_regression(stock, data, comparison_data)
 
     def validate_regression(self, ticker, data, comparison_data):
@@ -92,8 +89,8 @@ class Pairs:
     def validate_regression_threshold(self, ticker, data, comparison_data, n):
         # Step 1: Generate the spread of two log price series
         # 𝑆𝑝𝑟𝑒𝑎𝑑𝑡 = log(𝑌𝑡)−(𝛼+𝛽log(𝑋𝑡))
-        x2 = comparison_data['close'][-n:]
-        y2 = data['close'][-n:]
+        x2 = comparison_data['close'][-n:].astype('float')
+        y2 = data['close'][-n:].astype('float')
 
         cov = np.cov(x2, y2)[0][1]
         variance = np.var(y2)

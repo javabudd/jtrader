@@ -30,28 +30,35 @@ class ODM:
 
     @staticmethod
     def put_item(item_writer, ticker, stock):
+        stock_open = Decimal(str(stock.open))
+        stock_high = Decimal(str(stock.high))
+        stock_close = Decimal(str(stock.close))
+        stock_low = Decimal(str(stock.low))
+        stock_volume = Decimal(str(stock.volume))
+
         item_writer.put_item(
             Item={
                 'ticker': ticker,
                 'date': stock.date.isoformat(),
-                'close': Decimal(str(stock.close)),
-                'high': Decimal(str(stock.high)),
-                'low': Decimal(str(stock.low)),
-                'open': Decimal(str(stock.open)),
-                'volume': Decimal(str(stock.volume)),
+                'close': stock_close,
+                'high': stock_high,
+                'low': stock_low,
+                'open': stock_open,
+                'volume': stock_volume,
                 'updated': stock.updated_at if 'updated_at' in stock else None,
-                'changeOverTime': Decimal(str(stock.change_over_time)),
-                'marketChangeOverTime': Decimal(str(stock.market_change_over_time)),
-                'uOpen': Decimal(str(stock.u_open)),
-                'uClose': Decimal(str(stock.u_close)),
-                'uHigh': Decimal(str(stock.u_high)),
-                'uLow': Decimal(str(stock.u_low)),
-                'uVolume': Decimal(str(stock.u_volume)) if stock.u_volume is not None else 0,
-                'fOpen': Decimal(str(stock.f_open)),
-                'fClose': Decimal(str(stock.f_close)),
-                'fHigh': Decimal(str(stock.f_high)),
-                'fLow': Decimal(str(stock.f_low)),
-                'fVolume': Decimal(str(stock.f_volume)) if stock.f_volume is not None else 0,
+                'changeOverTime': Decimal(str(stock.change_over_time)) if stock.change_over_time is not None else 0,
+                'marketChangeOverTime': Decimal(str(stock.market_change_over_time)) if stock.market_change_over_time
+                                                                                       is not None else 0,
+                'uOpen': Decimal(str(stock.u_open)) if stock.u_open is not None else stock_open,
+                'uClose': Decimal(str(stock.u_close)) if stock.u_close is not None else stock_close,
+                'uHigh': Decimal(str(stock.u_high)) if stock.u_high is not None else stock_high,
+                'uLow': Decimal(str(stock.u_low)) if stock.u_low is not None else stock_low,
+                'uVolume': Decimal(str(stock.u_volume)) if stock.u_volume is not None else stock_volume,
+                'fOpen': Decimal(str(stock.f_open)) if stock.f_open is not None else stock_open,
+                'fClose': Decimal(str(stock.f_close)) if stock.f_close is not None else stock_close,
+                'fHigh': Decimal(str(stock.f_high)) if stock.f_high is not None else stock_high,
+                'fLow': Decimal(str(stock.f_low)) if stock.f_low is not None else stock_low,
+                'fVolume': Decimal(str(stock.f_volume)) if stock.f_volume is not None else stock_volume,
                 'change': Decimal(str(stock.change)),
                 'changePercent': Decimal(str(stock.change_percent))
             }

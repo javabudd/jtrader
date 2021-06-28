@@ -86,7 +86,7 @@ class Scanner(IEX):
                     self.odm.get_historical_stock_range(
                         stock,
                         start
-                    ).all()
+                    )
                 )
 
                 if data.empty:
