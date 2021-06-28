@@ -23,3 +23,6 @@ class IEX(Provider):
             token = IEX_CLOUD_SANDBOX_API_TOKEN
 
         self.client_prop = IEXClient.Client(token, version)
+
+    def chart(self, stock: str, timeframe: str):
+        return self.client.stocks.chart(stock, timeframe=timeframe)

@@ -1,4 +1,4 @@
-from abc import ABC
+from abc import ABC, abstractmethod
 from typing import Optional
 
 import discord_notify as dn
@@ -28,6 +28,10 @@ class Provider(ABC):
             raise RuntimeError
 
         return self.client_prop
+
+    @abstractmethod
+    def chart(self, stock: str, timeframe: str):
+        pass
 
     @staticmethod
     def chunks(lst, n):

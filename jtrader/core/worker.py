@@ -4,19 +4,19 @@ from threading import Thread
 from typing import List
 
 import pandas as pd
-import pyEX as IEXClient
 from cement.core.log import LogInterface
 from cement.utils.shell import spawn_thread
 from dateutil.relativedelta import relativedelta
 
 from jtrader.core.db import DB
 from jtrader.core.odm import ODM
+from jtrader.core.provider.provider import Provider
 from jtrader.core.utils.csv import get_stocks_chunked
 
 
 class Worker:
-    def __init__(self, iex_client: IEXClient, logger: LogInterface):
-        self.iex_client = iex_client
+    def __init__(self, provider: Provider, logger: LogInterface):
+        self.provider = provider
         self.logger = logger
         self.odm = ODM()
 
@@ -76,7 +76,7 @@ class Worker:
             provider_entries = db.get_historical_stock_range(stock, start, today).all()
 
             # try:
-            #     provider_entries = self.iex_client.stocks.chart(stock, timeframe=timeframe)
+            #     provider_entries = self.provider.stocks.chart(stock, timeframe=timeframe)
             # except IEXClient.PyEXception:
             #     continue
 
