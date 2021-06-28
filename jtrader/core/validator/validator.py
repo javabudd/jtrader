@@ -21,9 +21,10 @@ class Validator(ABC):
     BULLISH = 0x0
     BEARISH = 0x1
 
-    def __init__(self, ticker: str, logger: Optional[LogInterface] = None):
+    def __init__(self, ticker: str, logger: Optional[LogInterface] = None, lookback_days: int = 60):
         self.logger_prop = logger
         self.ticker = ticker
+        self.lookback_days = lookback_days
 
     @abstractmethod
     def is_valid(self, data, comparison_data=None):

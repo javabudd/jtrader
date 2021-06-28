@@ -12,6 +12,7 @@ from jtrader.core.db import DB
 from jtrader.core.odm import ODM
 from jtrader.core.provider.provider import Provider
 from jtrader.core.utils.csv import get_stocks_chunked
+from jtrader.core.utils.stock import timeframe_to_days
 
 
 class Worker:
@@ -19,18 +20,6 @@ class Worker:
         self.provider = provider
         self.logger = logger
         self.odm = ODM()
-
-    @staticmethod
-    def timeframe_to_days(timeframe, as_stock_frame: bool = False) -> int:
-        if timeframe.find('d') != -1:
-            return int(timeframe.strip('d')) if as_stock_frame else int(timeframe.strip('d')) + 2
-
-        if timeframe.find('y') != -1:
-            year = timeframe.strip('y')
-
-            return int(year) * 252 if as_stock_frame else int(year) * 365
-
-        raise ValueError
 
     def run(self):
         while True:
@@ -65,7 +54,7 @@ class Worker:
     def insert_stocks(self, thread_id: str, chunk: pd.DataFrame, timeframe: str = '2y'):
         db = DB()
         today = datetime.today()
-        days = self.timeframe_to_days(timeframe)
+        days = timeframe_to_days(timeframe)
         start = today + relativedelta(days=-days)
 
         for stock in chunk[1]['Ticker']:
