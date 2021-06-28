@@ -20,6 +20,15 @@ class Provider(ABC):
         self.logger = logger
         self.no_notifications = no_notifications
 
+        self.client_prop = None
+
+    @property
+    def client(self):
+        if self.client_prop is None:
+            raise RuntimeError
+
+        return self.client_prop
+
     @staticmethod
     def chunks(lst, n):
         for item in range(0, len(lst), n):

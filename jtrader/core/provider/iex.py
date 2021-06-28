@@ -22,4 +22,4 @@ class IEX(Provider):
             version = 'sandbox'
             token = IEX_CLOUD_SANDBOX_API_TOKEN
 
-        self.client = IEXClient.Client(token, version)
+        self.client_prop = IEXClient.Client(token, version)
