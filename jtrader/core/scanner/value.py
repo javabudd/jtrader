@@ -7,7 +7,7 @@ import numpy as np
 import pandas as pd
 from scipy import stats
 
-from jtrader.core.iex import IEX
+from jtrader.core.provider.iex import IEX
 
 csv_columns = [
     'Ticker',
@@ -46,7 +46,7 @@ class Value(IEX):
             symbol_strings.append(','.join(symbol_groups[i]))
 
         for symbol_string in symbol_strings:
-            data = self.iex_client.stocks.batch(symbol_string, ["quote", "advanced-stats"])
+            data = self.client.stocks.batch(symbol_string, ["quote", "advanced-stats"])
 
             for symbol in symbol_string.split(','):
                 if data[symbol]['quote']['close'] is None:

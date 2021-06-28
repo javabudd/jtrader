@@ -1,11 +1,11 @@
 import json
 
-from jtrader.core.iex import IEX
+from jtrader.core.provider.iex import IEX
 
 
 class News(IEX):
     def run(self):
-        stream_messages = self.iex_client.streaming.newsSSE(
+        stream_messages = self.client.streaming.newsSSE(
             "SPY",
             on_data=self.message_callback
         )

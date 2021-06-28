@@ -28,9 +28,9 @@ CSV_COLUMNS = [
 ]
 
 
-def get_stocks_chunked(stock_list, is_sandbox=False):
+def get_stocks_chunked(stock_list, is_sandbox=False, chunk_size: int = 25):
     num_lines = len(open(stock_list).readlines())
-    chunk_size = math.floor(num_lines / 25)
+    chunk_size = math.floor(num_lines / chunk_size)
     if is_sandbox:
         chunk_size = math.floor(num_lines / 2)
 

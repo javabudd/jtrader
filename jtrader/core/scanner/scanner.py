@@ -12,7 +12,7 @@ from dateutil.relativedelta import relativedelta
 from pyEX import PyEXception
 
 from jtrader import __STOCK_CSVS__
-from jtrader.core.iex import IEX
+from jtrader.core.provider.iex import IEX
 from jtrader.core.odm import ODM
 from jtrader.core.utils.csv import get_stocks_chunked, CSV_COLUMNS
 from jtrader.core.validator import __VALIDATION_MAP__
@@ -131,7 +131,7 @@ class Scanner(IEX):
         if self.as_intraday:
             period = 'intraday'
             if data is None:
-                data = self.iex_client.stocks.intradayDF(ticker, IEXOnly=True)
+                data = self.client.stocks.intradayDF(ticker, IEXOnly=True)
 
                 if 'close' not in data:
                     self.logger.error(f"{ticker} Could not find closing intraday")
@@ -139,12 +139,12 @@ class Scanner(IEX):
                     return False
 
         if len(self.indicators) > 1:
-            self.indicators = [ChainValidator(ticker, self.indicators, logger=self.logger, iex_client=self.iex_client)]
+            self.indicators = [ChainValidator(ticker, self.indicators, logger=self.logger, iex_client=self.client)]
 
         for indicator_class in self.indicators:
             indicator = indicator_class
             if not isinstance(indicator, ChainValidator):
-                indicator = indicator(ticker, logger=self.logger, iex_client=self.iex_client)
+                indicator = indicator(ticker, logger=self.logger, iex_client=self.client)
 
             passed_validators = {}
             try:
@@ -163,7 +163,7 @@ class Scanner(IEX):
                         if self.time_range is not None:
                             args["time_range"] = self.time_range
 
-                        validator_chain = validator_chain(ticker, self.logger, self.iex_client, **args)
+                        validator_chain = validator_chain(ticker, self.logger, self.client, **args)
                         if validator_chain.is_valid(data) is False:
                             has_valid_chain = False
                             break  # break out of validation chain

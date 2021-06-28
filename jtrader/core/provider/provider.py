@@ -1,37 +1,24 @@
-from abc import ABC, abstractmethod
+from abc import ABC
 from typing import Optional
 
 import discord_notify as dn
-import pyEX as IEXClient
 from cement.core.log import LogInterface
 from slack_sdk import WebClient
 from slack_sdk.errors import SlackApiError
 
-from jtrader.core.secrets import IEX_CLOUD_API_TOKEN, IEX_CLOUD_SANDBOX_API_TOKEN, SLACK_TOKEN
+from jtrader.core.secrets import SLACK_TOKEN
 
 
-class IEX(ABC):
+class Provider(ABC):
     def __init__(
             self,
             is_sandbox: bool,
             logger: LogInterface,
-            version: Optional[str] = 'stable',
             no_notifications: Optional[bool] = False
     ):
         self.is_sandbox = is_sandbox
         self.logger = logger
         self.no_notifications = no_notifications
-
-        token = IEX_CLOUD_API_TOKEN
-        if self.is_sandbox:
-            version = 'sandbox'
-            token = IEX_CLOUD_SANDBOX_API_TOKEN
-
-        self.iex_client = IEXClient.Client(token, version)
-
-    @abstractmethod
-    def run(self):
-        pass
 
     @staticmethod
     def chunks(lst, n):

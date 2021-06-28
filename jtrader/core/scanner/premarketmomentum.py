@@ -6,7 +6,7 @@ import time
 
 import pandas as pd
 
-from jtrader.core.iex import IEX
+from jtrader.core.provider.iex import IEX
 
 relative_volume = 'Relative Volume (30 Day)'
 change_from_close = 'Change From Close (%)'
@@ -36,7 +36,7 @@ class PreMarketMomentum(IEX):
             symbol_strings.append(','.join(symbol_groups[i]))
 
         for symbol_string in symbol_strings:
-            data = self.iex_client.stocks.batch(symbol_string, ['quote', 'stats'])
+            data = self.client.stocks.batch(symbol_string, ['quote', 'stats'])
             for symbol in symbol_string.split(','):
                 if symbol not in data:
                     continue
@@ -150,7 +150,7 @@ class PreMarketMomentum(IEX):
         # if the latest price is gaping 2%+
         if quote['extendedChangePercent'] >= .02:
             # get some news for the stocks
-            data = self.iex_client.stocks.news(quote['symbol'])
+            data = self.client.stocks.news(quote['symbol'])
 
             for news in data:
                 if time.time() - news['datetime'] < 10800:

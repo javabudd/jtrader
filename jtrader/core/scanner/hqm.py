@@ -7,7 +7,7 @@ from statistics import mean
 import pandas as pd
 from scipy import stats
 
-from jtrader.core.iex import IEX
+from jtrader.core.provider.iex import IEX
 
 csv_columns = [
     'Ticker',
@@ -43,7 +43,7 @@ class HighQualityMomentum(IEX):
             symbol_strings.append(','.join(symbol_groups[i]))
 
         for symbol_string in symbol_strings:
-            data = self.iex_client.stocks.batch(symbol_string, ["quote", "stats"])
+            data = self.client.stocks.batch(symbol_string, ["quote", "stats"])
             for symbol in symbol_string.split(','):
                 if symbol not in data or 'quote' not in data[symbol] or data[symbol]['quote']['close'] is None:
                     continue
