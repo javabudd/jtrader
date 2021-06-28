@@ -150,12 +150,12 @@ class Scanner(IEX):
                     return False
 
         if len(self.indicators) > 1:
-            self.indicators = [ChainValidator(ticker, self.indicators, logger=self.logger, iex_client=self.client)]
+            self.indicators = [ChainValidator(ticker, self.indicators, logger=self.logger)]
 
         for indicator_class in self.indicators:
             indicator = indicator_class
             if not isinstance(indicator, ChainValidator):
-                indicator = indicator(ticker, logger=self.logger, iex_client=self.client)
+                indicator = indicator(ticker, logger=self.logger)
 
             passed_validators = {}
             try:
