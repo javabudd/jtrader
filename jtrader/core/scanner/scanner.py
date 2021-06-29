@@ -12,12 +12,12 @@ from dateutil.relativedelta import relativedelta
 from pyEX import PyEXception
 
 from jtrader import __STOCK_CSVS__
-from jtrader.core.odm import ODM
-from jtrader.core.provider.iex import IEX
-from jtrader.core.utils.csv import get_stocks_chunked, CSV_COLUMNS
 from jtrader.core.indicator import __INDICATOR_MAP__
 from jtrader.core.indicator.chain import Chain
 from jtrader.core.indicator.indicator import Indicator
+from jtrader.core.odm import ODM
+from jtrader.core.provider.iex import IEX
+from jtrader.core.utils.csv import get_stocks_chunked
 
 
 class Scanner(IEX):
@@ -101,7 +101,6 @@ class Scanner(IEX):
 
                     continue
 
-                data.columns = CSV_COLUMNS
                 self.init_indicators(stock, data)
 
     def process_intraday(self, stocks):
@@ -174,19 +173,26 @@ class Scanner(IEX):
                     has_valid_chain = True
                     passed_validators[indicator.get_name()] = []
                     chain_index = 0
-                    for validator_chain in chain:
-                        validator_chain = validator_chain(ticker, **args)
-                        is_valid = validator_chain.is_valid(data)
-                        if is_valid is None:
+                    previous_validation = None
+                    for indicator_chain in chain:
+                        indicator_chain = indicator_chain(ticker, **args)
+                        is_valid = indicator_chain.is_valid(data)
+
+                        if is_valid is None or (
+                                previous_validation == Indicator.BULLISH and is_valid == Indicator.BEARISH or
+                                previous_validation == Indicator.BEARISH and is_valid == Indicator.BULLISH
+                        ):
                             has_valid_chain = False
                             break  # break out of validation chain
+
+                        previous_validation = is_valid
 
                         signal_type = self.get_signal_string(is_valid)
 
                         passed_validators[indicator.get_name()].append(
                             {
                                 "signal_type": signal_type,
-                                "indicator": validator_chain.get_name()
+                                "indicator": indicator_chain.get_name()
                             }
                         )
                         chain_index += 1

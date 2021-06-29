@@ -34,23 +34,34 @@ class Volume(Indicator):
                 fastperiod=self.fast_period,
                 slowperiod=self.slow_period
             )
-        except Exception:
+        except Exception as e:
+            self.logger.error(e)
+
             return
 
         self.clean_dataframe(adosc)
 
         if len(adosc) <= 1:
+            self.logger.error(f"{self.ticker} has an ADOSC length of <= 1")
+
             return
 
         frame = pd.DataFrame(adosc.iloc[:-1]).round(0)
-        centroids, _ = kmeans(frame, 2)
+
+        try:
+            centroids, _ = kmeans(frame, 2)
+        except ValueError as e:
+            self.logger.error(e)
+
+            return
+
         resistance = max(centroids)
         support = min(centroids)
 
-        if adosc.iloc[-1] > resistance[0]:
+        if adosc.iloc[-self.fast_period:].mean() > resistance[0]:
             return self.BULLISH
 
-        if adosc.iloc[-1] < support[0]:
+        if adosc.iloc[-self.fast_period:].mean() < support[0]:
             return self.BEARISH
 
         return
