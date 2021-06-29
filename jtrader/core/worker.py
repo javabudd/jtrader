@@ -7,8 +7,8 @@ import pandas as pd
 from cement.core.log import LogInterface
 from cement.utils.shell import spawn_thread
 from dateutil.relativedelta import relativedelta
+from pyEX import PyEXception
 
-from jtrader.core.db import DB
 from jtrader.core.odm import ODM
 from jtrader.core.provider.provider import Provider
 from jtrader.core.utils.csv import get_stocks_chunked
@@ -27,7 +27,7 @@ class Worker:
 
             self.logger.info(f"Processing stock list {stock_list}...")
 
-            stocks = get_stocks_chunked(f"files/{stock_list}.csv", False, 50)
+            stocks = get_stocks_chunked(f"files/{stock_list}.csv", False, 100)
 
             i = 1
             threads: List[Thread] = []
@@ -52,7 +52,6 @@ class Worker:
             time.sleep(sleep_time)
 
     def insert_stocks(self, thread_id: str, chunk: pd.DataFrame, timeframe: str = '2y'):
-        db = DB()
         today = datetime.today()
         days = timeframe_to_days(timeframe)
         start = today + relativedelta(days=-days)
@@ -62,12 +61,10 @@ class Worker:
 
             odm_entry_length = len(self.odm.get_historical_stock_range(stock, start))
 
-            provider_entries = db.get_historical_stock_range(stock, start, today).all()
-
-            # try:
-            #     provider_entries = self.provider.stocks.chart(stock, timeframe=timeframe)
-            # except IEXClient.PyEXception:
-            #     continue
+            try:
+                provider_entries = self.provider.chart(stock, timeframe=timeframe)
+            except PyEXception:
+                continue
 
             if odm_entry_length >= len(provider_entries):
                 self.logger.warning(f"Skipping record insertion for {stock}...")

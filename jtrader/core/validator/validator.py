@@ -21,10 +21,13 @@ class Validator(ABC):
     BULLISH = 0x0
     BEARISH = 0x1
 
-    def __init__(self, ticker: str, logger: Optional[LogInterface] = None, lookback_days: int = 60):
+    def __init__(self, ticker: str, logger: Optional[LogInterface] = None, time_period: int = WINDOW_SIZES[0]):
         self.logger_prop = logger
         self.ticker = ticker
-        self.lookback_days = lookback_days
+        self.time_period = time_period
+        self.fast_period = self.WINDOW_SIZES[1]
+        self.slow_period = self.WINDOW_SIZES[3]
+        self.signal_period = self.WINDOW_SIZES[0]
 
     @abstractmethod
     def is_valid(self, data, comparison_data=None):

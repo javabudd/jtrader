@@ -331,9 +331,8 @@ class Base(Controller):
             self.app.log,
             self.app.pargs.indicators,
             self.app.pargs.stock_list,
-            None,
-            False,
-            self.app.pargs.no_notifications
+            as_intraday=False,
+            no_notifications=self.app.pargs.no_notifications
         ).run()
 
     @ex(

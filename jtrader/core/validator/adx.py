@@ -13,7 +13,7 @@ class ADXValidator(Validator):
         return 'ADX'
 
     def is_valid(self, data, comparison_data=None):
-        adx = talib.ADX(data['high'], data['low'], data['close'])
+        adx = talib.ADX(data['high'], data['low'], data['close'], timeperiod=self.time_period)
 
         self.clean_dataframe(adx)
 

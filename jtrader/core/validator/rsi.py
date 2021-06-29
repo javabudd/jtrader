@@ -29,7 +29,7 @@ class RSIValidator(Validator):
 
         try:
             # key 1 in the output is the smoothed line
-            rsi = talib.STOCHRSI(close, timeperiod=14)[1]
+            rsi = talib.STOCHRSI(close, timeperiod=self.time_period)[1]
         except Exception:
             return
 

@@ -32,7 +32,14 @@ class ULTOSCValidator(Validator):
 
     def is_valid(self, data, comparison_data=None):
         if self.has_lower_low(data):
-            chart = talib.ULTOSC(data['high'], data['low'], data['close'])
+            chart = talib.ULTOSC(
+                data['high'],
+                data['low'],
+                data['close'],
+                timeperiod1=self.time_period,
+                timeperiod2=self.time_period * 2,
+                timeperiod3=self.time_period * 3
+            )
 
             self.clean_dataframe(chart)
 

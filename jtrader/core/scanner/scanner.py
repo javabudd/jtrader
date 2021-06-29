@@ -15,7 +15,6 @@ from jtrader import __STOCK_CSVS__
 from jtrader.core.odm import ODM
 from jtrader.core.provider.iex import IEX
 from jtrader.core.utils.csv import get_stocks_chunked, CSV_COLUMNS
-from jtrader.core.utils.stock import timeframe_to_days
 from jtrader.core.validator import __VALIDATION_MAP__
 from jtrader.core.validator.chain import ChainValidator
 from jtrader.core.validator.validator import Validator
@@ -28,13 +27,11 @@ class Scanner(IEX):
             logger: LogInterface,
             indicators: Optional[List[Validator]],
             stocks: Optional[str] = None,
-            time_range: Optional[str] = None,
             as_intraday: Optional[bool] = True,
             no_notifications: Optional[bool] = False
     ):
         super().__init__(is_sandbox, logger, no_notifications=no_notifications)
 
-        self.time_range = time_range
         self.as_intraday = as_intraday
         self.odm = ODM()
 
@@ -151,9 +148,6 @@ class Scanner(IEX):
                     return False
 
         args = {"logger": self.logger}
-        if self.time_range is not None:
-            args['lookback_days'] = timeframe_to_days(self.time_range)
-
         if len(self.indicators) > 1:
             self.indicators = [
                 ChainValidator(

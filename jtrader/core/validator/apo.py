@@ -36,7 +36,7 @@ class APOValidator(Validator):
 
     def signals_bullish(self, data=None):
         if self.has_lower_low(data):
-            apo_chart = talib.APO(data['close'])
+            apo_chart = talib.APO(data['close'], fastperiod=self.fast_period, slowperiod=self.slow_period)
 
             if len(apo_chart) <= 1:
                 self.log_not_enough_chart_data()

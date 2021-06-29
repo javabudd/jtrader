@@ -16,6 +16,8 @@ class OBVValidator(Validator):
         return 'OBV'
 
     def is_valid(self, data, comparison_data=None):
+        data = data[-self.time_period:]
+
         self.clean_dataframe(data)
 
         price_has_lower_low = self.has_lower_low(data)

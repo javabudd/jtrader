@@ -26,7 +26,14 @@ class VolumeValidator(Validator):
 
     def is_valid(self, data, comparison_data=None):
         try:
-            adosc = talib.ADOSC(data['high'], data['low'], data['close'], data['volume'])
+            adosc = talib.ADOSC(
+                data['high'],
+                data['low'],
+                data['close'],
+                data['volume'],
+                fastperiod=self.fast_period,
+                slowperiod=self.slow_period
+            )
         except Exception:
             return
 

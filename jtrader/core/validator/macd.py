@@ -29,7 +29,12 @@ class MACDValidator(Validator):
         return 'MACD'
 
     def is_valid(self, data, comparison_data=None):
-        macd, signal_line, histogram = talib.MACD(data['close'])
+        macd, signal_line, histogram = talib.MACD(
+            data['close'],
+            fastperiod=self.fast_period,
+            slowperiod=self.slow_period,
+            signal_period=self.signal_period
+        )
         self.clean_dataframe(macd)
         self.clean_dataframe(signal_line)
 
