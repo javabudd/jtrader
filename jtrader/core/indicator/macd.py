@@ -1,9 +1,9 @@
 import talib
 
-from jtrader.core.validator.validator import Validator
+from jtrader.core.indicator.indicator import Indicator
 
 
-class MACDValidator(Validator):
+class MACD(Indicator):
     """
     Moving average convergence divergence (MACD) is a trend-following momentum indicator that shows the relationship
     between two moving averages of a security’s price. The MACD is calculated by subtracting the 26-period exponential
@@ -33,7 +33,7 @@ class MACDValidator(Validator):
             data['close'],
             fastperiod=self.fast_period,
             slowperiod=self.slow_period,
-            signal_period=self.signal_period
+            signalperiod=self.signal_period
         )
         self.clean_dataframe(macd)
         self.clean_dataframe(signal_line)

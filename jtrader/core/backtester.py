@@ -6,8 +6,8 @@ from zipline import run_algorithm
 from zipline.api import order, order_target, record, symbol
 from zipline.protocol import BarData
 
-from jtrader.core.validator import __VALIDATION_MAP__
-from jtrader.core.validator.validator import Validator
+from jtrader.core.indicator import __INDICATOR_MAP__
+from jtrader.core.indicator.indicator import Indicator
 
 
 class Backtester:
@@ -79,8 +79,8 @@ class Backtester:
 
     @staticmethod
     def get_validator(validator_name: str, ticker: str):
-        if validator_name in __VALIDATION_MAP__:
-            return __VALIDATION_MAP__[validator_name](ticker)
+        if validator_name in __INDICATOR_MAP__:
+            return __INDICATOR_MAP__[validator_name](ticker)
 
         raise Exception
 
@@ -98,7 +98,7 @@ class Backtester:
                 validator_instance = self.get_validator(validator, stock)
                 self.cached_buy_indicators[validator] = validator_instance
 
-            if validator_instance.is_valid(data_frame) == Validator.BULLISH:
+            if validator_instance.is_valid(data_frame) == Indicator.BULLISH:
                 return True
 
         return False
@@ -111,7 +111,7 @@ class Backtester:
                 validator_instance = self.get_validator(validator, stock)
                 self.cached_sell_indicators[validator] = validator_instance
 
-            if validator_instance.is_valid(data_frame) == Validator.BEARISH:
+            if validator_instance.is_valid(data_frame) == Indicator.BEARISH:
                 return True
 
         return False

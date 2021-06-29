@@ -1,10 +1,10 @@
 import pandas as pd
 import talib
 
-from jtrader.core.validator.validator import Validator
+from jtrader.core.indicator.indicator import Indicator
 
 
-class OBVValidator(Validator):
+class OBV(Indicator):
     """
     On-balance volume provides a running total of an asset's trading volume and indicates whether this volume is
     flowing in or out of a given security or currency pair. The OBV is a cumulative total of volume

@@ -15,9 +15,9 @@ from jtrader import __STOCK_CSVS__
 from jtrader.core.odm import ODM
 from jtrader.core.provider.iex import IEX
 from jtrader.core.utils.csv import get_stocks_chunked, CSV_COLUMNS
-from jtrader.core.validator import __VALIDATION_MAP__
-from jtrader.core.validator.chain import ChainValidator
-from jtrader.core.validator.validator import Validator
+from jtrader.core.indicator import __INDICATOR_MAP__
+from jtrader.core.indicator.chain import Chain
+from jtrader.core.indicator.indicator import Indicator
 
 
 class Scanner(IEX):
@@ -25,7 +25,7 @@ class Scanner(IEX):
             self,
             is_sandbox: bool,
             logger: LogInterface,
-            indicators: Optional[List[Validator]],
+            indicators: Optional[List[Indicator]],
             stocks: Optional[str] = None,
             as_intraday: Optional[bool] = True,
             no_notifications: Optional[bool] = False
@@ -45,21 +45,21 @@ class Scanner(IEX):
 
         self.indicators = []
         if indicators is None:
-            self.indicators = __VALIDATION_MAP__['all']
+            self.indicators = __INDICATOR_MAP__['all']
         else:
             indicators = np.array(indicators).flatten()
             for indicator in indicators:
-                if indicator in __VALIDATION_MAP__ and indicator:
-                    self.indicators.append(__VALIDATION_MAP__[indicator])
+                if indicator in __INDICATOR_MAP__ and indicator:
+                    self.indicators.append(__INDICATOR_MAP__[indicator])
 
             if len(self.indicators) == 0:
                 raise RuntimeError
 
     @staticmethod
     def get_signal_string(is_valid):
-        if is_valid == Validator.BULLISH:
+        if is_valid == Indicator.BULLISH:
             signal_type = 'bullish'
-        elif is_valid == Validator.BEARISH:
+        elif is_valid == Indicator.BEARISH:
             signal_type = 'bearish'
         else:
             raise ValueError
@@ -84,9 +84,7 @@ class Scanner(IEX):
 
     def process_timeframe(self, stocks):
         today = datetime.today()
-
-        # hardcoded to two years for now, n33d m04r d4t4
-        delta = 730
+        delta = 365
         start = today + relativedelta(days=-delta)
 
         for chunk in enumerate(stocks):
@@ -150,7 +148,7 @@ class Scanner(IEX):
         args = {"logger": self.logger}
         if len(self.indicators) > 1:
             self.indicators = [
-                ChainValidator(
+                Chain(
                     ticker,
                     self.indicators,
                     **args
@@ -159,7 +157,7 @@ class Scanner(IEX):
 
         for indicator_class in self.indicators:
             indicator = indicator_class
-            if not isinstance(indicator, ChainValidator):
+            if not isinstance(indicator, Chain):
                 indicator = indicator(ticker, **args)
 
             passed_validators = {}
@@ -171,7 +169,7 @@ class Scanner(IEX):
 
                 signal_type = self.get_signal_string(is_valid)
 
-                if isinstance(indicator, ChainValidator):
+                if isinstance(indicator, Chain):
                     chain = indicator.get_validation_chain()
                     has_valid_chain = True
                     passed_validators[indicator.get_name()] = []
@@ -193,7 +191,7 @@ class Scanner(IEX):
                         )
                         chain_index += 1
                     if has_valid_chain is False:
-                        continue  # continue to the next validator in list
+                        continue  # continue to the next indicator in list
                 else:
                     passed_validators = {"signal_type": signal_type, "indicator": indicator.get_name()}
 

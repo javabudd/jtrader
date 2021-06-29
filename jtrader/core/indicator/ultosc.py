@@ -1,9 +1,9 @@
 import talib
 
-from jtrader.core.validator.validator import Validator
+from jtrader.core.indicator.indicator import Indicator
 
 
-class ULTOSCValidator(Validator):
+class ULTOSC(Indicator):
     """
     The Ultimate Oscillator is a range-bound indicator with a value that fluctuates between 0 and 100. Similar to the
     Relative Strength Index (RSI), levels below 30 are deemed to be oversold, and levels above 70 are deemed to be

@@ -1,7 +1,7 @@
-from jtrader.core.validator.validator import Validator
+from jtrader.core.indicator.indicator import Indicator
 
 
-class ChainValidator(Validator):
+class Chain(Indicator):
     def __init__(self, ticker: str, validators: list, **kwargs):
         super().__init__(ticker, **kwargs)
 

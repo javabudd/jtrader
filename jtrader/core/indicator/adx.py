@@ -1,9 +1,9 @@
 import talib
 
-from jtrader.core.validator.validator import Validator
+from jtrader.core.indicator.indicator import Indicator
 
 
-class ADXValidator(Validator):
+class ADX(Indicator):
     """
     Looking for pops in volume relative to time frames
     """

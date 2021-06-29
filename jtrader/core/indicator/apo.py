@@ -1,9 +1,9 @@
 import talib
 
-from jtrader.core.validator.validator import Validator
+from jtrader.core.indicator.indicator import Indicator
 
 
-class APOValidator(Validator):
+class APO(Indicator):
     """
     The Absolute Price Oscillator displays the difference between two exponential moving averages of a security's price
     and is expressed as an absolute value.

@@ -5,7 +5,7 @@ import numpy as np
 from cement.core.log import LogInterface
 
 
-class Validator(ABC):
+class Indicator(ABC):
     WINDOW_SIZES = [
         10,
         14,

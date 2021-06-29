@@ -27,7 +27,7 @@ class Worker:
 
             self.logger.info(f"Processing stock list {stock_list}...")
 
-            stocks = get_stocks_chunked(f"files/{stock_list}.csv", False, 100)
+            stocks = get_stocks_chunked(f"files/{stock_list}.csv", False, 25)
 
             i = 1
             threads: List[Thread] = []
@@ -51,7 +51,7 @@ class Worker:
 
             time.sleep(sleep_time)
 
-    def insert_stocks(self, thread_id: str, chunk: pd.DataFrame, timeframe: str = '2y'):
+    def insert_stocks(self, thread_id: str, chunk: pd.DataFrame, timeframe: str = '5d'):
         today = datetime.today()
         days = timeframe_to_days(timeframe)
         start = today + relativedelta(days=-days)
@@ -64,19 +64,21 @@ class Worker:
             try:
                 provider_entries = self.provider.chart(stock, timeframe=timeframe)
             except PyEXception:
+                self.logger.warning(f"Failed retrieving provider data for {stock}...")
+
                 continue
 
             if odm_entry_length >= len(provider_entries):
-                self.logger.warning(f"Skipping record insertion for {stock}...")
+                self.logger.info(f"Skipping record insertion for {stock}...")
 
                 continue
 
             self.logger.debug('odm count: ' + str(odm_entry_length))
-            self.logger.debug('db count: ' + str(len(provider_entries)))
+            self.logger.debug('provider count: ' + str(len(provider_entries)))
 
             with self.odm.table.batch_writer() as batch:
                 for result in provider_entries:
-                    if self.odm.get_historical_stock_day(stock, result.date) is not None:
+                    if self.odm.get_historical_stock_day(stock, result['date']) is not None:
                         continue
 
                     self.odm.put_item(batch, stock, result)
