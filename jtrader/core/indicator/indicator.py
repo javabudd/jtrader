@@ -6,28 +6,26 @@ from cement.core.log import LogInterface
 
 
 class Indicator(ABC):
-    WINDOW_SIZES = [
-        10,
-        14,
-        20,
-        28,
-        40,
-        57,
-        80,
-        113,
-        160
-    ]
+    WINDOW_SIZE_TEN = 10
+    WINDOW_SIZE_FOURTEEN = 14
+    WINDOW_SIZE_TWENTY = 20
+    WINDOW_SIZE_TWENTY_EIGHT = 28
+    WINDOW_SIZE_FORTY = 40
+    WINDOW_SIZE_FIFTY_SEVEN = 57
+    WINDOW_SIZE_EIGHTY = 80
+    WINDOW_SIZE_ONE_HUNDRED_THIRTEEN = 113
+    WINDOW_SIZE_ONE_HUNDRED_SIXTY = 160
 
     BULLISH = 0x0
     BEARISH = 0x1
 
-    def __init__(self, ticker: str, logger: Optional[LogInterface] = None, time_period: int = WINDOW_SIZES[0]):
+    def __init__(self, ticker: str, logger: Optional[LogInterface] = None):
         self.logger_prop = logger
         self.ticker = ticker
-        self.time_period = time_period
-        self.fast_period = self.WINDOW_SIZES[1]
-        self.slow_period = self.WINDOW_SIZES[3]
-        self.signal_period = self.WINDOW_SIZES[0]
+        self.time_period = self.WINDOW_SIZE_TEN
+        self.fast_period = self.WINDOW_SIZE_FOURTEEN
+        self.slow_period = self.WINDOW_SIZE_TWENTY_EIGHT
+        self.signal_period = self.WINDOW_SIZE_TEN
 
     @abstractmethod
     def is_valid(self, data, comparison_data=None):
