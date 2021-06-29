@@ -87,8 +87,8 @@ class Indicator(ABC):
     def log_missing_chart(self):
         self.logger.debug(f"{self.ticker} missing chart data from IEX")
 
-    def log_not_enough_chart_data(self):
-        self.logger.debug(f"{self.ticker} has a chart length of one")
+    def log_not_enough_data(self):
+        self.logger.debug(f"{self.ticker} does not have enough data to process")
 
     def log_ema_fail(self, calculation):
         self.logger.debug(f"{self.ticker} Could not get EMA, setting to 0 ({calculation})")

@@ -27,6 +27,11 @@ class RSI(Indicator):
     def is_valid(self, data, comparison_data=None):
         close = self.clean_dataframe(data['close'])
 
+        if len(close) < self.time_period:
+            self.log_not_enough_data()
+
+            return False
+
         try:
             # key 1 in the output is the smoothed line
             rsi = talib.STOCHRSI(close, timeperiod=self.time_period)[1]
