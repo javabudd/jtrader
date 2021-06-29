@@ -28,21 +28,21 @@ class APO(Indicator):
         return 'Absolute Price Oscillator'
 
     def is_valid(self, data, comparison_data=None):
-        if self.signals_bullish(data):
+        apo_chart = talib.APO(data['close'], fastperiod=self.fast_period, slowperiod=self.slow_period)
+
+        if len(apo_chart) <= 1:
+            self.log_not_enough_chart_data()
+
+            return False
+
+        if self.signals_bullish(data, apo_chart):
             return self.BULLISH
 
-        if self.signals_bearish(data):
+        if self.signals_bearish(data, apo_chart):
             return self.BEARISH
 
-    def signals_bullish(self, data=None):
+    def signals_bullish(self, data, apo_chart):
         if self.has_lower_low(data):
-            apo_chart = talib.APO(data['close'], fastperiod=self.fast_period, slowperiod=self.slow_period)
-
-            if len(apo_chart) <= 1:
-                self.log_not_enough_chart_data()
-
-                return False
-
             highest_apo_low = max(apo_chart[:-1])
             latest_apo_low = apo_chart.iloc[-1]
 
@@ -51,6 +51,12 @@ class APO(Indicator):
 
         return False
 
-    # nothing yet
-    def signals_bearish(self, data=None):
+    def signals_bearish(self, data, apo_chart):
+        if self.has_higher_high(data):
+            lowest_apo_high = min(apo_chart[:-1])
+            latest_apo_high = apo_chart.iloc[-1]
+
+            if latest_apo_high < lowest_apo_high:
+                return True
+
         return False
