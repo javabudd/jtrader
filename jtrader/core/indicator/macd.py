@@ -39,6 +39,8 @@ class MACD(Indicator):
         self.clean_dataframe(signal_line)
 
         if len(macd) <= 1 or len(signal_line) <= 1:
+            self.log_invalid_chart_length()
+
             return
 
         # @TODO This needs a more robust divergence check

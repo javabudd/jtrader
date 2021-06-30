@@ -18,6 +18,8 @@ class ADX(Indicator):
         self.clean_dataframe(adx)
 
         if adx.empty:
+            self.log_invalid_chart_length()
+
             return
 
         if adx.iloc[-self.time_period:].mean() > 20:
