@@ -32,6 +32,11 @@ class Indicator(ABC):
         pass
 
     @staticmethod
+    @abstractmethod
+    def get_name():
+        pass
+
+    @staticmethod
     def clean_dataframe(dataframe):
         dataframe.replace([np.inf, -np.inf], np.nan, inplace=True)
         dataframe.dropna(inplace=True)
@@ -92,3 +97,12 @@ class Indicator(ABC):
 
     def log_ema_fail(self, calculation):
         self.logger.debug(f"{self.ticker} Could not get EMA, setting to 0 ({calculation})")
+
+    def log_error(self, exception_or_string):
+        self.logger.error(f"{self.ticker} - {self.get_name()}: {exception_or_string}")
+
+    def log_warning(self, exception_or_string):
+        self.logger.warning(f"{self.ticker} - {self.get_name()}: {exception_or_string}")
+
+    def log_invalid_chart_length(self):
+        self.log_warning('Chart length invalid')

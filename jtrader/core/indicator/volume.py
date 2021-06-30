@@ -25,6 +25,8 @@ class Volume(Indicator):
         return 'ADOSC (Chaikin Oscillator))'
 
     def is_valid(self, data, comparison_data=None):
+        self.clean_dataframe(data)
+
         try:
             adosc = talib.ADOSC(
                 data['high'],
@@ -35,14 +37,14 @@ class Volume(Indicator):
                 slowperiod=self.slow_period
             )
         except Exception as e:
-            self.logger.error(e)
+            self.log_error(e)
 
             return
 
         self.clean_dataframe(adosc)
 
         if len(adosc) <= 1:
-            self.logger.error(f"{self.ticker} has an ADOSC length of <= 1")
+            self.log_invalid_chart_length()
 
             return
 
@@ -51,7 +53,7 @@ class Volume(Indicator):
         try:
             centroids, _ = kmeans(frame, 2)
         except ValueError as e:
-            self.logger.error(e)
+            self.log_error(e)
 
             return
 

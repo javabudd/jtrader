@@ -35,15 +35,19 @@ class RSI(Indicator):
         try:
             # key 1 in the output is the smoothed line
             rsi = talib.STOCHRSI(close, timeperiod=self.time_period)[1]
-        except Exception:
+        except Exception as e:
+            self.log_error(e)
+
             return
 
         self.clean_dataframe(rsi)
 
-        try:
-            last_rsi = rsi.iloc[-1]
-        except IndexError:
+        if len(rsi) <= 1:
+            self.log_invalid_chart_length()
+
             return
+
+        last_rsi = rsi.iloc[-1]
 
         if last_rsi < 30:
             return self.BULLISH
