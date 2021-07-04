@@ -9,6 +9,7 @@ from cement.utils.shell import spawn_thread
 from dateutil.relativedelta import relativedelta
 from pyEX import PyEXception
 
+from jtrader import __STOCK_CSVS__
 from jtrader.core.odm import ODM
 from jtrader.core.provider.provider import Provider
 from jtrader.core.utils.csv import get_stocks_chunked
@@ -23,15 +24,15 @@ class Worker:
 
     def run(self):
         while True:
-            stock_list = 'all_stocks'
+            stock_list_name = 'all'
 
-            self.logger.info(f"Processing stock list {stock_list}...")
+            self.logger.info(f"Processing stock list {stock_list_name}...")
 
-            stocks = get_stocks_chunked(f"files/{stock_list}.csv", False, 25)
+            stock_list = __STOCK_CSVS__[stock_list_name]
 
             i = 1
             threads: List[Thread] = []
-            for chunk in enumerate(stocks):
+            for chunk in enumerate(get_stocks_chunked(stock_list, False, 25)):
                 thread_name = f"Thread-{i}"
                 """ @thread """
                 thread = spawn_thread(self.insert_stocks, True, False, args=(thread_name, chunk), daemon=True)
@@ -43,13 +44,6 @@ class Worker:
                     if not thread.is_alive():
                         threads.remove(thread)
                     thread.join(1)
-
-            sleep_hours = 12
-            sleep_time = 60 * 60 * sleep_hours
-
-            self.logger.info(f"Sleeping for {sleep_hours} hours...")
-
-            time.sleep(sleep_time)
 
     def insert_stocks(self, thread_id: str, chunk: pd.DataFrame, timeframe: str = '5d'):
         today = datetime.today()

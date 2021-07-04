@@ -1,10 +1,8 @@
 from abc import ABC, abstractmethod
-from typing import Optional
-
-import discord_notify as dn
 from cement.core.log import LogInterface
 from slack_sdk import WebClient
 from slack_sdk.errors import SlackApiError
+from typing import Optional
 
 from jtrader.core.secrets import SLACK_TOKEN
 
@@ -43,23 +41,14 @@ class Provider(ABC):
             return
 
         client = WebClient(token=SLACK_TOKEN)
-        discord_url = None
 
         if self.is_sandbox:
             slack_channel = '#stock-scanner-dev'
-            discord_url = None
 
         try:
             client.chat_postMessage(channel=slack_channel, text=message, **kwargs)
         except SlackApiError as e:
             print(f"Got an error: {e.response['error']}")
-
-        if discord_url is not None:
-            try:
-                notifier = dn.Notifier(discord_url)
-                notifier.send(message, print_message=False)
-            except Exception as e:
-                print(f"Got an error: {e.args[0]}")
 
     def send_slack_file(self, filename, title, channel: Optional[str] = '#stock-scanner', **kwargs):
         client = WebClient(token=SLACK_TOKEN)

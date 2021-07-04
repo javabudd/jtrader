@@ -8,3 +8,10 @@ services:
     volumes:
       - ./:/src
     privileged: true
+    command:
+      - "jtrader"
+      - "-d"
+    environment:
+      - AWS_DEFAULT_REGION=us-west-2
+      - AWS_ACCESS_KEY_ID=xXxX
+      - AWS_SECRET_ACCESS_KEY=xXxX

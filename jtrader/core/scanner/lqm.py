@@ -2,11 +2,11 @@
 # coding: utf-8
 
 import io
-from statistics import mean
-
 import pandas as pd
 from scipy import stats
+from statistics import mean
 
+from jtrader import __STOCK_CSVS__
 from jtrader.core.provider.iex import IEX
 
 csv_columns = [
@@ -33,7 +33,7 @@ time_periods = [
 
 class LowQualityMomentum(IEX):
     def run(self):
-        stocks = pd.read_csv('files/all_stocks.csv')
+        stocks = pd.read_csv(__STOCK_CSVS__['all'])
 
         df = pd.DataFrame(columns=csv_columns)
 

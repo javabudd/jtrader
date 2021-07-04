@@ -2,10 +2,10 @@
 # coding: utf-8
 
 import io
+import pandas as pd
 import time
 
-import pandas as pd
-
+from jtrader import __STOCK_CSVS__
 from jtrader.core.provider.iex import IEX
 
 relative_volume = 'Relative Volume (30 Day)'
@@ -26,7 +26,7 @@ csv_columns = [
 
 class PreMarketMomentum(IEX):
     def run(self):
-        stocks = pd.read_csv('files/all_stocks.csv')
+        stocks = pd.read_csv(__STOCK_CSVS__['all'])
 
         df = pd.DataFrame(columns=csv_columns)
 

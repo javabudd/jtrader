@@ -1,7 +1,7 @@
 from cement import Controller, ex
 from cement.utils.version import get_version_banner
 
-from jtrader.core.backtester import Backtester
+# from jtrader.core.backtester import Backtester
 from jtrader.core.news import News
 from jtrader.core.pairs import Pairs
 from jtrader.core.provider.iex import IEX
@@ -335,70 +335,70 @@ class Base(Controller):
             no_notifications=self.app.pargs.no_notifications
         ).run()
 
-    @ex(
-        help='Run a backtest',
-        arguments=[
-            (
-                    ['-t', '--ticker'],
-                    {
-                        'help': 'Ticker to process',
-                        'action': 'store',
-                        'dest': 'ticker',
-                        'required': True
-                    }
-            ),
-            (
-                    ['-b', '--buy-indicators'],
-                    {
-                        'help': 'which technicals indicators to buy against',
-                        'action': 'append',
-                        'dest': 'buy_indicators',
-                        'choices': indicators,
-                        'nargs': '+',
-                        'required': True
-                    }
-            ),
-            (
-                    ['-s', '--sell-indicators'],
-                    {
-                        'help': 'which technicals indicators to sell against',
-                        'action': 'append',
-                        'dest': 'sell_indicators',
-                        'choices': indicators,
-                        'nargs': '+',
-                        'required': True
-                    }
-            ),
-            (
-                    ['--start'],
-                    {
-                        'help': 'Backtest start date',
-                        'action': 'store',
-                        'dest': 'start_date'
-                    }
-            ),
-            (
-                    ['--end'],
-                    {
-                        'help': 'Backtest end date',
-                        'action': 'store',
-                        'dest': 'end_date'
-                    }
-            ),
-        ],
-    )
-    def start_backtest(self):
-        """Start Backtest Command"""
-        backtester = Backtester(
-            self.app.log,
-            self.app.pargs.ticker,
-            self.app.pargs.start_date,
-            self.app.pargs.end_date,
-            self.app.pargs.buy_indicators,
-            self.app.pargs.sell_indicators,
-        )
-
-        backtester.run()
+    # @ex(
+    #     help='Run a backtest',
+    #     arguments=[
+    #         (
+    #                 ['-t', '--ticker'],
+    #                 {
+    #                     'help': 'Ticker to process',
+    #                     'action': 'store',
+    #                     'dest': 'ticker',
+    #                     'required': True
+    #                 }
+    #         ),
+    #         (
+    #                 ['-b', '--buy-indicators'],
+    #                 {
+    #                     'help': 'which technicals indicators to buy against',
+    #                     'action': 'append',
+    #                     'dest': 'buy_indicators',
+    #                     'choices': indicators,
+    #                     'nargs': '+',
+    #                     'required': True
+    #                 }
+    #         ),
+    #         (
+    #                 ['-s', '--sell-indicators'],
+    #                 {
+    #                     'help': 'which technicals indicators to sell against',
+    #                     'action': 'append',
+    #                     'dest': 'sell_indicators',
+    #                     'choices': indicators,
+    #                     'nargs': '+',
+    #                     'required': True
+    #                 }
+    #         ),
+    #         (
+    #                 ['--start'],
+    #                 {
+    #                     'help': 'Backtest start date',
+    #                     'action': 'store',
+    #                     'dest': 'start_date'
+    #                 }
+    #         ),
+    #         (
+    #                 ['--end'],
+    #                 {
+    #                     'help': 'Backtest end date',
+    #                     'action': 'store',
+    #                     'dest': 'end_date'
+    #                 }
+    #         ),
+    #     ],
+    # )
+    # def start_backtest(self):
+    #     """Start Backtest Command"""
+    #     backtester = Backtester(
+    #         self.app.log,
+    #         self.app.pargs.ticker,
+    #         self.app.pargs.start_date,
+    #         self.app.pargs.end_date,
+    #         self.app.pargs.buy_indicators,
+    #         self.app.pargs.sell_indicators,
+    #     )
+    #
+    #     backtester.run()
 
     @ex(
         help='Run a Pairs analysis',
