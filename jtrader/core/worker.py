@@ -23,27 +23,26 @@ class Worker:
         self.odm = ODM()
 
     def run(self):
-        while True:
-            stock_list_name = 'all'
+        stock_list_name = 'all'
 
-            self.logger.info(f"Processing stock list {stock_list_name}...")
+        self.logger.info(f"Processing stock list {stock_list_name}...")
 
-            stock_list = __STOCK_CSVS__[stock_list_name]
+        stock_list = __STOCK_CSVS__[stock_list_name]
 
-            i = 1
-            threads: List[Thread] = []
-            for chunk in enumerate(get_stocks_chunked(stock_list, False, 25)):
-                thread_name = f"Thread-{i}"
-                """ @thread """
-                thread = spawn_thread(self.insert_stocks, True, False, args=(thread_name, chunk), daemon=True)
-                threads.append(thread)
-                i += 1
+        i = 1
+        threads: List[Thread] = []
+        for chunk in enumerate(get_stocks_chunked(stock_list, False, 25)):
+            thread_name = f"Thread-{i}"
+            """ @thread """
+            thread = spawn_thread(self.insert_stocks, True, False, args=(thread_name, chunk), daemon=True)
+            threads.append(thread)
+            i += 1
 
-            while len(threads) > 0:
-                for thread in threads:
-                    if not thread.is_alive():
-                        threads.remove(thread)
-                    thread.join(1)
+        while len(threads) > 0:
+            for thread in threads:
+                if not thread.is_alive():
+                    threads.remove(thread)
+                thread.join(1)
 
     def insert_stocks(self, thread_id: str, chunk: pd.DataFrame, timeframe: str = '5d'):
         today = datetime.today()
