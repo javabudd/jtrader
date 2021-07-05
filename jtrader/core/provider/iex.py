@@ -1,10 +1,10 @@
+import os
 from typing import Optional
 
 import pyEX as IEXClient
 from cement.core.log import LogInterface
 
 from jtrader.core.provider.provider import Provider
-from jtrader.core.secrets import IEX_CLOUD_API_TOKEN, IEX_CLOUD_SANDBOX_API_TOKEN
 
 
 class IEX(Provider):
@@ -17,10 +17,10 @@ class IEX(Provider):
     ):
         super().__init__(is_sandbox, logger, no_notifications)
 
-        token = IEX_CLOUD_API_TOKEN
+        token = os.environ.get('IEX_CLOUD_API_TOKEN')
         if self.is_sandbox:
             version = 'sandbox'
-            token = IEX_CLOUD_SANDBOX_API_TOKEN
+            token = os.environ.get('IEX_CLOUD_SANDBOX_API_TOKEN')
 
         self.client_prop = IEXClient.Client(token, version)
 

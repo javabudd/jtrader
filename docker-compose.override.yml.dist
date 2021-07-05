@@ -15,3 +15,6 @@ services:
       - AWS_DEFAULT_REGION=us-west-2
       - AWS_ACCESS_KEY_ID=xXxX
       - AWS_SECRET_ACCESS_KEY=xXxX
+      - IEX_CLOUD_API_TOKEN=xXxX
+      - IEX_CLOUD_SANDBOX_API_TOKEN=xXxX
+      - SLACK_TOKEN=xXxX

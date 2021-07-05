@@ -1,10 +1,10 @@
+import os
 from abc import ABC, abstractmethod
+from typing import Optional
+
 from cement.core.log import LogInterface
 from slack_sdk import WebClient
 from slack_sdk.errors import SlackApiError
-from typing import Optional
-
-from jtrader.core.secrets import SLACK_TOKEN
 
 
 class Provider(ABC):
@@ -40,7 +40,7 @@ class Provider(ABC):
         if self.no_notifications:
             return
 
-        client = WebClient(token=SLACK_TOKEN)
+        client = WebClient(token=os.environ.get('SLACK_TOKEN'))
 
         if self.is_sandbox:
             slack_channel = '#stock-scanner-dev'
@@ -51,7 +51,7 @@ class Provider(ABC):
             print(f"Got an error: {e.response['error']}")
 
     def send_slack_file(self, filename, title, channel: Optional[str] = '#stock-scanner', **kwargs):
-        client = WebClient(token=SLACK_TOKEN)
+        client = WebClient(token=os.environ.get('SLACK_TOKEN'))
 
         if self.is_sandbox:
             channel = '#stock-scanner-dev'
