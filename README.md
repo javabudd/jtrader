@@ -1,5 +1,7 @@
 # Trade them thangs
 
+![JTrader](https://github.com/javabudd/jtrader/tree/main/.github/workflows/ubuntu.yml/badge.svg?branch=main)
+
 ## Installation
 
 ```
