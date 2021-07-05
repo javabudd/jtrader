@@ -58,9 +58,9 @@ class Base(Controller):
     )
     def start_worker(self):
         """Start Worker Command"""
-        worker = Worker(self.get_provider(False), self.app.log)
+        results = Worker(self.get_provider(False), self.app.log).run()
 
-        self.app.render({'worker': worker}, 'start_worker.jinja2')
+        self.app.render({'results': results}, 'start_worker.jinja2')
 
     @ex(
         help='Start a news stream',
@@ -82,11 +82,9 @@ class Base(Controller):
         if is_sandbox:
             self.app.log.info('Starting in sandbox mode...')
 
-        data = {
-            'news_stream': News(is_sandbox, self.app.log),
-        }
+        results = News(is_sandbox, self.app.log).run()
 
-        self.app.render(data, 'start_news_stream.jinja2')
+        self.app.render({'results': results}, 'start_news_stream.jinja2')
 
     @ex(
         help='Get low quality momentum stats',
@@ -108,11 +106,9 @@ class Base(Controller):
         if is_sandbox:
             self.app.log.info('Starting in sandbox mode...')
 
-        data = {
-            'stats': LowQualityMomentum(is_sandbox, self.app.log),
-        }
+        results = LowQualityMomentum(is_sandbox, self.app.log).run()
 
-        self.app.render(data, 'get_lqm_stats.jinja2')
+        self.app.render({'results': results}, 'get_lqm_stats.jinja2')
 
     @ex(
         help='Get high quality momentum stats',
@@ -134,11 +130,9 @@ class Base(Controller):
         if is_sandbox:
             self.app.log.info('Starting in sandbox mode...')
 
-        data = {
-            'stats': HighQualityMomentum(is_sandbox, self.app.log),
-        }
+        results = HighQualityMomentum(is_sandbox, self.app.log).run()
 
-        self.app.render(data, 'get_hqm_stats.jinja2')
+        self.app.render({'results': results}, 'get_hqm_stats.jinja2')
 
     @ex(
         help='Get deep value stats',
@@ -160,11 +154,9 @@ class Base(Controller):
         if is_sandbox:
             self.app.log.info('Starting in sandbox mode...')
 
-        data = {
-            'stats': Value(is_sandbox, self.app.log),
-        }
+        results = Value(is_sandbox, self.app.log).run()
 
-        self.app.render(data, 'get_value_stats.jinja2')
+        self.app.render({'results': results}, 'get_value_stats.jinja2')
 
     @ex(
         help='Get pre market momentum stats',
@@ -186,9 +178,9 @@ class Base(Controller):
         if is_sandbox:
             self.app.log.info('Starting in sandbox mode...')
 
-        PreMarketMomentum(is_sandbox, self.app.log).run()
+        results = PreMarketMomentum(is_sandbox, self.app.log).run()
 
-        self.app.render({}, 'start_pmm_scanner.jinja2')
+        self.app.render({'results': results}, 'start_pmm_scanner.jinja2')
 
     @ex(
         help='Get market momentum stats',
@@ -210,9 +202,9 @@ class Base(Controller):
         if is_sandbox:
             self.app.log.info('Starting in sandbox mode...')
 
-        Momentum(is_sandbox, self.app.log).run()
+        results = Momentum(is_sandbox, self.app.log).run()
 
-        self.app.render({}, 'start_mm_scanner.jinja2')
+        self.app.render({"results": results}, 'start_mm_scanner.jinja2')
 
     @ex(
         help='Start intraday stock scanner',
@@ -394,7 +386,9 @@ class Base(Controller):
             self.app.pargs.sell_indicators,
         )
 
-        self.app.render({'backtester': backtester}, 'start_backtester.jinja2')
+        results = backtester.run()
+
+        self.app.render({'results': results}, 'start_backtester.jinja2')
 
     @ex(
         help='Run a Pairs analysis',
