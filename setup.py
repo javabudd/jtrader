@@ -20,8 +20,11 @@ setup(
     license='unlicensed',
     packages=find_packages(exclude=['ez_setup', 'tests*']),
     package_data={
-        'jtrader': ['templates/*']}
-    ,
+        'jtrader': [
+            'templates/*',
+            'files/*'
+        ]
+    },
     include_package_data=True,
     entry_points="""
         [console_scripts]
