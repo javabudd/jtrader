@@ -1,6 +1,6 @@
-
-from pytest import raises
+from jtrader.core.backtester import Backtester
 from jtrader.main import JTraderTest
+
 
 def test_jtrader():
     # test jtrader without any subcommands or arguments
@@ -17,20 +17,10 @@ def test_jtrader_debug():
         assert app.debug is True
 
 
-def test_command1():
-    # test command1 without arguments
-    argv = ['command1']
+def test_start_backtest():
+    argv = ['start-backtest', '-t', 'FOO', '-b', 'rsi', '-s', 'volume']
     with JTraderTest(argv=argv) as app:
         app.run()
-        data,output = app.last_rendered
-        assert data['foo'] == 'bar'
-        assert output.find('Foo => bar')
-
-
-    # test command1 with arguments
-    argv = ['command1', '--foo', 'not-bar']
-    with JTraderTest(argv=argv) as app:
-        app.run()
-        data,output = app.last_rendered
-        assert data['foo'] == 'not-bar'
-        assert output.find('Foo => not-bar')
+        data, output = app.last_rendered
+        assert "Starting backtester..." in output
+        assert isinstance(data['backtester'], Backtester)

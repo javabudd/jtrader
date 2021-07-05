@@ -2,9 +2,6 @@ from typing import Optional, List
 
 import numpy as np
 import pandas as pd
-from zipline import run_algorithm
-from zipline.api import order, order_target, record, symbol
-from zipline.protocol import BarData
 
 from jtrader.core.indicator import __INDICATOR_MAP__
 from jtrader.core.indicator.indicator import Indicator
@@ -39,50 +36,16 @@ class Backtester:
         self.cached_buy_indicators = {}
         self.cached_sell_indicators = {}
 
-    def handle_data(self, context, data: BarData):
-        context.i += 1
-        if context.i < self.bar_count:
-            return
-
-        stock = context.asset
-
-        if not data.can_trade(stock):
-            return
-
-        high = data.history(stock, 'high', bar_count=self.bar_count, frequency=self.frequency)
-        low = data.history(stock, 'low', bar_count=self.bar_count, frequency=self.frequency)
-        close = data.history(stock, 'close', bar_count=self.bar_count, frequency=self.frequency)
-        volume = data.history(stock, 'volume', bar_count=self.bar_count, frequency=self.frequency)
-        data_frame = pd.DataFrame({"high": high, "low": low, "close": close, "volume": volume})
-
-        record(asset=data.current(stock, 'close'))
-
-        if self.stock_qualifies_bullish(context, data.current(stock, 'price'), data_frame):
-            order(stock, self.ORDER_AMOUNT)
-        elif self.stock_qualifies_bearish(stock, data_frame):
-            order_target(stock, 0)
-
-    def initialize(self, context):
-        context.i = 0
-        context.asset = symbol(self.ticker)
-
-    def run(self):
-        run_algorithm(
-            capital_base=self.CAPITAL_BASE,
-            data_frequency=self.DATA_FREQUENCY,
-            initialize=self.initialize,
-            handle_data=self.handle_data,
-            bundle=self.DATA_BUNDLE,
-            start=self.start_date,
-            end=self.end_date
-        ).to_csv('out.csv')
-
     @staticmethod
     def get_validator(validator_name: str, ticker: str):
         if validator_name in __INDICATOR_MAP__:
             return __INDICATOR_MAP__[validator_name](ticker)
 
         raise Exception
+
+    def run(self):
+        # @TODO implement a new backtester, zipline is too old :/
+        pass
 
     def stock_qualifies_bullish(self, context, price, data_frame: pd.DataFrame):
         cash_left = context.portfolio.cash
