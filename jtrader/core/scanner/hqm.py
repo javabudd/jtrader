@@ -35,20 +35,19 @@ class HighQualityMomentum(IEX):
     def run(self):
         stocks = pd.read_csv('files/sp_500_stocks.csv')
 
-        df = pd.DataFrame(columns=csv_columns)
-
         symbol_groups = list(self.chunks(stocks['Ticker'], 100))
         symbol_strings = []
         for i in range(0, len(symbol_groups)):
             symbol_strings.append(','.join(symbol_groups[i]))
 
+        series = []
         for symbol_string in symbol_strings:
             data = self.client.stocks.batch(symbol_string, ["quote", "stats"])
             for symbol in symbol_string.split(','):
                 if symbol not in data or 'quote' not in data[symbol] or data[symbol]['quote']['close'] is None:
                     continue
 
-                df = df.append(
+                series.append(
                     pd.Series(
                         [
                             symbol,
@@ -64,9 +63,10 @@ class HighQualityMomentum(IEX):
                             'N/A'
                         ],
                         index=csv_columns
-                    ),
-                    ignore_index=True
+                    )
                 )
+
+            df = pd.DataFrame(series, columns=csv_columns)
 
             for row in df.index:
                 momentum_percentiles = []

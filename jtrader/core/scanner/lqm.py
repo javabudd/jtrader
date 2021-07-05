@@ -2,9 +2,10 @@
 # coding: utf-8
 
 import io
+from statistics import mean
+
 import pandas as pd
 from scipy import stats
-from statistics import mean
 
 from jtrader import __STOCK_CSVS__
 from jtrader.core.provider.iex import IEX
@@ -35,20 +36,19 @@ class LowQualityMomentum(IEX):
     def run(self):
         stocks = pd.read_csv(__STOCK_CSVS__['all'])
 
-        df = pd.DataFrame(columns=csv_columns)
-
         symbol_groups = list(self.chunks(stocks['Ticker'], 100))
         symbol_strings = []
         for i in range(0, len(symbol_groups)):
             symbol_strings.append(','.join(symbol_groups[i]))
 
+        series = []
         for symbol_string in symbol_strings:
             data = self.client.stocks.batch(symbol_string, ["quote", "stats"])
             for symbol in symbol_string.split(','):
                 if symbol not in data or 'quote' not in data[symbol] or data[symbol]['quote']['close'] is None:
                     continue
 
-                df = df.append(
+                series.append(
                     pd.Series(
                         [
                             symbol,
@@ -64,9 +64,10 @@ class LowQualityMomentum(IEX):
                             'N/A'
                         ],
                         index=csv_columns
-                    ),
-                    ignore_index=True
+                    )
                 )
+
+            df = pd.DataFrame(series, columns=csv_columns)
 
             for row in df.index:
                 momentum_percentiles = []

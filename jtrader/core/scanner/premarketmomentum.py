@@ -2,8 +2,9 @@
 # coding: utf-8
 
 import io
-import pandas as pd
 import time
+
+import pandas as pd
 
 from jtrader import __STOCK_CSVS__
 from jtrader.core.provider.iex import IEX
@@ -28,13 +29,12 @@ class PreMarketMomentum(IEX):
     def run(self):
         stocks = pd.read_csv(__STOCK_CSVS__['all'])
 
-        df = pd.DataFrame(columns=csv_columns)
-
         symbol_groups = list(self.chunks(stocks['Ticker'], 100))
         symbol_strings = []
         for i in range(0, len(symbol_groups)):
             symbol_strings.append(','.join(symbol_groups[i]))
 
+        series = []
         for symbol_string in symbol_strings:
             data = self.client.stocks.batch(symbol_string, ['quote', 'stats'])
             for symbol in symbol_string.split(','):
@@ -46,7 +46,7 @@ class PreMarketMomentum(IEX):
                     if 'news' in data[symbol]['quote']:
                         news = data[symbol]['quote']['news']
 
-                    df = df.append(
+                    series.append(
                         pd.Series(
                             [
                                 symbol,
@@ -60,9 +60,10 @@ class PreMarketMomentum(IEX):
                                 news
                             ],
                             index=csv_columns
-                        ),
-                        ignore_index=True
+                        )
                     )
+
+        df = pd.DataFrame(series, columns=csv_columns)
 
         if df.empty:
             self.logger.info('No stocks on PMM radar')

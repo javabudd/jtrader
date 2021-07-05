@@ -7,6 +7,7 @@ import numpy as np
 import pandas as pd
 from scipy import stats
 
+from jtrader import __STOCK_CSVS__
 from jtrader.core.provider.iex import IEX
 
 csv_columns = [
@@ -36,7 +37,7 @@ metrics = {
 
 class Value(IEX):
     def run(self):
-        stocks = pd.read_csv('files/sp_500_stocks.csv')
+        stocks = pd.read_csv(__STOCK_CSVS__['sp500'])
 
         df = pd.DataFrame(columns=csv_columns)
 
