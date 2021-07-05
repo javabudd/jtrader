@@ -9,8 +9,9 @@ services:
       - ./:/src
     privileged: true
     command:
-      - "jtrader"
-      - "-d"
+      - "tail"
+      - "-f"
+      - "/dev/null"
     environment:
       - AWS_DEFAULT_REGION=us-west-2
       - AWS_ACCESS_KEY_ID=xXxX
