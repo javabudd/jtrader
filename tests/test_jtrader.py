@@ -22,5 +22,4 @@ def test_start_backtest():
     with JTraderTest(argv=argv) as app:
         app.run()
         data, output = app.last_rendered
-        assert "Starting backtester..." in output
         assert isinstance(data['backtester'], Backtester)
