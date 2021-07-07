@@ -22,4 +22,4 @@ def test_start_backtest():
     with JTraderTest(argv=argv) as app:
         app.run()
         data, output = app.last_rendered
-        assert isinstance(data['backtester'], Backtester)
+        assert data['results'] is None
