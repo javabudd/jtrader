@@ -17,7 +17,7 @@ class JTrader(App):
         config_defaults = CONFIG
 
         # call sys.exit() on close
-        exit_on_close = True
+        exit_on_close = False
 
         # load additional framework extensions
         extensions = [
