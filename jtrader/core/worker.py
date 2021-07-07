@@ -1,3 +1,4 @@
+import time
 from datetime import datetime
 from threading import Thread
 from typing import List
@@ -19,6 +20,7 @@ class Worker:
     def __init__(self, provider: Provider, logger: LogInterface):
         self.provider = provider
         self.logger = logger
+        self.odm = ODM()
 
     def run(self):
         stock_list_name = 'all'
@@ -50,29 +52,28 @@ class Worker:
         for stock in chunk[1]['Ticker']:
             self.logger.info(f"{thread_id} - Processing ticker {stock}...")
 
-            with ODM() as odm:
-                odm_entry_length = len(odm.get_historical_stock_range(stock, start))
+            odm_entry_length = len(self.odm.get_historical_stock_range(stock, start))
 
-                try:
-                    provider_entries = self.provider.chart(stock, timeframe=timeframe)
-                except PyEXception:
-                    self.logger.warning(f"Failed retrieving provider data for {stock}...")
+            try:
+                provider_entries = self.provider.chart(stock, timeframe=timeframe)
+            except PyEXception:
+                self.logger.warning(f"Failed retrieving provider data for {stock}...")
 
-                    continue
+                continue
 
-                if odm_entry_length >= len(provider_entries):
-                    self.logger.info(f"Skipping record insertion for {stock}...")
+            if odm_entry_length >= len(provider_entries):
+                self.logger.info(f"Skipping record insertion for {stock}...")
 
-                    continue
+                continue
 
-                self.logger.debug('odm count: ' + str(odm_entry_length))
-                self.logger.debug('provider count: ' + str(len(provider_entries)))
+            self.logger.debug('odm count: ' + str(odm_entry_length))
+            self.logger.debug('provider count: ' + str(len(provider_entries)))
 
-                with odm.table.batch_writer() as batch:
-                    for result in provider_entries:
-                        if odm.get_historical_stock_day(stock, result['date']) is not None:
-                            continue
+            with self.odm.table.batch_writer() as batch:
+                for result in provider_entries:
+                    if self.odm.get_historical_stock_day(stock, result['date']) is not None:
+                        continue
 
-                        odm.put_item(batch, stock, result)
+                    self.odm.put_item(batch, stock, result)
 
         return True
