@@ -5,6 +5,7 @@ from .obv import OBV
 from .rsi import RSI
 from .ultosc import ULTOSC
 from .volume import Volume
+from .linear_regression import LinearRegression
 
 __INDICATORS__ = [
     APO,
@@ -14,6 +15,7 @@ __INDICATORS__ = [
     Volume,
     ADX,
     OBV,
+    LinearRegression
 ]
 
 __INDICATOR_MAP__ = {
@@ -24,5 +26,6 @@ __INDICATOR_MAP__ = {
     'volume': __INDICATORS__[4],
     'adx': __INDICATORS__[5],
     'obv': __INDICATORS__[6],
+    'lr': __INDICATORS__[7],
     'all': __INDICATORS__
 }

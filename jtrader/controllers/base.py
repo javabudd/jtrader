@@ -28,7 +28,8 @@ indicators = [
     'adx',
     'obv',
     'volume',
-    'pairs'
+    'pairs',
+    'lr'
 ]
 
 
