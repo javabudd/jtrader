@@ -28,11 +28,15 @@ class Provider(ABC):
         return self.client_prop
 
     @abstractmethod
-    def chart(self, stock: str, timeframe: str):
+    def chart(self, stock: str, timeframe: str) -> dict:
+        pass
+
+    @abstractmethod
+    def symbols(self) -> dict:
         pass
 
     @staticmethod
-    def chunks(lst, n):
+    def chunks(lst, n) -> None:
         for item in range(0, len(lst), n):
             yield lst[item:item + n]
 

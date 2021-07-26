@@ -9,9 +9,9 @@ from sklearn import linear_model
 from sklearn.metrics import r2_score
 from sklearn.model_selection import train_test_split
 
-from jtrader import __STOCK_CSVS__
+from jtrader import chunk_stocks
 from jtrader.core.odm import ODM
-from jtrader.core.utils.csv import get_stocks_chunked
+from jtrader.core.provider.provider import Provider
 
 
 class Pairs:
@@ -21,9 +21,11 @@ class Pairs:
     def __init__(
             self,
             logger: LogInterface,
+            provider: Provider,
             comparison_ticker: str
     ):
         self.logger = logger
+        self.provider = provider
         self.odm = ODM()
         self.comparison_ticker = comparison_ticker[0]
 
@@ -31,9 +33,9 @@ class Pairs:
         today = datetime.today()
         delta = 730
         start = today + relativedelta(days=-delta)
-        stock_list = __STOCK_CSVS__['all']
+        stock_list = self.provider.symbols()
 
-        stocks = get_stocks_chunked(stock_list)
+        stocks = chunk_stocks(stock_list)
 
         comparison_data = pd.DataFrame(
             self.odm.get_historical_stock_range(self.comparison_ticker, start)
@@ -44,21 +46,21 @@ class Pairs:
 
             return
 
-        for chunk in enumerate(stocks):
-            for stock in chunk[1]['Ticker']:
+        for chunk in stocks:
+            for stock in chunk:
                 data = pd.DataFrame(
                     self.odm.get_historical_stock_range(
-                        stock,
+                        stock['symbol'],
                         start
                     )
                 )
 
                 if data.empty:
-                    self.logger.debug(f"Retrieved empty data set for stock {stock}")
+                    self.logger.debug(f"Retrieved empty data set for stock {stock['symbol']}")
 
                     continue
 
-                self.validate_regression(stock, data, comparison_data)
+                self.validate_regression(stock['symbol'], data, comparison_data)
 
     def validate_regression(self, ticker, data, comparison_data):
         n = 60

@@ -409,6 +409,7 @@ class Base(Controller):
         """Start Pairs Command"""
         pairs = Pairs(
             self.app.log,
+            self.get_provider(False),
             self.app.pargs.comparison_ticker,
         )
 

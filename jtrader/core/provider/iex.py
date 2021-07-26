@@ -24,5 +24,8 @@ class IEX(Provider):
 
         self.client_prop = IEXClient.Client(token, version)
 
-    def chart(self, stock: str, timeframe: str):
+    def chart(self, stock: str, timeframe: str) -> dict:
         return self.client.stocks.chart(stock, timeframe=timeframe)
+
+    def symbols(self) -> dict:
+        return self.client.refdata.iexSymbols()
