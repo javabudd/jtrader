@@ -16,7 +16,7 @@ setup(
     long_description_content_type='text/markdown',
     author='Andres OBrien',
     author_email='oban0601@gmail.com',
-    url='https://github.com/javabudd/trade-strategies',
+    url='https://github.com/javabudd/jtrader',
     license='unlicensed',
     packages=find_packages(exclude=['ez_setup', 'tests*']),
     package_data={
