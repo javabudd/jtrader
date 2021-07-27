@@ -1,4 +1,4 @@
-FROM python:3.8
+FROM python:3.9
 
 MAINTAINER Andres OBrien <oban0601@gmail.com>
 
