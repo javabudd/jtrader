@@ -55,6 +55,9 @@ class Indicator(ABC):
         historical_data = data.iloc[:-1]
         quote_data = data.iloc[-1]
 
+        if historical_data['low'] is None:
+            return False
+
         lowest_low_historical = min(historical_data['low'])
 
         return quote_data['low'] < lowest_low_historical
@@ -63,6 +66,9 @@ class Indicator(ABC):
     def has_lower_high(data):
         historical_data = data.iloc[:-1]
         quote_data = data.iloc[-1]
+
+        if historical_data['high'] is None:
+            return False
 
         lowest_high_historical = min(historical_data['high'])
 
@@ -73,6 +79,9 @@ class Indicator(ABC):
         historical_data = data.iloc[:-1]
         quote_data = data.iloc[-1]
 
+        if historical_data['low'] is None:
+            return False
+
         highest_low_historical = max(historical_data['low'])
 
         return quote_data['low'] > highest_low_historical
@@ -81,6 +90,9 @@ class Indicator(ABC):
     def has_higher_high(data=None):
         historical_data = data.iloc[:-1]
         quote_data = data.iloc[-1]
+
+        if historical_data['high'] is None:
+            return False
 
         highest_high_historical = max(historical_data['high'])
 

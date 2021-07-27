@@ -43,6 +43,9 @@ class ULTOSC(Indicator):
 
             self.clean_dataframe(chart)
 
+            if len(chart) <= 1:
+                return False
+
             highest_low = max(chart[:-1])
             lowest_low = min(chart[:-1])
             latest_low = chart.iloc[-1]
