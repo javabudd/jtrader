@@ -55,7 +55,7 @@ class Indicator(ABC):
         historical_data = data.iloc[:-1]
         quote_data = data.iloc[-1]
 
-        if historical_data['low'] is None or len(historical_data['low'] == 0):
+        if historical_data['low'] is None or len(historical_data['low']) == 0:
             return False
 
         lowest_low_historical = min(historical_data['low'])
@@ -67,7 +67,7 @@ class Indicator(ABC):
         historical_data = data.iloc[:-1]
         quote_data = data.iloc[-1]
 
-        if historical_data['high'] is None or len(historical_data['high'] == 0):
+        if historical_data['high'] is None or len(historical_data['high']) == 0:
             return False
 
         lowest_high_historical = min(historical_data['high'])
@@ -79,7 +79,7 @@ class Indicator(ABC):
         historical_data = data.iloc[:-1]
         quote_data = data.iloc[-1]
 
-        if historical_data['low'] is None or len(historical_data['low'] == 0):
+        if historical_data['low'] is None or len(historical_data['low']) == 0:
             return False
 
         highest_low_historical = max(historical_data['low'])
@@ -91,7 +91,7 @@ class Indicator(ABC):
         historical_data = data.iloc[:-1]
         quote_data = data.iloc[-1]
 
-        if historical_data['high'] is None or len(historical_data['high'] == 0):
+        if historical_data['high'] is None or len(historical_data['high']) == 0:
             return False
 
         highest_high_historical = max(historical_data['high'])
@@ -99,10 +99,10 @@ class Indicator(ABC):
         return quote_data['high'] > highest_high_historical
 
     def log_missing_close(self):
-        self.logger.debug(f"{self.ticker} missing close data from IEX")
+        self.logger.debug(f"{self.ticker} missing close data from provider")
 
     def log_missing_chart(self):
-        self.logger.debug(f"{self.ticker} missing chart data from IEX")
+        self.logger.debug(f"{self.ticker} missing chart data from provider")
 
     def log_not_enough_data(self):
         self.logger.debug(f"{self.ticker} does not have enough data to process")
