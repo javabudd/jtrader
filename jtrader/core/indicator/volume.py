@@ -27,6 +27,9 @@ class Volume(Indicator):
     def is_valid(self, data, comparison_data=None):
         self.clean_dataframe(data)
 
+        if len(data) <= 1:
+            return
+
         try:
             adosc = talib.ADOSC(
                 data['high'],

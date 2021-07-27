@@ -17,7 +17,7 @@ class LinearRegression(Indicator):
         if len(data) < self.WINDOW_SIZE_FOURTEEN:
             self.log_not_enough_data()
 
-            return False
+            return
 
         n = 60
 

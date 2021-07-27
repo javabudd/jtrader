@@ -50,4 +50,4 @@ class OBV(Indicator):
         if price_has_lower_high and obv_not_has_lower_high or price_has_higher_high and obv_not_has_higher_high:
             return self.BULLISH
 
-        return False
+        return

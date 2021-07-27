@@ -30,7 +30,7 @@ class RSI(Indicator):
         if len(close) < self.time_period:
             self.log_not_enough_data()
 
-            return False
+            return
 
         try:
             # key 1 in the output is the smoothed line

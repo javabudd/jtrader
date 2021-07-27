@@ -31,7 +31,7 @@ class APO(Indicator):
         if len(data) < self.WINDOW_SIZE_FOURTEEN:
             self.log_not_enough_data()
 
-            return False
+            return
 
         apo_chart = talib.APO(data['close'], fastperiod=self.fast_period, slowperiod=self.slow_period)
 
