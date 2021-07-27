@@ -9,7 +9,6 @@ from sklearn import linear_model
 from sklearn.metrics import r2_score
 from sklearn.model_selection import train_test_split
 
-from jtrader import chunk_stocks
 from jtrader.core.odm import ODM
 from jtrader.core.provider.provider import Provider
 
@@ -35,8 +34,6 @@ class Pairs:
         start = today + relativedelta(days=-delta)
         stock_list = self.provider.symbols()
 
-        stocks = chunk_stocks(stock_list)
-
         comparison_data = pd.DataFrame(
             self.odm.get_historical_stock_range(self.comparison_ticker, start)
         )
@@ -46,21 +43,20 @@ class Pairs:
 
             return
 
-        for chunk in stocks:
-            for stock in chunk:
-                data = pd.DataFrame(
-                    self.odm.get_historical_stock_range(
-                        stock['symbol'],
-                        start
-                    )
+        for stock in stock_list:
+            data = pd.DataFrame(
+                self.odm.get_historical_stock_range(
+                    stock['symbol'],
+                    start
                 )
+            )
 
-                if data.empty:
-                    self.logger.debug(f"Retrieved empty data set for stock {stock['symbol']}")
+            if data.empty:
+                self.logger.debug(f"Retrieved empty data set for stock {stock['symbol']}")
 
-                    continue
+                continue
 
-                self.validate_regression(stock['symbol'], data, comparison_data)
+            self.validate_regression(stock['symbol'], data, comparison_data)
 
     def validate_regression(self, ticker, data, comparison_data):
         n = 60

@@ -7,7 +7,7 @@ from statistics import mean
 import pandas as pd
 from scipy import stats
 
-from jtrader import __STOCK_CSVS__
+from jtrader import chunks
 from jtrader.core.provider.iex import IEX
 
 csv_columns = [
@@ -34,12 +34,16 @@ time_periods = [
 
 class LowQualityMomentum(IEX):
     def run(self):
-        stocks = pd.read_csv(__STOCK_CSVS__['all'])
+        stocks = self.client.symbols()
 
-        symbol_groups = list(self.chunks(stocks['Ticker'], 100))
+        stock_chunks = chunks(stocks, 100)
         symbol_strings = []
-        for i in range(0, len(symbol_groups)):
-            symbol_strings.append(','.join(symbol_groups[i]))
+        for chunk in stock_chunks:
+            symbols = []
+            for stock in chunk:
+                symbols.append(stock['symbol'])
+
+            symbol_strings.append(','.join(symbols))
 
         series = []
         for symbol_string in symbol_strings:

@@ -11,13 +11,12 @@ from cement.utils.shell import spawn_thread
 from dateutil.relativedelta import relativedelta
 from pyEX import PyEXception
 
-from jtrader import __STOCK_CSVS__
+from jtrader import chunk_threaded
 from jtrader.core.indicator import __INDICATOR_MAP__
 from jtrader.core.indicator.chain import Chain
 from jtrader.core.indicator.indicator import Indicator
 from jtrader.core.odm import ODM
 from jtrader.core.provider.iex import IEX
-from jtrader.core.utils.csv import get_stocks_chunked
 
 
 class Scanner(IEX):
@@ -26,7 +25,6 @@ class Scanner(IEX):
             is_sandbox: bool,
             logger: LogInterface,
             indicators: Optional[List[Indicator]],
-            stocks: Optional[str] = None,
             as_intraday: Optional[bool] = True,
             no_notifications: Optional[bool] = False
     ):
@@ -34,15 +32,6 @@ class Scanner(IEX):
 
         self.as_intraday = as_intraday
         self.odm = ODM()
-
-        if stocks is None:
-            self.stock_list = __STOCK_CSVS__['sp500']
-        else:
-            if stocks not in __STOCK_CSVS__:
-                raise RuntimeError
-
-            self.stock_list = __STOCK_CSVS__[stocks]
-
         self.indicators = []
         if indicators is None:
             self.indicators = __INDICATOR_MAP__['all']
@@ -67,46 +56,42 @@ class Scanner(IEX):
         return signal_type
 
     def run(self):
-        start = datetime.now()
-
-        self.send_notification(f"*Scanner started at {start.strftime('%Y-%m-%d %H:%M:%S')}*")
-
-        stocks = get_stocks_chunked(self.stock_list, self.is_sandbox)
+        stocks = self.client.symbols()
 
         if self.as_intraday:
             self.process_intraday(stocks)
         else:
             self.process_timeframe(stocks)
 
-        end = datetime.now()
         self.logger.info('Processing finished')
-        self.send_notification(f"*Scanner finished at {end.strftime('%Y-%m-%d %H:%M:%S')}*")
 
     def process_timeframe(self, stocks):
         today = datetime.today()
         delta = 365
         start = today + relativedelta(days=-delta)
 
-        for chunk in enumerate(stocks):
-            for stock in chunk[1]['Ticker']:
-                data = pd.DataFrame(
-                    self.odm.get_historical_stock_range(
-                        stock,
-                        start
-                    )
+        for stock in stocks:
+            data = pd.DataFrame(
+                self.odm.get_historical_stock_range(
+                    stock['symbol'],
+                    start
                 )
+            )
 
-                if data.empty:
-                    self.logger.debug(f"Retrieved empty data set for stock {stock}")
+            if data.empty:
+                self.logger.debug(f"Retrieved empty data set for stock {stock['symbol']}")
 
-                    continue
+                continue
 
-                self.init_indicators(stock, data)
+            self.init_indicators(stock['symbol'], data)
 
     def process_intraday(self, stocks):
         i = 1
         threads: List[Thread] = []
-        for chunk in enumerate(stocks):
+
+        chunked = chunk_threaded(stocks, self.is_sandbox, 25)
+
+        for chunk in chunked:
             thread_name = f"Thread-{i}"
             """ @thread """
             thread = spawn_thread(self.loop, True, False, args=(thread_name, chunk), daemon=True)
@@ -125,14 +110,14 @@ class Scanner(IEX):
         if self.is_sandbox:
             sleep = 2
 
-        for ticker in chunk[1]['Ticker']:
+        for stock in chunk:
             time.sleep(sleep)
-            self.logger.info(f"({thread_name}) Processing ticker: {ticker}")
-            self.init_indicators(ticker)
+            self.logger.info(f"({thread_name}) Processing ticker: {stock['symbol']}")
+            self.init_indicators(stock['symbol'])
 
         return True
 
-    def init_indicators(self, ticker, data=None):
+    def init_indicators(self, ticker: str, data=None):
         period = 'swing'
         if self.as_intraday:
             period = 'intraday'

@@ -7,7 +7,7 @@ import numpy as np
 import pandas as pd
 from scipy import stats
 
-from jtrader import __STOCK_CSVS__
+from jtrader import chunks
 from jtrader.core.provider.iex import IEX
 
 csv_columns = [
@@ -37,14 +37,16 @@ metrics = {
 
 class Value(IEX):
     def run(self):
-        stocks = pd.read_csv(__STOCK_CSVS__['sp500'])
+        stocks = self.client.symbols()
 
-        df = pd.DataFrame(columns=csv_columns)
-
-        symbol_groups = list(self.chunks(stocks['Ticker'], 100))
+        stock_chunks = chunks(stocks, 100)
         symbol_strings = []
-        for i in range(0, len(symbol_groups)):
-            symbol_strings.append(','.join(symbol_groups[i]))
+        for chunk in stock_chunks:
+            symbols = []
+            for stock in chunk:
+                symbols.append(stock['symbol'])
+
+            symbol_strings.append(','.join(symbols))
 
         for symbol_string in symbol_strings:
             data = self.client.stocks.batch(symbol_string, ["quote", "advanced-stats"])

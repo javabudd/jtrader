@@ -279,18 +279,6 @@ class Base(Controller):
                     }
             ),
             (
-                    ['-s', '--stock-list'],
-                    {
-                        'help': 'change the default stock list',
-                        'action': 'store',
-                        'dest': 'stock_list',
-                        'choices': [
-                            'sp500',
-                            'all'
-                        ]
-                    }
-            ),
-            (
                     ['--sandbox'],
                     {
                         'help': 'start in sandbox mode',
@@ -319,7 +307,6 @@ class Base(Controller):
             is_sandbox,
             self.app.log,
             self.app.pargs.indicators,
-            self.app.pargs.stock_list,
             as_intraday=False,
             no_notifications=self.app.pargs.no_notifications
         ).run()

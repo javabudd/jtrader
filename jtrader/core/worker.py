@@ -8,7 +8,7 @@ from cement.utils.shell import spawn_thread
 from dateutil.relativedelta import relativedelta
 from pyEX import PyEXception
 
-from jtrader import chunk_stocks
+from jtrader import chunk_threaded
 from jtrader.core.odm import ODM
 from jtrader.core.provider.provider import Provider
 from jtrader.core.utils.stock import timeframe_to_days
@@ -23,7 +23,7 @@ class Worker:
     def run(self):
         i = 1
         threads: List[Thread] = []
-        for chunk in chunk_stocks(self.provider.symbols(), False, 25):
+        for chunk in chunk_threaded(self.provider.symbols(), False, 25):
             thread_name = f"Thread-{i}"
             """ @thread """
             thread = spawn_thread(self.insert_stocks, True, False, args=(thread_name, chunk), daemon=True)
