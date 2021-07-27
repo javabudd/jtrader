@@ -147,6 +147,9 @@ class PreMarketMomentum(IEX):
 
         quote = stock_data['quote']
 
+        if quote is None:
+            return False
+
         try:
             self.validate_data(quote)
         except ValueError:
@@ -168,7 +171,7 @@ class PreMarketMomentum(IEX):
 
     @staticmethod
     def validate_data(quote):
-        if quote['latestVolume'] is None or 'avgTotalVolume' not in quote or quote['avgTotalVolume'] is None \
+        if 'latestVolume' not in quote or quote['latestVolume'] is None or 'avgTotalVolume' not in quote \
                 or quote['avgTotalVolume'] is None \
                 or quote['extendedChangePercent'] is None \
                 or quote['latestVolume'] == 0 \
