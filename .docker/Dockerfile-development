@@ -44,4 +44,4 @@ VOLUME ["/home/python/src"]
 
 WORKDIR /home/python/src
 
-CMD ["supervisord"]
+CMD ["tail", "-f", "/dev/null"]

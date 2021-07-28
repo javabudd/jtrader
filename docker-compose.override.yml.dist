@@ -7,10 +7,6 @@ services:
       dockerfile: Dockerfile-development
     volumes:
       - ./:/home/python/src
-    command:
-      - "tail"
-      - "-f"
-      - "/dev/null"
     environment:
       - AWS_DEFAULT_REGION=us-west-2
       - AWS_ACCESS_KEY_ID=xXxX
