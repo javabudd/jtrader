@@ -38,16 +38,8 @@ RUN pip install --upgrade pip setuptools wheel virtualenv
 
 RUN find / -name '*.pyc' -delete
 
-COPY entrypoint-development.sh /entrypoint-development.sh
-
-RUN chmod +x /entrypoint-development.sh
-
-RUN useradd -ms /bin/bash python
-
 VOLUME ["/home/python/src"]
 
 WORKDIR /home/python/src
-
-ENTRYPOINT ["/entrypoint-development.sh"]
 
 CMD ["tail", "-f", "/dev/null"]
