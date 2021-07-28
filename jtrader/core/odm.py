@@ -36,6 +36,46 @@ class ODM:
         stock_low = Decimal(str(stock['low']))
         stock_volume = Decimal(str(stock['volume']))
 
+        u_open = stock_open
+        if 'uOpen' in stock and stock['uOpen'] is not None:
+            u_open = Decimal(str(stock['uOpen']))
+
+        u_close = stock_close
+        if 'uClose' in stock and stock['uClose'] is not None:
+            u_close = Decimal(str(stock['uClose']))
+
+        u_high = stock_high
+        if 'uHigh' in stock and stock['uHigh'] is not None:
+            u_high = Decimal(str(stock['uHigh']))
+
+        u_low = stock_low
+        if 'uLow' in stock and stock['uLow'] is not None:
+            u_low = Decimal(str(stock['uLow']))
+
+        u_volume = stock_volume
+        if 'uVolume' in stock and stock['uVolume'] is not None:
+            u_volume = Decimal(str(stock['uVolume']))
+
+        f_open = stock_open
+        if 'fOpen' in stock and stock['fOpen'] is not None:
+            f_open = Decimal(str(stock['fOpen']))
+
+        f_close = stock_close
+        if 'fClose' in stock and stock['fClose'] is not None:
+            f_close = Decimal(str(stock['fClose']))
+
+        f_high = stock_high
+        if 'fHigh' in stock and stock['fHigh'] is not None:
+            f_high = Decimal(str(stock['fHigh']))
+
+        f_low = stock_low
+        if 'fLow' in stock and stock['fLow'] is not None:
+            f_low = Decimal(str(stock['fLow']))
+
+        f_volume = stock_volume
+        if 'fVolume' in stock and stock['fVolume'] is not None:
+            f_volume = Decimal(str(stock['fVolume']))
+
         item_writer.put_item(
             Item={
                 'ticker': ticker,
@@ -51,20 +91,16 @@ class ODM:
                 'marketChangeOverTime': Decimal(
                     str(stock['marketChangeOverTime'])
                 ) if stock['marketChangeOverTime'] is not None else 0,
-                'uOpen': Decimal(str(stock['uOpen'])) if stock['uOpen'] is not None else stock_open,
-                'uClose': Decimal(str(stock['uClose'])) if stock['uClose'] is not None else stock_close,
-                'uHigh': Decimal(str(stock['uHigh'])) if stock['uHigh'] is not None else stock_high,
-                'uLow': Decimal(str(stock['uLow'])) if stock['uLow'] is not None else stock_low,
-                'uVolume': Decimal(
-                    str(stock['uVolume'])
-                ) if 'uVolume' in stock and stock['uVolume'] is not None else stock_volume,
-                'fOpen': Decimal(str(stock['fOpen'])) if stock['fOpen'] is not None else stock_open,
-                'fClose': Decimal(str(stock['fClose'])) if stock['fClose'] is not None else stock_close,
-                'fHigh': Decimal(str(stock['fHigh'])) if stock['fHigh'] is not None else stock_high,
-                'fLow': Decimal(str(stock['fLow'])) if stock['fLow'] is not None else stock_low,
-                'fVolume': Decimal(
-                    str(stock['fVolume'])
-                ) if 'fVolume' in stock and stock['fVolume'] is not None else stock_volume,
+                'uOpen': u_open,
+                'uClose': u_close,
+                'uHigh': u_high,
+                'uLow': u_low,
+                'uVolume': u_volume,
+                'fOpen': f_open,
+                'fClose': f_close,
+                'fHigh': f_high,
+                'fLow': f_low,
+                'fVolume': f_volume,
                 'change': Decimal(str(stock['change'])),
                 'changePercent': Decimal(str(stock['changePercent']))
             }
