@@ -38,12 +38,10 @@ RUN pip install --upgrade pip setuptools wheel virtualenv
 
 RUN find / -name '*.pyc' -delete
 
-WORKDIR /src
+RUN useradd -ms /bin/bash python
 
-COPY entrypoint-development.sh /entrypoint.sh
+VOLUME ["/home/python/src"]
 
-RUN chmod +x /entrypoint.sh
+WORKDIR /home/python/src
 
-ENTRYPOINT ["/entrypoint.sh"]
-
-CMD ["jtrader", "--sandbox"]
+CMD ["supervisord"]

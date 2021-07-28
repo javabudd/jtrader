@@ -6,8 +6,7 @@ services:
       context: ./.docker
       dockerfile: Dockerfile-development
     volumes:
-      - ./:/src
-    privileged: true
+      - ./:/home/python/src
     command:
       - "tail"
       - "-f"
