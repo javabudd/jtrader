@@ -58,11 +58,6 @@ class Worker:
 
                 continue
 
-            if odm_entry_length >= len(provider_entries):
-                self.logger.info(f"Skipping record insertion for {stock_symbol}...")
-
-                continue
-
             self.logger.debug('odm count: ' + str(odm_entry_length))
             self.logger.debug('provider count: ' + str(len(provider_entries)))
 
