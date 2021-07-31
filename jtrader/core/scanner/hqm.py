@@ -53,7 +53,10 @@ class HighQualityMomentum(IEX):
             if len(stock_data) <= 1 or 'close' not in stock_data[-1]:
                 continue
 
-            change = pd.DataFrame(stock_data)['close'].pct_change().dropna()
+            df = pd.DataFrame(stock_data)['close']
+            df = df.mask(df == 0).fillna(df.mean())
+
+            change = df.pct_change().dropna()
 
             one_year_change_percent = change.cumsum()
             six_month_change_percent = change.tail(180).cumsum()
