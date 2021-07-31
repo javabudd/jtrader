@@ -54,7 +54,7 @@ class HighQualityMomentum(IEX):
                 continue
 
             df = pd.DataFrame(stock_data)['close']
-            df = df.mask(df == 0).fillna(df.mean())
+            df = df.mask(df == 0).fillna(df.mean()).astype('float')
 
             change = df.pct_change().dropna()
 
