@@ -58,23 +58,23 @@ class HighQualityMomentum(IEX):
 
             change = df.pct_change().dropna()
 
-            one_year_change_percent = change.cumsum()
-            six_month_change_percent = change.tail(180).cumsum()
-            three_month_change_percent = change.tail(90).cumsum()
-            one_month_change_percent = change.tail(30).cumsum()
+            one_year_change_percent = change.sum()
+            six_month_change_percent = change.tail(180).sum()
+            three_month_change_percent = change.tail(90).sum()
+            one_month_change_percent = change.tail(30).sum()
 
             series.append(
                 pd.Series(
                     [
                         symbol,
                         stock_data[-1]['close'],
-                        one_year_change_percent.iloc[-1],
+                        one_year_change_percent,
                         'N/A',
-                        six_month_change_percent.iloc[-1],
+                        six_month_change_percent,
                         'N/A',
-                        three_month_change_percent.iloc[-1],
+                        three_month_change_percent,
                         'N/A',
-                        one_month_change_percent.iloc[-1],
+                        one_month_change_percent,
                         'N/A',
                         'N/A'
                     ],
