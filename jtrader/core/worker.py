@@ -68,10 +68,6 @@ class Worker:
 
             with self.odm.table.batch_writer(overwrite_by_pkeys=['ticker', 'date']) as batch:
                 for result in provider_entries:
-                    if result['close'] is None \
-                            or self.odm.get_historical_stock_day(stock_symbol, result['date']) is not None:
-                        continue
-
                     self.odm.put_item(batch, stock_symbol, result)
 
         return True
