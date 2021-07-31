@@ -96,7 +96,7 @@ class HighQualityMomentum(IEX):
             df.loc[row, 'HQM Score'] = mean(momentum_percentiles)
 
         df.sort_values('HQM Score', ascending=False, inplace=True)
-        df = df[:50]
+        df = df[:100]
         df.reset_index(inplace=True, drop=True)
 
         file_name = 'HighQualityMomentum.xlsx'
