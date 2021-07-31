@@ -7,12 +7,23 @@ from boto3.dynamodb.conditions import Key
 
 class ODM:
     def __init__(self):
-        dynamodb = boto3.resource('dynamodb')
+        self.table = None
 
-        self.table = dynamodb.Table('stocks')
+    def get_table(self):
+        if self.table is None:
+            dynamodb = boto3.resource('dynamodb')
+
+            self.table = dynamodb.Table('stocks')
+
+        return self.table
+
+    def get_symbols(self):
+        today = date.today()
+
+        return self.get_table().query(KeyConditionExpression=Key('date').eq(today.isoformat()), ScanIndexForward=False)
 
     def get_historical_stock_day(self, ticker: str, day: str):
-        response = self.table.get_item(
+        response = self.get_table().get_item(
             Key={
                 'ticker': ticker,
                 'date': day
@@ -22,7 +33,7 @@ class ODM:
         return response['Item'] if 'Item' in response else None
 
     def get_historical_stock_range(self, ticker: str, start: date):
-        response = self.table.query(
+        response = self.get_table().query(
             KeyConditionExpression=Key('ticker').eq(ticker) & Key('date').gte(start.isoformat())
         )
 
