@@ -76,6 +76,14 @@ class ODM:
         if 'fVolume' in stock and stock['fVolume'] is not None:
             f_volume = Decimal(str(stock['fVolume']))
 
+        change = None
+        if 'change' in stock and stock['change'] is not None:
+            change = Decimal(str(stock['change']))
+
+        change_percent = None
+        if 'changePercent' in stock and stock['changePercent'] is not None:
+            change_percent = Decimal(str(stock['changePercent']))
+
         item_writer.put_item(
             Item={
                 'ticker': ticker,
@@ -101,7 +109,7 @@ class ODM:
                 'fHigh': f_high,
                 'fLow': f_low,
                 'fVolume': f_volume,
-                'change': Decimal(str(stock['change'])),
-                'changePercent': Decimal(str(stock['changePercent']))
+                'change': change,
+                'changePercent': change_percent
             }
         )
