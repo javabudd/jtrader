@@ -40,6 +40,4 @@ RUN find / -name '*.pyc' -delete
 
 VOLUME ["/home/python/src"]
 
-WORKDIR /home/python/src
-
 CMD ["tail", "-f", "/dev/null"]
