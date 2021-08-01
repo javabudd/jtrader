@@ -1,5 +1,6 @@
-import pandas as pd
-from scipy import stats
+import numpy as np
+from sklearn.linear_model import LinearRegression as LineRegressionModel
+from sklearn.model_selection import train_test_split
 
 from jtrader.core.indicator.indicator import Indicator
 
@@ -19,21 +20,23 @@ class LinearRegression(Indicator):
 
             return
 
-        n = 60
+        x = np.array([i for i in range(len(data))])
+        y = np.array(data['close'].astype(float))
 
-        x = data['date']
-        y = data['close']
-        print(data.axes)
-        exit()
+        x = x.reshape(-1, 1)
+        y = y.reshape(-1, 1)
 
-        print(data.to_timestamp(axis='date'))
+        x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.3)
 
-        print(x)
-        exit()
+        reg = LineRegressionModel().fit(x_train, y_train)
+        score = reg.score(x_test, y_test)
 
-        slope, intercept, r_value, p_value, std_err = stats.linregress(x, y)
+        if score > .95:
+            pred = reg.predict(x_test)
+            close = data['close'].astype(float).iloc[-1]
 
-        if slope > 0:
-            # bullish check
-            print(slope, r_value, p_value, intercept)
-            exit()
+            predicted_fifth_day = pred[4][0]
+            if predicted_fifth_day > close + (close * .02):
+                return self.BULLISH
+            elif predicted_fifth_day < close - (close * .02):
+                return self.BEARISH
