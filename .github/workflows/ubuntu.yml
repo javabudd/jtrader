@@ -16,4 +16,4 @@ jobs:
       - name: Test with pytest
         run: |
           cp docker-compose.override.yml.dist docker-compose.override.yml
-          docker-compose run jtrader make test
+          docker-compose run jtrader bash -c "make virtualenv && make test"
