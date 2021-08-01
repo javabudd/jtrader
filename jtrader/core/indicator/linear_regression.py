@@ -12,7 +12,7 @@ class LinearRegression(Indicator):
 
     @staticmethod
     def get_name():
-        return 'Liner Regression'
+        return 'Linear Regression'
 
     def is_valid(self, data, comparison_data=None):
         if len(data) < self.WINDOW_SIZE_FOURTEEN:
