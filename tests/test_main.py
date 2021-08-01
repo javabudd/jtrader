@@ -1,4 +1,3 @@
-from jtrader.core.backtester import Backtester
 from jtrader.main import JTraderTest
 
 
