@@ -51,7 +51,7 @@ class Volume(Indicator):
 
             return
 
-        frame = pd.DataFrame(adosc.iloc[:-1]).round(0)
+        frame = pd.DataFrame(adosc).round(0)
 
         try:
             centroids, _ = kmeans(frame, 2)
@@ -63,10 +63,10 @@ class Volume(Indicator):
         resistance = max(centroids)
         support = min(centroids)
 
-        if adosc.iloc[-self.fast_period:].mean() > resistance[0]:
+        if adosc.iloc[:self.fast_period].mean() > resistance[0]:
             return self.BULLISH
 
-        if adosc.iloc[-self.fast_period:].mean() < support[0]:
+        if adosc.iloc[:self.fast_period].mean() < support[0]:
             return self.BEARISH
 
         return
