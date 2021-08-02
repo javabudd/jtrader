@@ -46,11 +46,10 @@ class ULTOSC(Indicator):
             if len(chart) <= 1:
                 return
 
-            highest_low = max(chart[1:])
-            lowest_low = min(chart[1:])
-            latest_low = chart.iloc[0]
-
-            if latest_low > highest_low and lowest_low < 30:
+            if self.has_lower_low(data) and self.has_higher_low(chart):
                 return self.BULLISH
+
+            if self.has_higher_high(data) and self.has_lower_high(chart):
+                return self.BEARISH
 
         return
