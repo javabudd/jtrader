@@ -5,7 +5,7 @@ from scipy.cluster.vq import kmeans
 from jtrader.core.indicator.indicator import Indicator
 
 
-class Volume(Indicator):
+class Chaikin(Indicator):
     """
     The Chaikin Oscillator is essentially a momentum indicator, but of the Accumulation-Distribution line rather than
     merely price. It looks at both the strength of price moves and the underlying buying and selling pressure during a
