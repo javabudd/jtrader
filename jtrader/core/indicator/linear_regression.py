@@ -33,7 +33,7 @@ class LinearRegression(Indicator):
 
         if score > .95:
             pred = reg.predict(x_test)
-            close = data['close'].astype(float).iloc[-1]
+            close = data['close'].astype(float).iloc[0]
 
             predicted_fifth_day = pred[4][0]
             if predicted_fifth_day > close + (close * .02):

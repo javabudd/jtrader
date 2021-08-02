@@ -22,8 +22,8 @@ class ADX(Indicator):
 
             return
 
-        if adx.iloc[-self.time_period:].mean() > 20:
+        if adx.iloc[:self.time_period].mean() > 20:
             return self.BULLISH
 
-        if adx.iloc[-self.time_period:].mean() < 20:
+        if adx.iloc[:self.time_period].mean() < 20:
             return self.BEARISH
