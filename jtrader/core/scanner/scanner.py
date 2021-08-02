@@ -210,5 +210,5 @@ class Scanner(IEX):
         return {
             "signal_type": signal_type,
             "indicator": indicator.get_name(),
-            "result_information": indicator.result_info
+            "extra": indicator.result_info
         }
