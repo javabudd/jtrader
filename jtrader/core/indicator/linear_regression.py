@@ -37,6 +37,10 @@ class LinearRegression(Indicator):
 
             predicted_fifth_day = pred[4][0]
             if predicted_fifth_day > close + (close * .02):
+                self.result_info['prediction'] = round(predicted_fifth_day, 2)
+
                 return self.BULLISH
             elif predicted_fifth_day < close - (close * .02):
+                self.result_info['prediction'] = round(predicted_fifth_day, 2)
+
                 return self.BEARISH

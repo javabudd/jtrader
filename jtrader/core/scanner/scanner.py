@@ -148,13 +148,6 @@ class Scanner(IEX):
 
             passed_validators = {}
             try:
-                is_valid = indicator.is_valid(data)
-
-                if is_valid is None:
-                    continue
-
-                signal_type = self.get_signal_string(is_valid)
-
                 if isinstance(indicator, Chain):
                     chain = indicator.get_validation_chain()
                     has_valid_chain = True
@@ -177,16 +170,20 @@ class Scanner(IEX):
                         signal_type = self.get_signal_string(is_valid)
 
                         passed_validators[indicator.get_name()].append(
-                            {
-                                "signal_type": signal_type,
-                                "indicator": indicator_chain.get_name()
-                            }
+                            self.get_passed_validator_dict(signal_type, indicator_chain)
                         )
                         chain_index += 1
                     if has_valid_chain is False:
                         continue  # continue to the next indicator in list
                 else:
-                    passed_validators = {"signal_type": signal_type, "indicator": indicator.get_name()}
+                    is_valid = indicator.is_valid(data)
+
+                    if is_valid is None:
+                        continue
+
+                    signal_type = self.get_signal_string(is_valid)
+
+                    passed_validators = self.get_passed_validator_dict(signal_type, indicator)
 
             except PyEXception as e:
                 self.logger.error(e.args[0] + ' ' + e.args[1])
@@ -207,3 +204,11 @@ class Scanner(IEX):
 
                 self.logger.info(message_string)
                 self.send_notification('```' + message_string + '```')
+
+    @staticmethod
+    def get_passed_validator_dict(signal_type: str, indicator: Indicator) -> dict:
+        return {
+            "signal_type": signal_type,
+            "indicator": indicator.get_name(),
+            "result_information": indicator.result_info
+        }

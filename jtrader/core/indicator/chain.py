@@ -12,7 +12,7 @@ class Chain(Indicator):
         return 'Chain'
 
     def is_valid(self, data=None, comparison_data=None):
-        return True
+        return
 
     def get_validation_chain(self):
         return self.validators

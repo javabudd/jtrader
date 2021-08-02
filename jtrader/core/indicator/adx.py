@@ -5,7 +5,28 @@ from jtrader.core.indicator.indicator import Indicator
 
 class ADX(Indicator):
     """
-    Looking for pops in volume relative to time frames
+    ADX stands for Average Directional Movement Index and can be used to help measure the overall strength of a trend.
+
+    The ADX indicator is an average of expanding price range values.
+
+    The ADX is a component of the Directional Movement System developed by Welles Wilder.
+
+    This system attempts to measure the strength of price movement in positive and negative direction using the
+    DMI+ and DMI- indicators along with the ADX.
+
+    Buy signals:
+
+    Wilder suggests that a strong trend is present when ADX is above 25 and no trend is present when below 20.
+
+    Sell signals:
+
+    Wilder suggests that a strong trend is present when ADX is above 25 and no trend is present when below 20.
+
+    When the ADX turns down from high values, then the trend may be ending. You may want to do additional research to
+    determine if closing open positions is appropriate for you.
+
+    If the ADX is declining, it could be an indication that the market is becoming less directional, and the current
+    trend is weakening. You may want to avoid trading trend systems as the trend changes.
     """
 
     @staticmethod
@@ -22,8 +43,14 @@ class ADX(Indicator):
 
             return
 
-        if adx.iloc[:self.time_period].mean() > 20:
+        last_adx: float = adx.iloc[0]
+
+        if last_adx > 25:
+            self.result_info['adx'] = round(last_adx, 2)
+
             return self.BULLISH
 
-        if adx.iloc[:self.time_period].mean() < 20:
+        if last_adx < 20:
+            self.result_info['adx'] = round(last_adx, 2)
+
             return self.BEARISH
