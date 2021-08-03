@@ -1,4 +1,5 @@
 import talib
+from pandas import DataFrame
 
 from jtrader.core.indicator.indicator import Indicator
 
@@ -32,24 +33,44 @@ class ULTOSC(Indicator):
 
     def is_valid(self, data, comparison_data=None):
         if self.has_lower_low(data):
-            chart = talib.ULTOSC(
-                data['high'],
-                data['low'],
-                data['close'],
-                timeperiod1=self.time_period,
-                timeperiod2=self.time_period * 2,
-                timeperiod3=self.time_period * 3
-            )
-
-            self.clean_dataframe(chart)
+            chart = self.get_chart(data)
 
             if len(chart) <= 1:
                 return
 
-            if self.has_lower_low(data) and self.has_higher_low(chart):
-                return self.BULLISH
+            highest = max(chart[1:])
+            latest = chart.iloc[0]
 
-            if self.has_higher_high(data) and self.has_lower_high(chart):
+            if latest > highest:
+                self.result_info['value'] = latest
+
+                return self.BULLISH
+        elif self.has_higher_high(data):
+            chart = self.get_chart(data)
+
+            if len(chart) <= 1:
+                return
+
+            lowest = min(chart[1:])
+            latest = chart.iloc[0]
+
+            if latest < lowest:
+                self.result_info['value'] = latest
+
                 return self.BEARISH
 
         return
+
+    def get_chart(self, data: DataFrame):
+        chart = talib.ULTOSC(
+            data['high'],
+            data['low'],
+            data['close'],
+            timeperiod1=self.time_period,
+            timeperiod2=self.time_period * 2,
+            timeperiod3=self.time_period * 3
+        )
+
+        self.clean_dataframe(chart)
+
+        return chart
