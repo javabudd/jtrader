@@ -53,33 +53,27 @@ class HighQualityMomentum(IEX):
             if len(stock_data) <= 1 or 'close' not in stock_data[-1]:
                 continue
 
-            df = pd.DataFrame(stock_data)['close']
-            df = df.mask(df == 0).fillna(df.mean()).astype('float')
+            df = pd.DataFrame(stock_data)['close'].astype('float')
 
-            change = df.pct_change().dropna()
-
-            one_year_change_percent = change.sum()
-            six_month_change_percent = change.tail(180).sum()
-            three_month_change_percent = change.tail(90).sum()
-            one_month_change_percent = change.tail(30).sum()
+            one_year_change_percent = df.pct_change(fill_method='ffill').cumsum().iloc[-1]
+            six_month_change_percent = df.pct_change(int(len(df) / 2), fill_method='ffill').iloc[-1]
+            three_month_change_percent = df.pct_change(int(len(df) / 4), fill_method='ffill').iloc[-1]
+            one_month_change_percent = df.pct_change(int(len(df) / 12), fill_method='ffill').iloc[-1]
 
             series.append(
-                pd.Series(
-                    [
-                        symbol,
-                        stock_data[-1]['close'],
-                        one_year_change_percent,
-                        'N/A',
-                        six_month_change_percent,
-                        'N/A',
-                        three_month_change_percent,
-                        'N/A',
-                        one_month_change_percent,
-                        'N/A',
-                        'N/A'
-                    ],
-                    index=csv_columns
-                )
+                [
+                    symbol,
+                    stock_data[-1]['close'],
+                    one_year_change_percent,
+                    'N/A',
+                    six_month_change_percent,
+                    'N/A',
+                    three_month_change_percent,
+                    'N/A',
+                    one_month_change_percent,
+                    'N/A',
+                    'N/A'
+                ],
             )
 
         df = pd.DataFrame(series, columns=csv_columns)
@@ -90,7 +84,6 @@ class HighQualityMomentum(IEX):
                 change_col = f'{time_period} Price Return'
                 percentile_col = f'{time_period} Return Percentile'
 
-                df[change_col].fillna(value=0.0, inplace=True)
                 df.loc[row, percentile_col] = stats.percentileofscore(df[change_col], df.loc[row, change_col]) / 100
                 momentum_percentiles.append(df.loc[row, percentile_col])
             df.loc[row, 'HQM Score'] = mean(momentum_percentiles)
