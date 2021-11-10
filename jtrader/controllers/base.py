@@ -428,12 +428,12 @@ class Base(Controller):
     )
     def start_kucoin_trader(self):
         """Start KuCoin trader Command"""
-        kucoin = KuCoin(self.get_kucoin_provider(self.app.pargs.is_sandbox), self.app.pargs.ticker)
+        kucoin = KuCoin(self.get_kucoin_provider(self.app.pargs.is_sandbox), self.app.pargs.ticker, self.app.log)
 
         kucoin.subscribe()
 
     def get_iex_provider(self, is_sandbox: bool, version: str = 'stable'):
         return IEX(is_sandbox, self.app.log, version)
 
-    def get_kucoin_provider(self, is_sandbox: bool, version: str = 'v1'):
-        return KuCoinProvider(is_sandbox, self.app.log, version)
+    def get_kucoin_provider(self, is_sandbox: bool):
+        return KuCoinProvider(is_sandbox, self.app.log)
