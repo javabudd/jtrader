@@ -407,11 +407,11 @@ class Base(Controller):
         help='Run the KuCoin trader',
         arguments=[
             (
-                    ['-c', '--comparison-ticker'],
+                    ['-t', '--ticker'],
                     {
-                        'help': 'which ticker to compare against',
-                        'action': 'append',
-                        'dest': 'comparison_ticker',
+                        'help': 'which ticker to trader',
+                        'action': 'store',
+                        'dest': 'ticker',
                         'required': True
                     }
             ),
@@ -419,7 +419,7 @@ class Base(Controller):
     )
     def start_kucoin_trader(self):
         """Start KuCoin trader Command"""
-        kucoin = KuCoin(True, self.app.log)
+        kucoin = KuCoin(False, self.app.log, self.app.pargs.ticker)
 
         kucoin.connect_websocket()
 
