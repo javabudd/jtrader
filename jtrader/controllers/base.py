@@ -13,6 +13,7 @@ from jtrader.core.scanner.scanner import Scanner
 from jtrader.core.scanner.value import Value
 from jtrader.core.worker import Worker
 from ..core.version import get_version
+from jtrader.core.provider.kucoin import KuCoin
 
 VERSION_BANNER = """
 Trade them thangs %s
@@ -401,6 +402,26 @@ class Base(Controller):
         )
 
         pairs.run_detection()
+
+    @ex(
+        help='Run the KuCoin trader',
+        arguments=[
+            (
+                    ['-c', '--comparison-ticker'],
+                    {
+                        'help': 'which ticker to compare against',
+                        'action': 'append',
+                        'dest': 'comparison_ticker',
+                        'required': True
+                    }
+            ),
+        ],
+    )
+    def start_kucoin_trader(self):
+        """Start KuCoin trader Command"""
+        kucoin = KuCoin(True, self.app.log)
+
+        kucoin.connect_websocket()
 
     # @TODO Update this to grab providers from the config instead of assuming IEX
     def get_provider(self, is_sandbox: bool, version: str = 'stable'):
