@@ -416,11 +416,19 @@ class Base(Controller):
                         'required': True
                     }
             ),
+            (
+                    ['--sandbox'],
+                    {
+                        'help': 'start in sandbox mode',
+                        'action': 'store_true',
+                        'dest': 'is_sandbox'
+                    }
+            ),
         ],
     )
     def start_kucoin_trader(self):
         """Start KuCoin trader Command"""
-        kucoin = KuCoin(self.get_kucoin_provider(False), self.app.pargs.ticker)
+        kucoin = KuCoin(self.get_kucoin_provider(self.app.pargs.is_sandbox), self.app.pargs.ticker)
 
         kucoin.subscribe()
 

@@ -11,6 +11,7 @@ from jtrader.core.provider.provider import Provider
 
 class KuCoin(Provider):
     BASE_URL = 'https://api.kucoin.com/api'
+    SANDBOX_URL = 'https://openapi-sandbox.kucoin.com/api'
 
     def __init__(
             self,
@@ -22,7 +23,10 @@ class KuCoin(Provider):
         super().__init__(is_sandbox, logger, no_notifications)
 
         self.client_prop = requests
+
         self.url = f"{self.BASE_URL}/{version}"
+        if self.is_sandbox:
+            self.url = f"{self.SANDBOX_URL}/{version}"
 
     @staticmethod
     def on_websocket_error(socket: websocket.WebSocketApp, error):
@@ -53,8 +57,8 @@ class KuCoin(Provider):
         connect_id = random.randrange(10000, 9000000)
         endpoint = response_data['data']['instanceServers'][0]['endpoint']
 
-        if self.is_sandbox:
-            websocket.enableTrace(True)
+        # if self.is_sandbox:
+        #     websocket.enableTrace(True)
 
         ws = websocket.WebSocketApp(
             f"{endpoint}?token={token}&[connectId={connect_id}]",
