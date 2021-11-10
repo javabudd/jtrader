@@ -1,43 +1,29 @@
-import json
-import random
+import asyncio
+import os
 from typing import Optional
 
-import requests
-import websocket
 from cement.core.log import LogInterface
+from kucoin.asyncio import KucoinSocketManager
+from kucoin.client import Client
 
 from jtrader.core.provider.provider import Provider
 
 
 class KuCoin(Provider):
-    BASE_URL = 'https://api.kucoin.com/api'
-    SANDBOX_URL = 'https://openapi-sandbox.kucoin.com/api'
-
     def __init__(
             self,
             is_sandbox: bool,
             logger: LogInterface,
-            version: Optional[str] = 'v1',
             no_notifications: Optional[bool] = False
     ):
         super().__init__(is_sandbox, logger, no_notifications)
 
-        self.client_prop = requests
-
-        self.url = f"{self.BASE_URL}/{version}"
-        if self.is_sandbox:
-            self.url = f"{self.SANDBOX_URL}/{version}"
-
-    @staticmethod
-    def on_websocket_error(socket: websocket.WebSocketApp, error):
-        print('### error ###')
-        print('Error: ', error)
-
-    @staticmethod
-    def on_websocket_close(socket: websocket.WebSocketApp, close_status_code, close_msg):
-        print('### closed ###')
-        print('Code: ', close_status_code)
-        print('Message: ', close_msg)
+        self.client_prop = Client(
+            os.environ.get('KUCOIN_API_TOKEN'),
+            os.environ.get('KUCOIN_API_SECRET'),
+            os.environ.get('KUCOIN_API_PASSPHRASE'),
+            is_sandbox
+        )
 
     def chart(self, stock: str, timeframe: str) -> dict:
         return self.client.stocks.chart(stock, timeframe=timeframe)
@@ -45,27 +31,14 @@ class KuCoin(Provider):
     def symbols(self) -> dict:
         return self.client.refdata.iexSymbols()
 
-    def connect_websocket(
-            self,
-            on_websocket_open: callable,
-            on_websocket_message: callable,
-    ) -> None:
-        response = self.client.post(self.url + '/bullet-public')
-        response_data = json.loads(response.text)
+    async def main(self, loop, ticker: str, on_websocket_message: callable) -> None:
+        ksm = await KucoinSocketManager.create(loop, self.client, on_websocket_message)
 
-        token = response_data['data']['token']
-        connect_id = random.randrange(10000, 9000000)
-        endpoint = response_data['data']['instanceServers'][0]['endpoint']
+        await ksm.subscribe(f"/market/candles:{ticker}_1min")
 
-        # if self.is_sandbox:
-        #     websocket.enableTrace(True)
+        while True:
+            await asyncio.sleep(20, loop=loop)
 
-        ws = websocket.WebSocketApp(
-            f"{endpoint}?token={token}&[connectId={connect_id}]",
-            on_open=on_websocket_open,
-            on_message=on_websocket_message,
-            on_error=self.on_websocket_error,
-            on_close=self.on_websocket_close
-        )
-
-        ws.run_forever(ping_interval=30, ping_timeout=10)
+    def connect_websocket(self, ticker: str, on_websocket_message: callable) -> None:
+        loop = asyncio.get_event_loop()
+        loop.run_until_complete(self.main(loop, ticker, on_websocket_message))

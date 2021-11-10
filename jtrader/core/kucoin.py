@@ -1,9 +1,6 @@
-import json
-import random
 from datetime import datetime, timedelta
 
 import pandas as pd
-import websocket
 
 from jtrader.core.indicator.linear_regression import LinearRegression
 from jtrader.core.indicator.macd import MACD
@@ -21,9 +18,9 @@ class KuCoin:
         self.frames = None
 
     def subscribe(self) -> None:
-        self.provider.connect_websocket(self.on_websocket_open, self.on_websocket_message)
+        self.provider.connect_websocket(self.ticker, self.on_websocket_message)
 
-    def on_websocket_message(self, socket: websocket.WebSocketApp, message):
+    async def on_websocket_message(self, message):
         def handle_candles_add(candle_data):
             print('candle added...')
             candles = candle_data['data']['candles']
@@ -62,39 +59,19 @@ class KuCoin:
             print('RSI Signal:', rsi.is_valid(self.frames))
             print('LR Signal:', lr.is_valid(self.frames))
 
-        try:
-            data = json.loads(message)
-        except Exception:
-            return
-
-        if 'subject' in data:
-            if data['subject'] == 'trade.candles.add':
-                handle_candles_add(data)
+        if 'subject' in message:
+            if message['subject'] == 'trade.candles.add':
+                handle_candles_add(message)
         else:
-            print(data)
-
-    def on_websocket_open(self, socket: websocket.WebSocketApp):
-        data = {
-            "id": random.randrange(10000, 9000000),
-            "type": "subscribe",
-            "topic": f"/market/candles:{self.ticker}_1min",
-            "privateChannel": False
-        }
-
-        socket.send(json.dumps(data))
+            print(message)
 
     def get_previous_dataset(self, dataset_start_time: str) -> list:
         date = datetime.fromtimestamp(int(dataset_start_time))
 
         start = date - timedelta(days=1)
 
-        rest_response = self.provider.client.get(
-            self.provider.url + f"/market/candles?type=1min&symbol={self.ticker}&startsAt={start.microsecond}"
+        return self.provider.client.get_kline_data(
+            self.ticker,
+            start=start.microsecond,
+            kline_type="1min"
         )
-
-        try:
-            rest_response_data = json.loads(rest_response.text)
-        except Exception:
-            return []
-
-        return rest_response_data['data']
