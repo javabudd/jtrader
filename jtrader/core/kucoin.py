@@ -2,9 +2,8 @@ from datetime import datetime, timedelta
 
 import pandas as pd
 
-from jtrader.core.indicator.linear_regression import LinearRegression
-from jtrader.core.indicator.macd import MACD
-from jtrader.core.indicator.rsi import RSI
+from jtrader.core.indicator import __INDICATOR_MAP__
+from jtrader.core.indicator.chain import Chain
 from jtrader.core.provider.kucoin import KuCoin as KuCoinProvider
 
 
@@ -48,13 +47,13 @@ class KuCoin:
                 self.frames.sort_values(by=['date'], inplace=True, ascending=False)
                 self.frames.reset_index(inplace=True, drop=True)
 
-            macd = MACD(self.ticker)
-            rsi = RSI(self.ticker)
-            lr = LinearRegression(self.ticker)
+            chain = Chain(self.ticker, __INDICATOR_MAP__['all'])
 
-            print('MACD Signal:', macd.is_valid(self.frames))
-            print('RSI Signal:', rsi.is_valid(self.frames))
-            print('LR Signal:', lr.is_valid(self.frames))
+            for validator in chain.get_validation_chain(True):
+                is_valid = validator.is_valid(self.frames)
+
+                if is_valid is not None:
+                    print(validator.get_name(), is_valid)
 
         if 'subject' in message:
             if message['subject'] == 'trade.candles.add':

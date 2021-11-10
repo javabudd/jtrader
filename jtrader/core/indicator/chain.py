@@ -14,5 +14,5 @@ class Chain(Indicator):
     def is_valid(self, data=None, comparison_data=None):
         return
 
-    def get_validation_chain(self):
-        return self.validators
+    def get_validation_chain(self, as_instantiated=False) -> list[Indicator]:
+        return self.validators if not as_instantiated else [val(self.ticker) for val in self.validators]

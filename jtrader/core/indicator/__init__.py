@@ -19,13 +19,13 @@ __INDICATORS__ = [
 ]
 
 __INDICATOR_MAP__ = {
-    'apo': __INDICATORS__[0],
-    'ultosc': __INDICATORS__[1],
-    'rsi': __INDICATORS__[2],
-    'macd': __INDICATORS__[3],
-    'chaikin': __INDICATORS__[4],
-    'adx': __INDICATORS__[5],
-    'obv': __INDICATORS__[6],
-    'lr': __INDICATORS__[7],
+    'apo': APO,
+    'ultosc': ULTOSC,
+    'rsi': RSI,
+    'macd': MACD,
+    'chaikin': Chaikin,
+    'adx': ADX,
+    'obv': OBV,
+    'lr': LinearRegression,
     'all': __INDICATORS__
 }
