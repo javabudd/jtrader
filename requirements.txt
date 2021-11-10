@@ -14,3 +14,4 @@ colorlog==5.0.1
 pyEX==0.5.0
 websocket-client==1.2.1
 requests==2.26.0
+python-kucoin==2.1.3
