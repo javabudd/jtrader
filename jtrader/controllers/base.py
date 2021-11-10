@@ -2,9 +2,11 @@ from cement import Controller, ex
 from cement.utils.version import get_version_banner
 
 from jtrader.core.backtester import Backtester
+from jtrader.core.kucoin import KuCoin
 from jtrader.core.news import News
 from jtrader.core.pairs import Pairs
 from jtrader.core.provider.iex import IEX
+from jtrader.core.provider.kucoin import KuCoin as KuCoinProvider
 from jtrader.core.scanner.hqm import HighQualityMomentum
 from jtrader.core.scanner.lqm import LowQualityMomentum
 from jtrader.core.scanner.momentum import Momentum
@@ -13,7 +15,6 @@ from jtrader.core.scanner.scanner import Scanner
 from jtrader.core.scanner.value import Value
 from jtrader.core.worker import Worker
 from ..core.version import get_version
-from jtrader.core.provider.kucoin import KuCoin
 
 VERSION_BANNER = """
 Trade them thangs %s
@@ -60,7 +61,7 @@ class Base(Controller):
     )
     def start_worker(self):
         """Start Worker Command"""
-        results = Worker(self.get_provider(False), self.app.log).run()
+        results = Worker(self.get_iex_provider(False), self.app.log).run()
 
         self.app.render({'results': results}, 'start_worker.jinja2')
 
@@ -397,7 +398,7 @@ class Base(Controller):
         """Start Pairs Command"""
         pairs = Pairs(
             self.app.log,
-            self.get_provider(False),
+            self.get_iex_provider(False),
             self.app.pargs.comparison_ticker,
         )
 
@@ -419,10 +420,12 @@ class Base(Controller):
     )
     def start_kucoin_trader(self):
         """Start KuCoin trader Command"""
-        kucoin = KuCoin(False, self.app.log, self.app.pargs.ticker)
+        kucoin = KuCoin(self.get_kucoin_provider(False), self.app.pargs.ticker)
 
-        kucoin.connect_websocket()
+        kucoin.subscribe()
 
-    # @TODO Update this to grab providers from the config instead of assuming IEX
-    def get_provider(self, is_sandbox: bool, version: str = 'stable'):
+    def get_iex_provider(self, is_sandbox: bool, version: str = 'stable'):
         return IEX(is_sandbox, self.app.log, version)
+
+    def get_kucoin_provider(self, is_sandbox: bool, version: str = 'v1'):
+        return KuCoinProvider(is_sandbox, self.app.log, version)
