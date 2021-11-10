@@ -17,9 +17,6 @@ class KuCoin:
         self.ticker = ticker
         self.frames = None
 
-    def subscribe(self) -> None:
-        self.provider.connect_websocket(self.ticker, self.on_websocket_message)
-
     async def on_websocket_message(self, message):
         def handle_candles_add(candle_data):
             print('candle added...')
@@ -75,3 +72,6 @@ class KuCoin:
             start=start.microsecond,
             kline_type="1min"
         )
+
+    def subscribe(self) -> None:
+        self.provider.connect_websocket(self.ticker, self.on_websocket_message)
