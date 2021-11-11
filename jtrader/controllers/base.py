@@ -31,7 +31,8 @@ indicators = [
     'obv',
     'chaikin',
     'pairs',
-    'lr'
+    'lr',
+    'volume'
 ]
 
 
