@@ -6,6 +6,7 @@ from .macd import MACD
 from .obv import OBV
 from .rsi import RSI
 from .ultosc import ULTOSC
+from .vwap import VWAP
 
 __INDICATORS__ = [
     APO,
@@ -15,7 +16,8 @@ __INDICATORS__ = [
     Chaikin,
     ADX,
     OBV,
-    LinearRegression
+    LinearRegression,
+    VWAP
 ]
 
 __INDICATOR_MAP__ = {
@@ -27,5 +29,6 @@ __INDICATOR_MAP__ = {
     'adx': ADX,
     'obv': OBV,
     'lr': LinearRegression,
+    'vwap': VWAP,
     'all': __INDICATORS__
 }
