@@ -23,8 +23,8 @@ class VWAP(Indicator):
 
         vwap_df = self.clean_dataframe(wopper.vwap)
 
-        regression = talib.LINEARREG(vwap_df, timeperiod=vwap_df.size - 1)
-        standard = talib.STDDEV(vwap_df, timeperiod=vwap_df.size - 1)
+        regression = talib.LINEARREG(vwap_df, timeperiod=vwap_df.size)
+        standard = talib.STDDEV(vwap_df, timeperiod=vwap_df.size)
 
         regression = self.clean_dataframe(regression)
         standard = self.clean_dataframe(standard)
