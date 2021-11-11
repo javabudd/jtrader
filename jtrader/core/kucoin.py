@@ -56,11 +56,10 @@ class KuCoin:
                 is_valid = validator.is_valid(self.frames)
 
                 if is_valid is not None:
-                    validator_message = validator.get_name() + ': ' + is_valid
                     if is_valid == Indicator.BULLISH:
-                        self.logger.warning(validator_message)
+                        self.logger.info(validator.get_name() + ': BULLISH')
                     elif is_valid == Indicator.BEARISH:
-                        self.logger.error(validator_message)
+                        self.logger.warning(validator.get_name() + ': BEARISH')
 
         if 'subject' in message:
             if message['subject'] == 'trade.candles.add':
