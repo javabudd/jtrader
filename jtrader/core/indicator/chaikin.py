@@ -1,6 +1,4 @@
-import pandas as pd
 import talib
-from scipy.cluster.vq import kmeans
 
 from jtrader.core.indicator.indicator import Indicator
 
@@ -51,22 +49,16 @@ class Chaikin(Indicator):
 
             return
 
-        frame = pd.DataFrame(adosc).round(0)
+        diff = data['close'].astype(float).diff()
 
-        try:
-            centroids, _ = kmeans(frame, 2)
-        except ValueError as e:
-            self.log_error(e)
+        # downward price action
+        if diff[0] < diff[1] < diff[2] and diff[3] > 0 and diff[4] > 0 and diff[5] > 0:
+            if adosc.iloc[1] > 0 and adosc.iloc[0] < 0:
+                return self.BEARISH
 
-            return
-
-        resistance = max(centroids)
-        support = min(centroids)
-
-        if adosc.iloc[:self.fast_period].mean() > resistance[0]:
-            return self.BULLISH
-
-        if adosc.iloc[:self.fast_period].mean() < support[0]:
-            return self.BEARISH
+        # upward price action
+        if diff[0] > diff[1] > diff[2] and diff[3] < 0 and diff[4] < 0 and diff[5] < 0:
+            if adosc.iloc[1] < 20 and adosc.iloc[0] > 20:
+                return self.BULLISH
 
         return
