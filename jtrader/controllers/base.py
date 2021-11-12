@@ -2,9 +2,11 @@ from cement import Controller, ex
 from cement.utils.version import get_version_banner
 
 from jtrader.core.backtester import Backtester
+from jtrader.core.kucoin import KuCoin
 from jtrader.core.news import News
 from jtrader.core.pairs import Pairs
 from jtrader.core.provider.iex import IEX
+from jtrader.core.provider.kucoin import KuCoin as KuCoinProvider
 from jtrader.core.scanner.hqm import HighQualityMomentum
 from jtrader.core.scanner.lqm import LowQualityMomentum
 from jtrader.core.scanner.momentum import Momentum
@@ -29,7 +31,8 @@ indicators = [
     'obv',
     'chaikin',
     'pairs',
-    'lr'
+    'lr',
+    'volume'
 ]
 
 
@@ -59,7 +62,7 @@ class Base(Controller):
     )
     def start_worker(self):
         """Start Worker Command"""
-        results = Worker(self.get_provider(False), self.app.log).run()
+        results = Worker(self.get_iex_provider(False), self.app.log).run()
 
         self.app.render({'results': results}, 'start_worker.jinja2')
 
@@ -396,12 +399,42 @@ class Base(Controller):
         """Start Pairs Command"""
         pairs = Pairs(
             self.app.log,
-            self.get_provider(False),
+            self.get_iex_provider(False),
             self.app.pargs.comparison_ticker,
         )
 
         pairs.run_detection()
 
-    # @TODO Update this to grab providers from the config instead of assuming IEX
-    def get_provider(self, is_sandbox: bool, version: str = 'stable'):
+    @ex(
+        help='Run the KuCoin trader',
+        arguments=[
+            (
+                    ['-t', '--ticker'],
+                    {
+                        'help': 'which ticker to trader',
+                        'action': 'store',
+                        'dest': 'ticker',
+                        'required': True
+                    }
+            ),
+            (
+                    ['--sandbox'],
+                    {
+                        'help': 'start in sandbox mode',
+                        'action': 'store_true',
+                        'dest': 'is_sandbox'
+                    }
+            ),
+        ],
+    )
+    def start_kucoin_trader(self):
+        """Start KuCoin trader Command"""
+        kucoin = KuCoin(self.get_kucoin_provider(self.app.pargs.is_sandbox), self.app.pargs.ticker, self.app.log)
+
+        kucoin.subscribe()
+
+    def get_iex_provider(self, is_sandbox: bool, version: str = 'stable'):
         return IEX(is_sandbox, self.app.log, version)
+
+    def get_kucoin_provider(self, is_sandbox: bool):
+        return KuCoinProvider(is_sandbox, self.app.log)

@@ -44,13 +44,15 @@ class ADX(Indicator):
             return
 
         last_adx: float = adx.iloc[0]
+        average = adx.iloc[1:6]
+        average_adx = average.mean()
 
-        if last_adx > 25:
+        if last_adx >= 25 and average_adx < 25:
             self.result_info['adx'] = round(last_adx, 2)
 
             return self.BULLISH
 
-        if last_adx < 20:
+        if last_adx <= 20 and average_adx > 20:
             self.result_info['adx'] = round(last_adx, 2)
 
             return self.BEARISH

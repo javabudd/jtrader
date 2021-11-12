@@ -18,8 +18,6 @@ class OBV(Indicator):
     def is_valid(self, data, comparison_data=None):
         data = data[-self.time_period:]
 
-        self.clean_dataframe(data)
-
         price_has_lower_low = self.has_lower_low(data)
         price_has_lower_high = self.has_lower_high(data)
         price_has_higher_low = self.has_higher_low(data)
