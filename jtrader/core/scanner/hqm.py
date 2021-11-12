@@ -2,15 +2,12 @@
 # coding: utf-8
 
 import io
-from datetime import datetime
-from datetime import timedelta
 from statistics import mean
 
 import pandas as pd
-from cement.core.log import LogInterface
 from scipy import stats
 
-from jtrader.core.odm import ODM
+from jtrader import chunks
 from jtrader.core.provider.iex import IEX
 
 csv_columns = [
@@ -36,60 +33,64 @@ time_periods = [
 
 
 class HighQualityMomentum(IEX):
-    def __init__(self, is_sandbox: bool, logger: LogInterface):
-        super().__init__(is_sandbox, logger)
-
-        self.odm = ODM()
-
     def run(self):
-        symbols = self.client.symbols()
+        stocks = self.client.symbols()
+
+        stock_chunks = chunks(stocks, 100)
+        symbol_strings = []
+        for chunk in stock_chunks:
+            symbols = []
+            for stock in chunk:
+                symbols.append(stock['symbol'])
+
+            symbol_strings.append(','.join(symbols))
 
         series = []
-        for stock_symbol in symbols:
-            symbol = stock_symbol['symbol']
-            one_year_ago = datetime.now() - timedelta(days=365)
-            stock_data = self.odm.get_historical_stock_range(symbol, one_year_ago)
+        df = None
+        for symbol_string in symbol_strings:
+            data = self.client.stocks.batch(symbol_string, ["quote", "stats"])
+            for symbol in symbol_string.split(','):
+                if symbol not in data or 'quote' not in data[symbol] or data[symbol]['quote'] is None \
+                        or data[symbol]['quote']['close'] is None:
+                    continue
 
-            if len(stock_data) <= 1 or 'close' not in stock_data[-1]:
-                continue
+                series.append(
+                    pd.Series(
+                        [
+                            symbol,
+                            data[symbol]['quote']['close'],
+                            data[symbol]['stats']['year1ChangePercent'],
+                            'N/A',
+                            data[symbol]['stats']['month6ChangePercent'],
+                            'N/A',
+                            data[symbol]['stats']['month3ChangePercent'],
+                            'N/A',
+                            data[symbol]['stats']['month1ChangePercent'],
+                            'N/A',
+                            'N/A'
+                        ],
+                        index=csv_columns
+                    )
+                )
 
-            df = pd.DataFrame(stock_data)['close'].astype('float')
+            df = pd.DataFrame(series, columns=csv_columns)
 
-            one_year_change_percent = df.pct_change(fill_method='ffill').cumsum().iloc[-1]
-            six_month_change_percent = df.pct_change(int(len(df) / 2), fill_method='ffill').iloc[-1]
-            three_month_change_percent = df.pct_change(int(len(df) / 4), fill_method='ffill').iloc[-1]
-            one_month_change_percent = df.pct_change(int(len(df) / 12), fill_method='ffill').iloc[-1]
+            for row in df.index:
+                momentum_percentiles = []
+                for time_period in time_periods:
+                    change_col = f'{time_period} Price Return'
+                    percentile_col = f'{time_period} Return Percentile'
 
-            series.append(
-                [
-                    symbol,
-                    stock_data[-1]['close'],
-                    one_year_change_percent,
-                    'N/A',
-                    six_month_change_percent,
-                    'N/A',
-                    three_month_change_percent,
-                    'N/A',
-                    one_month_change_percent,
-                    'N/A',
-                    'N/A'
-                ],
-            )
+                    df[change_col].fillna(value=0.0, inplace=True)
+                    df.loc[row, percentile_col] = stats.percentileofscore(df[change_col], df.loc[row, change_col]) / 100
+                    momentum_percentiles.append(df.loc[row, percentile_col])
+                df.loc[row, 'HQM Score'] = mean(momentum_percentiles)
 
-        df = pd.DataFrame(series, columns=csv_columns)
-
-        for row in df.index:
-            momentum_percentiles = []
-            for time_period in time_periods:
-                change_col = f'{time_period} Price Return'
-                percentile_col = f'{time_period} Return Percentile'
-
-                df.loc[row, percentile_col] = stats.percentileofscore(df[change_col], df.loc[row, change_col]) / 100
-                momentum_percentiles.append(df.loc[row, percentile_col])
-            df.loc[row, 'HQM Score'] = mean(momentum_percentiles)
+        if df is None:
+            return
 
         df.sort_values('HQM Score', ascending=False, inplace=True)
-        df = df[:100]
+        df = df[:50]
         df.reset_index(inplace=True, drop=True)
 
         file_name = 'HighQualityMomentum.xlsx'
