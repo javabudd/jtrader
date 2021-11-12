@@ -110,6 +110,14 @@ Starts the zipline backtest using buy/sell strategies provided
 
 More information: `jtrader start-backtest --help`
 
+### start-kucoin-trader
+
+Start the KuCoin trader
+
+Starts the kucoin trader and print out buy/sell signals on all indicators
+
+More information: `jtrader start-kucoin-trader --help`
+
 ## Deployments
 
 ### Docker
