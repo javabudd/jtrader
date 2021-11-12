@@ -26,10 +26,10 @@ class KuCoin(Provider):
         )
 
     def chart(self, stock: str, timeframe: str) -> dict:
-        return self.client.stocks.chart(stock, timeframe=timeframe)
+        return {}
 
     def symbols(self) -> dict:
-        return self.client.refdata.iexSymbols()
+        return {}
 
     async def main(self, loop, ticker: str, on_websocket_message: callable) -> None:
         ksm = await KucoinSocketManager.create(loop, self.client, on_websocket_message)
