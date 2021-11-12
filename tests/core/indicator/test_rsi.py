@@ -11,19 +11,37 @@ def test_get_name():
 
 def test_is_valid_returns_bearish():
     rsi = RSI('fooBar')
-    data = pd.DataFrame({"close": 50} for x in range(90))
-    end = pd.DataFrame({"close": 20} for x in range(10))
 
-    data = data.append(end, ignore_index=True)
+    closes = []
+    for x in range(2, 150):
+        if x % 10 == 0:
+            if len(closes) == 0:
+                closes.append({"close": x - 2})
+            else:
+                last = closes[-1]['close']
+                closes.append({"close": last - 1})
+        else:
+            closes.append({"close": x})
+
+    data = pd.DataFrame(closes)
 
     assert rsi.is_valid(data) is RSI.BEARISH
 
 
 def test_is_valid_returns_bullish():
     rsi = RSI('fooBar')
-    data = pd.DataFrame({"close": 20} for x in range(90))
-    end = pd.DataFrame({"close": 50} for x in range(10))
 
-    data = data.append(end, ignore_index=True)
+    closes = []
+    for x in range(150, 2, -1):
+        if x % 10 == 0:
+            if len(closes) == 0:
+                closes.append({"close": x + 2})
+            else:
+                last = closes[-1]['close']
+                closes.append({"close": last + 1})
+        else:
+            closes.append({"close": x})
+
+    data = pd.DataFrame(closes)
 
     assert rsi.is_valid(data) is RSI.BULLISH
