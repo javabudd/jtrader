@@ -1,3 +1,4 @@
+import time
 from datetime import datetime, timedelta
 
 import pandas as pd
@@ -21,20 +22,22 @@ class KuCoin:
 
     async def on_websocket_message(self, message):
         def handle_candles_add(candle_data):
-            self.logger.info('candle added...')
             candles = candle_data['data']['candles']
             start_time = candles[0]
+            self.logger.info(f"candle {start_time} added...")
 
             if self.frames is None:
                 self.logger.info('looking up previous data...')
-                previous = self.get_previous_dataset(start_time)
+                previous = self.get_previous_dataset()
 
                 self.frames = pd.concat(
                     [pd.DataFrame(previous, columns=self.KLINE_COLUMNS)],
                     ignore_index=True
                 )
 
-            latest_item = self.frames.iloc[0]
+                self.frames = self.frames[::-1].reset_index(drop=True)
+
+            latest_item = self.frames.iloc[-1]
 
             if start_time != latest_item['date']:
                 item = {
@@ -46,14 +49,19 @@ class KuCoin:
                     "volume": candles[5],
                     "amount": candles[6]
                 }
+
                 self.frames = self.frames.append(item, ignore_index=True)
-                self.frames.sort_values(by=['date'], inplace=True, ascending=False)
-                self.frames.reset_index(inplace=True, drop=True)
+                self.frames = self.frames.iloc[1:]
 
             chain = Chain(self.ticker, __INDICATOR_MAP__['all'])
 
             for validator in chain.get_validation_chain(True):
-                is_valid = validator.is_valid(self.frames)
+                try:
+                    is_valid = validator.is_valid(self.frames)
+                except Exception as e:
+                    self.logger.error(validator.get_name())
+
+                    continue
 
                 if is_valid is not None:
                     if is_valid == Indicator.BULLISH:
@@ -67,14 +75,14 @@ class KuCoin:
         else:
             self.logger.info(message)
 
-    def get_previous_dataset(self, dataset_start_time: str) -> list:
-        date = datetime.fromtimestamp(int(dataset_start_time))
+    def get_previous_dataset(self) -> list:
+        date = datetime.utcnow()
 
         start = date - timedelta(days=1)
 
         return self.provider.client.get_kline_data(
             self.ticker,
-            start=start.microsecond,
+            start=int(time.mktime(start.timetuple())),
             kline_type="1min"
         )
 
