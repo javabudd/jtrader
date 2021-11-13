@@ -1,3 +1,4 @@
+import asyncio
 import os
 from abc import ABC, abstractmethod
 from typing import Optional
@@ -35,12 +36,34 @@ class Provider(ABC):
     def symbols(self) -> dict:
         pass
 
+    @abstractmethod
+    async def register_websockets(
+            self,
+            loop: asyncio.AbstractEventLoop,
+            ticker: str,
+            on_websocket_message: callable
+    ) -> None:
+        pass
+
     @staticmethod
     def chunks(lst, n) -> None:
         for item in range(0, len(lst), n):
             yield lst[item:item + n]
 
-    def send_notification(self, message: str, slack_channel: Optional[str] = '#stock-scanner', **kwargs):
+    async def shutdown(self, loop: asyncio.AbstractEventLoop, signal=None) -> None:
+        if signal:
+            self.logger.info(f"Received exit signal {signal.name}...")
+
+        self.logger.info("Closing connections")
+
+        tasks = [t for t in asyncio.all_tasks() if t is not
+                 asyncio.current_task()]
+
+        [task.cancel() for task in tasks]
+        await asyncio.gather(*tasks, return_exceptions=True)
+        loop.stop()
+
+    def send_notification(self, message: str, slack_channel: Optional[str] = '#stock-scanner', **kwargs) -> None:
         if self.no_notifications:
             return
 
@@ -54,7 +77,7 @@ class Provider(ABC):
         except SlackApiError as e:
             print(f"Got an error: {e.response['error']}")
 
-    def send_slack_file(self, filename, title, channel: Optional[str] = '#stock-scanner', **kwargs):
+    def send_slack_file(self, filename, title, channel: Optional[str] = '#stock-scanner', **kwargs) -> None:
         client = WebClient(token=os.environ.get('SLACK_TOKEN'))
 
         if self.is_sandbox:
@@ -64,3 +87,16 @@ class Provider(ABC):
             client.files_upload(channels=channel, filename=filename, title=title, **kwargs)
         except SlackApiError as e:
             print(f"Got an error: {e.response['error']}")
+
+    def handle_websocket_exception(self, loop: asyncio.AbstractEventLoop, context) -> None:
+        print('woa')
+        msg = context.get("exception", context["message"])
+        self.logger.error(f"Caught exception: {msg}")
+        self.logger.info("Shutting down...")
+
+        asyncio.create_task(self.shutdown(loop))
+
+    def connect_websocket(self, ticker: str, on_websocket_message: callable) -> None:
+        loop = asyncio.get_event_loop()
+        loop.set_exception_handler(self.handle_websocket_exception)
+        loop.run_until_complete(self.register_websockets(loop, ticker, on_websocket_message))

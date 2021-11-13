@@ -20,6 +20,17 @@ class KuCoin:
         self.logger = logger
 
     async def on_websocket_message(self, message):
+        def get_previous_dataset(dataset_start_time: str) -> list:
+            date = datetime.fromtimestamp(int(dataset_start_time))
+
+            start = date - timedelta(days=1)
+
+            return self.provider.client.get_kline_data(
+                self.ticker,
+                start=start.microsecond,
+                kline_type="1min"
+            )
+
         def handle_candles_add(candle_data):
             self.logger.info('candle added...')
             candles = candle_data['data']['candles']
@@ -27,7 +38,7 @@ class KuCoin:
 
             if self.frames is None:
                 self.logger.info('looking up previous data...')
-                previous = self.get_previous_dataset(start_time)
+                previous = get_previous_dataset(start_time)
 
                 self.frames = pd.concat(
                     [pd.DataFrame(previous, columns=self.KLINE_COLUMNS)],
@@ -66,17 +77,6 @@ class KuCoin:
                 handle_candles_add(message)
         else:
             self.logger.info(message)
-
-    def get_previous_dataset(self, dataset_start_time: str) -> list:
-        date = datetime.fromtimestamp(int(dataset_start_time))
-
-        start = date - timedelta(days=1)
-
-        return self.provider.client.get_kline_data(
-            self.ticker,
-            start=start.microsecond,
-            kline_type="1min"
-        )
 
     def subscribe(self) -> None:
         self.provider.connect_websocket(self.ticker, self.on_websocket_message)
