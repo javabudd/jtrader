@@ -29,7 +29,7 @@ indicators = [
     'coc',
     'adx',
     'obv',
-    'chaikin',
+    'adosc',
     'pairs',
     'lr',
     'volume'
