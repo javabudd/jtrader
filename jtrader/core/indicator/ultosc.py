@@ -38,8 +38,8 @@ class ULTOSC(Indicator):
             if len(chart) <= 1:
                 return
 
-            highest = max(chart[1:])
-            latest = chart.iloc[0]
+            highest = max(chart[:-1])
+            latest = chart.iloc[-1]
 
             if latest > highest:
                 self.result_info['value'] = latest
@@ -51,8 +51,8 @@ class ULTOSC(Indicator):
             if len(chart) <= 1:
                 return
 
-            lowest = min(chart[1:])
-            latest = chart.iloc[0]
+            lowest = min(chart[:-1])
+            latest = chart.iloc[-1]
 
             if latest < lowest:
                 self.result_info['value'] = latest

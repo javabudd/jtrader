@@ -58,8 +58,8 @@ class Indicator(ABC):
 
     @staticmethod
     def has_lower_low(data: DataFrame) -> bool:
-        historical_data = data.iloc[1:]
-        quote_data = data.iloc[0]
+        historical_data = data.iloc[-2]
+        quote_data = data.iloc[-1]
 
         if historical_data['low'] is None or len(historical_data['low']) == 0:
             return False
@@ -70,8 +70,8 @@ class Indicator(ABC):
 
     @staticmethod
     def has_lower_high(data: DataFrame) -> bool:
-        historical_data = data.iloc[1:]
-        quote_data = data.iloc[0]
+        historical_data = data.iloc[-2]
+        quote_data = data.iloc[-1]
 
         if historical_data['high'] is None or len(historical_data['high']) == 0:
             return False
@@ -82,8 +82,8 @@ class Indicator(ABC):
 
     @staticmethod
     def has_higher_low(data: DataFrame = None) -> bool:
-        historical_data = data.iloc[1:]
-        quote_data = data.iloc[0]
+        historical_data = data.iloc[-2]
+        quote_data = data.iloc[-1]
 
         if historical_data['low'] is None or len(historical_data['low']) == 0:
             return False
@@ -94,8 +94,8 @@ class Indicator(ABC):
 
     @staticmethod
     def has_higher_high(data: DataFrame = None) -> bool:
-        historical_data = data.iloc[1:]
-        quote_data = data.iloc[0]
+        historical_data = data.iloc[-2]
+        quote_data = data.iloc[-1]
 
         if historical_data['high'] is None or len(historical_data['high']) == 0:
             return False

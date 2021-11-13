@@ -1,6 +1,6 @@
 from .adx import ADX
 from .apo import APO
-from .chaikin import Chaikin
+from .adosc import ADOSC
 from .linear_regression import LinearRegression
 from .macd import MACD
 from .obv import OBV
@@ -13,7 +13,7 @@ __INDICATORS__ = [
     ULTOSC,
     RSI,
     MACD,
-    Chaikin,
+    ADOSC,
     ADX,
     OBV,
     LinearRegression,
@@ -25,7 +25,7 @@ __INDICATOR_MAP__ = {
     'ultosc': ULTOSC,
     'rsi': RSI,
     'macd': MACD,
-    'chaikin': Chaikin,
+    'adosc': ADOSC,
     'adx': ADX,
     'obv': OBV,
     'lr': LinearRegression,

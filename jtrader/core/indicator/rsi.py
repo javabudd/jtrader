@@ -47,7 +47,7 @@ class RSI(Indicator):
 
             return
 
-        last_rsi = rsi.iloc[0]
+        last_rsi = rsi.iloc[-1]
 
         if last_rsi < 30:
             return self.BULLISH

@@ -44,7 +44,7 @@ class APO(Indicator):
     def signals_bullish(self, data, apo_chart):
         if self.has_lower_low(data):
             highest_apo_low = max(apo_chart[:-self.fast_period])
-            latest_apo_low = apo_chart.iloc[0]
+            latest_apo_low = apo_chart.iloc[-1]
 
             if latest_apo_low > highest_apo_low:
                 return True
@@ -54,7 +54,7 @@ class APO(Indicator):
     def signals_bearish(self, data, apo_chart):
         if self.has_higher_high(data):
             lowest_apo_high = min(apo_chart[:-self.fast_period])
-            latest_apo_high = apo_chart.iloc[0]
+            latest_apo_high = apo_chart.iloc[-1]
 
             if latest_apo_high < lowest_apo_high:
                 return True

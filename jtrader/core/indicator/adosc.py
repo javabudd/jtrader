@@ -3,7 +3,7 @@ import talib
 from jtrader.core.indicator.indicator import Indicator
 
 
-class Chaikin(Indicator):
+class ADOSC(Indicator):
     """
     The Chaikin Oscillator is essentially a momentum indicator, but of the Accumulation-Distribution line rather than
     merely price. It looks at both the strength of price moves and the underlying buying and selling pressure during a
@@ -52,13 +52,13 @@ class Chaikin(Indicator):
         diff = data['close'].astype(float).diff()
 
         # downward price action
-        if diff[0] < diff[1] < diff[2] and diff[3] > 0 and diff[4] > 0 and diff[5] > 0:
-            if adosc.iloc[1] > 0 and adosc.iloc[0] < 0:
+        if diff.iloc[-3:].sum() < 0 and diff.iloc[-6: -3].sum() > 0:
+            if adosc.iloc[-2] > 0 and adosc.iloc[-1] < 0:
                 return self.BEARISH
 
         # upward price action
-        if diff[0] > diff[1] > diff[2] and diff[3] < 0 and diff[4] < 0 and diff[5] < 0:
-            if adosc.iloc[1] < 20 and adosc.iloc[0] > 20:
+        if diff.iloc[-3:].sum() > 0 and diff.iloc[-6: -3].sum() < 0:
+            if adosc.iloc[-2] < 20 and adosc.iloc[-1] > 20:
                 return self.BULLISH
 
         return

@@ -49,13 +49,13 @@ class ADX(Indicator):
 
             return
 
-        last_adx: float = adx.iloc[0]
-        if plus_di.iloc[1] < minus_di.iloc[1] and plus_di.iloc[0] > minus_di.iloc[0] and last_adx >= 25:
+        last_adx: float = adx.iloc[-1]
+        if plus_di.iloc[-2] < minus_di.iloc[-2] and plus_di.iloc[-1] > minus_di.iloc[-1] and last_adx >= 25:
             self.result_info['adx'] = round(last_adx, 2)
 
             return self.BULLISH
 
-        if minus_di.iloc[1] < plus_di.iloc[1] and minus_di.iloc[0] > plus_di.iloc[0] and last_adx >= 25:
+        if minus_di.iloc[-2] < plus_di.iloc[-2] and minus_di.iloc[-1] > plus_di.iloc[-1] and last_adx >= 25:
             self.result_info['adx'] = round(last_adx, 2)
 
             return self.BEARISH

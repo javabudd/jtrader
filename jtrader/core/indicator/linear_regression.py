@@ -35,7 +35,7 @@ class LinearRegression(Indicator):
             pred = reg.predict(x_test)
             close = data['close'].astype(float).iloc[0]
 
-            predicted_fifth_day = pred[4][0]
+            predicted_fifth_day = pred[-5][0]
             if predicted_fifth_day > close + (close * .02):
                 self.result_info['prediction'] = round(predicted_fifth_day, 2)
 

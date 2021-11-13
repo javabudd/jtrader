@@ -29,13 +29,13 @@ class VWAP(Indicator):
         regression = self.clean_dataframe(regression)
         standard = self.clean_dataframe(standard)
 
-        last_regression = Decimal(regression.iloc[0])
-        last_standard = Decimal(standard.iloc[0])
+        last_regression = Decimal(regression.iloc[-1])
+        last_standard = Decimal(standard.iloc[-1])
 
         upper_region = last_regression + last_standard
         lower_region = last_regression - last_standard
 
-        if vwap_df.iloc[0] > upper_region:
+        if vwap_df.iloc[-1] > upper_region:
             return self.BEARISH
-        elif vwap_df.iloc[0] < lower_region:
+        elif vwap_df.iloc[-1] < lower_region:
             return self.BULLISH
