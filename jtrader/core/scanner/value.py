@@ -53,7 +53,7 @@ class Value(IEX):
 
             for symbol in symbol_string.split(','):
                 if data[symbol]['quote']['close'] is None:
-                    print('Could not get closing price for %s' % symbol)
+                    self.logger.warning('Could not get closing price for %s' % symbol)
                     continue
 
                 pe_ratio = data[symbol]['quote']['peRatio']
