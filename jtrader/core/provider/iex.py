@@ -24,6 +24,9 @@ class IEX(Provider):
 
         self.client_prop = IEXClient.Client(token, version)
 
+    async def register_websockets(self, loop, ticker: str) -> None:
+        return
+
     def chart(self, stock: str, timeframe: str) -> dict:
         return self.client.stocks.chart(stock, timeframe=timeframe)
 

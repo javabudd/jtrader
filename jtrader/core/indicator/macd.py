@@ -29,23 +29,26 @@ class MACD(Indicator):
         return 'MACD'
 
     def is_valid(self, data, comparison_data=None):
-        try:
-            macd, signal_line, histogram = talib.MACD(
-                data['close'],
-                fastperiod=self.fast_period,
-                slowperiod=self.slow_period,
-                signalperiod=self.signal_period
-            )
-        except Exception:
-            return
+        macd, signal_line, histogram = talib.MACD(
+            data['close'],
+            fastperiod=self.fast_period,
+            slowperiod=self.slow_period,
+            signalperiod=self.signal_period
+        )
 
         if len(macd) <= 1 or len(signal_line) <= 1:
             self.log_invalid_chart_length()
 
             return
 
-        # @TODO This needs a more robust divergence check
-        if macd.iloc[-1] > signal_line.iloc[-1]:
+        if macd.iloc[-1] > signal_line.iloc[-1] and \
+                macd.iloc[-2] < signal_line.iloc[-2] and \
+                macd.iloc[-3] < signal_line.iloc[-3]:
             return self.BULLISH
+
+        if macd.iloc[-1] < signal_line.iloc[-1] and \
+                macd.iloc[-2] > signal_line.iloc[-2] and \
+                macd.iloc[-3] > signal_line.iloc[-3]:
+            return self.BEARISH
 
         return

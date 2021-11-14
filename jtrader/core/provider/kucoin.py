@@ -25,13 +25,12 @@ class KuCoin(Provider):
             is_sandbox
         )
 
-    def chart(self, stock: str, timeframe: str) -> dict:
-        return {}
-
-    def symbols(self) -> dict:
-        return {}
-
-    async def main(self, loop, ticker: str, on_websocket_message: callable) -> None:
+    async def register_websockets(
+            self,
+            loop: asyncio.AbstractEventLoop,
+            ticker: str,
+            on_websocket_message: callable
+    ) -> None:
         ksm = await KucoinSocketManager.create(loop, self.client, on_websocket_message)
 
         await ksm.subscribe(f"/market/candles:{ticker}_1min")
@@ -39,6 +38,8 @@ class KuCoin(Provider):
         while True:
             await asyncio.sleep(20, loop=loop)
 
-    def connect_websocket(self, ticker: str, on_websocket_message: callable) -> None:
-        loop = asyncio.get_event_loop()
-        loop.run_until_complete(self.main(loop, ticker, on_websocket_message))
+    def chart(self, stock: str, timeframe: str) -> dict:
+        return {}
+
+    def symbols(self) -> dict:
+        return {}

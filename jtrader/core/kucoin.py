@@ -1,4 +1,3 @@
-import time
 from datetime import datetime, timedelta
 
 import pandas as pd
@@ -21,6 +20,17 @@ class KuCoin:
         self.logger = logger
 
     async def on_websocket_message(self, message):
+        def get_previous_dataset() -> list:
+            date = datetime.utcnow()
+
+            start = date - timedelta(days=1)
+
+            return self.provider.client.get_kline_data(
+                self.ticker,
+                start=start.microsecond,
+                kline_type="1min"
+            )
+
         def handle_candles_add(candle_data):
             candles = candle_data['data']['candles']
             start_time = candles[0]
@@ -28,7 +38,7 @@ class KuCoin:
 
             if self.frames is None:
                 self.logger.info('looking up previous data...')
-                previous = self.get_previous_dataset()
+                previous = get_previous_dataset()
 
                 self.frames = pd.concat(
                     [pd.DataFrame(previous, columns=self.KLINE_COLUMNS)],
@@ -56,12 +66,7 @@ class KuCoin:
             chain = Chain(self.ticker, __INDICATOR_MAP__['all'])
 
             for validator in chain.get_validation_chain(True):
-                try:
-                    is_valid = validator.is_valid(self.frames)
-                except Exception as e:
-                    self.logger.error(validator.get_name())
-
-                    continue
+                is_valid = validator.is_valid(self.frames)
 
                 if is_valid is not None:
                     if is_valid == Indicator.BULLISH:
@@ -74,17 +79,6 @@ class KuCoin:
                 handle_candles_add(message)
         else:
             self.logger.info(message)
-
-    def get_previous_dataset(self) -> list:
-        date = datetime.utcnow()
-
-        start = date - timedelta(days=1)
-
-        return self.provider.client.get_kline_data(
-            self.ticker,
-            start=int(time.mktime(start.timetuple())),
-            kline_type="1min"
-        )
 
     def subscribe(self) -> None:
         self.provider.connect_websocket(self.ticker, self.on_websocket_message)
