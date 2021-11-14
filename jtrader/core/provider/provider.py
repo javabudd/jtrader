@@ -75,7 +75,7 @@ class Provider(ABC):
         try:
             client.chat_postMessage(channel=slack_channel, text=message, **kwargs)
         except SlackApiError as e:
-            print(f"Got an error: {e.response['error']}")
+            self.logger.error(f"Got an error: {e.response['error']}")
 
     def send_slack_file(self, filename, title, channel: Optional[str] = '#stock-scanner', **kwargs) -> None:
         client = WebClient(token=os.environ.get('SLACK_TOKEN'))
@@ -86,10 +86,11 @@ class Provider(ABC):
         try:
             client.files_upload(channels=channel, filename=filename, title=title, **kwargs)
         except SlackApiError as e:
-            print(f"Got an error: {e.response['error']}")
+            self.logger.error(f"Got an error: {e.response['error']}")
 
     def handle_websocket_exception(self, loop: asyncio.AbstractEventLoop, context) -> None:
         msg = context.get("exception", context["message"])
+
         self.logger.error(f"Caught exception: {msg}")
         self.logger.info("Shutting down...")
 
