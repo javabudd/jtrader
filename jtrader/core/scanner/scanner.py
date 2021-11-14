@@ -78,8 +78,6 @@ class Scanner(IEX):
                 )
             )
 
-            data = data.iloc[::-1].reset_index(drop=True)
-
             if data.empty:
                 self.logger.debug(f"Retrieved empty data set for stock {stock['symbol']}")
 
