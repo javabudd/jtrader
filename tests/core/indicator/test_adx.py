@@ -11,9 +11,69 @@ def test_get_name():
 
 def test_is_valid_returns_bearish():
     adx = ADX('fooBar')
+    price = 150
+    data = pd.DataFrame(
+        {
+            "high": price + (x / 1.5),
+            "low": price - (x / 1.5),
+            "close": price + (x / 1.5)
+        } for x in range(1, 50)
+    )
 
-    closes = []
+    last = data.iloc[-1]['close']
 
-    data = pd.DataFrame({"high": x, "low": x - 1, "close": x} for x in range(100, 200))
+    offset = 4
+    data = data.append(
+        {
+            "high": last + offset,
+            "low": last + offset,
+            "close": last + offset
+        },
+        ignore_index=True
+    )
+
+    data = data.append(
+        {
+            "high": last - offset,
+            "low": last - offset,
+            "close": last - offset
+        },
+        ignore_index=True
+    )
 
     assert adx.is_valid(data) is ADX.BEARISH
+
+
+def test_is_valid_returns_bullish():
+    adx = ADX('fooBar')
+    price = 150
+    data = pd.DataFrame(
+        {
+            "high": price + (x / 1.5),
+            "low": price - (x / 1.5),
+            "close": price + (x / 1.5)
+        } for x in range(1, 50)
+    )
+
+    last = data.iloc[-1]['close']
+
+    offset = 4
+    data = data.append(
+        {
+            "high": last - offset,
+            "low": last - offset,
+            "close": last - offset
+        },
+        ignore_index=True
+    )
+
+    data = data.append(
+        {
+            "high": last + offset,
+            "low": last + offset,
+            "close": last + offset
+        },
+        ignore_index=True
+    )
+
+    assert adx.is_valid(data) is ADX.BULLISH
