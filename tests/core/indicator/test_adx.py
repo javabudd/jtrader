@@ -4,9 +4,9 @@ from jtrader.core.indicator.adx import ADX
 
 
 def test_get_name():
-    rsi = ADX('fooBar')
+    adx = ADX('fooBar')
 
-    assert rsi.get_name() is 'ADX'
+    assert adx.get_name() is 'ADX'
 
 
 def test_is_valid_returns_bearish():
