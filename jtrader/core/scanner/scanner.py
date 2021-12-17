@@ -96,7 +96,7 @@ class Scanner(IEX):
         for chunk in chunked:
             thread_name = f"Thread-{i}"
             """ @thread """
-            thread = spawn_thread(self.loop, True, False, args=(thread_name, chunk), daemon=True)
+            thread = spawn_thread(self.intraday_loop, True, False, args=(thread_name, chunk), daemon=True)
             threads.append(thread)
             i += 1
 
@@ -106,7 +106,7 @@ class Scanner(IEX):
                     threads.remove(thread)
                 thread.join(1)
 
-    def loop(self, thread_name, chunk):
+    def intraday_loop(self, thread_name, chunk):
         sleep = .2
 
         if self.is_sandbox:
@@ -121,15 +121,13 @@ class Scanner(IEX):
 
     def init_indicators(self, ticker: str, data=None):
         period = 'swing'
-        if self.as_intraday:
+        if self.as_intraday and data is None:
             period = 'intraday'
-            if data is None:
-                data = self.client.stocks.intradayDF(ticker, IEXOnly=True)
+            data = self.client.stocks.intradayDF(ticker, IEXOnly=True)
+            if 'close' not in data:
+                self.logger.error(f"{ticker} Could not find closing intraday")
 
-                if 'close' not in data:
-                    self.logger.error(f"{ticker} Could not find closing intraday")
-
-                    return False
+                return False
 
         args = {"logger": self.logger}
         if len(self.indicators) > 1:
