@@ -1,6 +1,8 @@
 import os
 from typing import Optional
+from typing import Union
 
+import pandas as pd
 import pyEX as IEXClient
 from cement.core.log import LogInterface
 
@@ -32,3 +34,15 @@ class IEX(Provider):
 
     def symbols(self) -> dict:
         return self.client.refdata.iexSymbols()
+
+    def technicals(
+            self,
+            stock: str,
+            indicator_name: str,
+            timeframe: str,
+            as_dataframe=False
+    ) -> Union[dict, pd.DataFrame]:
+        if as_dataframe:
+            return self.client.stocks.technicalsDF(stock, indicator_name, range=timeframe)
+
+        return self.client.stock.technicals(stock, indicator_name, range=timeframe)

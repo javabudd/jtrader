@@ -1,17 +1,23 @@
 from pathlib import Path
+from typing import Union
 
 import pandas as pd
 from sklearn import metrics
 from sklearn.linear_model import LinearRegression
 from sklearn.model_selection import train_test_split
 
+from jtrader.core.provider.iex import IEX
+
 API_RESULT_FOLDER = 'data'
 MODEL_FOLDER = 'models'
 
 
-class ML():
+class ML:
+    def __init__(self, iex_provider: IEX):
+        self.client = iex_provider
+
     @staticmethod
-    def save_api_result(api_result, name):
+    def save_api_result(api_result, name) -> None:
         try:
             Path(API_RESULT_FOLDER).mkdir(exist_ok=True, parents=True)
         except Exception as ex:
@@ -19,16 +25,16 @@ class ML():
         pd.to_pickle(api_result, f"{API_RESULT_FOLDER}/{name}.pkl")
 
     @staticmethod
-    def load_api_result(name):
+    def load_api_result(name) -> Union[None, pd.DataFrame]:
         path = Path(f"{API_RESULT_FOLDER}/{name}.pkl")
         if path.is_file():
             model = pd.read_pickle(f"{API_RESULT_FOLDER}/{name}.pkl")
         else:
-            model = False
+            model = None
         return model
 
     @staticmethod
-    def save_model(model, name):
+    def save_model(model, name: str) -> None:
         try:
             Path(MODEL_FOLDER).mkdir(exist_ok=True, parents=True)
         except Exception as ex:
@@ -36,36 +42,25 @@ class ML():
         pd.to_pickle(model, f"{MODEL_FOLDER}/{name}.pkl")
 
     @staticmethod
-    def load_model(name):
-        path = Path(f"{MODEL_FOLDER}/{name}.pkl")
+    def load_model(name: str) -> Union[None, pd.DataFrame]:
+        path = Path(name)
         if path.is_file():
-            model = pd.read_pickle(f"{MODEL_FOLDER}/{name}.pkl")
+            model = pd.read_pickle(f"{name}")
         else:
-            model = False
+            model = None
         return model
 
-    def optimize_machine_learning_params(self):
+    def optimize_machine_learning_params(self) -> None:
         # optuna
         pass
 
-    def run_machine_learning(self):
+    def run_trainer(self):
         indicators = {
             'abs': 'abs',
             'acos': 'acos',
             'ad': 'ad',
             'add': 'add',
             'ema': 'ema'
-        }
-
-        params = {
-            # "boosting_type": "goss",
-            # "n_estimators": 1842,
-            # "learning_rate": 0.026520287506337205,
-            # "num_leaves": 6,
-            # "max_depth": 5,
-            # "feature_fraction": 0.10866666339142045,
-            # "bagging_fraction": 0.0178426564762887,
-            # "min_data_in_leaf": 270
         }
 
         ticker = 'MSFT'
@@ -76,18 +71,18 @@ class ML():
 
         api_result = self.load_api_result(api_result_name)
 
-        if not api_result:
+        if api_result is None:
             print('creating new api result...')
 
-            data = self.client.stocks.technicalsDF(
-                'MSFT',
+            data = self.client.technicals(
+                ticker,
                 indicator_name,
-                range=timeframe
+                timeframe, True
             ).sort_values(by='date', ascending=True)
 
-            self.save_api_result({"data": data}, api_result_name)
+            self.save_api_result(data, api_result_name)
         else:
-            data = api_result['data']
+            data = api_result
 
         model_name = f"{ticker}_{indicator_name}_{timeframe}"
 
@@ -105,10 +100,10 @@ class ML():
             random_state=0
         )
 
-        if not model:
+        if model is None:
             print('creating new model...')
 
-            model = LinearRegression(**params)
+            model = LinearRegression(**{})
 
             model.fit(x_train, y_train)
 
@@ -120,15 +115,24 @@ class ML():
         mean_squared_error = metrics.mean_squared_error(y_test, predicted_test_data)
         r_squared = metrics.r2_score(y_test, predicted_test_data)
 
-        prediction = [
-            [324.9, 35034831]
-        ]
+        print(
+            {
+                "Model": model_name,
+                "Absolute Error": absolute_error,
+                "Mean Squared Error": mean_squared_error,
+                "R Squared": r_squared
+            }
+        )
+
+    def run_machine_learning(self, model_name: str, prediction: list) -> None:
+        model = self.load_model(model_name)
+
+        if model is None:
+            print('can not load given model')
+            return
 
         print(
             {
-                "Absolute Error": absolute_error,
-                "Mean Squared Error": mean_squared_error,
-                "R Squared": r_squared,
                 "Prediction": model.predict(prediction)
             }
         )

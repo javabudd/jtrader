@@ -3,6 +3,7 @@ from cement.utils.version import get_version_banner
 
 from jtrader.core.backtester import Backtester
 from jtrader.core.kucoin import KuCoin
+from jtrader.core.ml import ML
 from jtrader.core.news import News
 from jtrader.core.pairs import Pairs
 from jtrader.core.provider.iex import IEX
@@ -313,6 +314,46 @@ class Base(Controller):
             as_intraday=False,
             no_notifications=self.app.pargs.no_notifications
         ).run()
+
+    @ex(
+        help='Start ML Trainer',
+        arguments=[],
+    )
+    def start_ml_trainer(self):
+        """Start ML Command"""
+        ML(self.get_iex_provider(False)).run_trainer()
+
+    @ex(
+        help='Start ML Predictor',
+        arguments=[
+            (
+                    ['-p', '--predictions'],
+                    {
+                        'help': 'the prediction list',
+                        'action': 'append',
+                        'dest': 'predictions',
+                        'required': True,
+                        'nargs': '+',
+                        'type': float
+                    }
+            ),
+            (
+                    ['-m', '--model'],
+                    {
+                        'help': 'the model to use',
+                        'action': 'store',
+                        'dest': 'model',
+                        'required': True,
+                        'nargs': '+',
+                        'type': str
+                    }
+            ),
+        ],
+    )
+    def start_ml(self):
+        """Start ML Command"""
+
+        ML(self.get_iex_provider(False)).run_machine_learning(self.app.pargs.model[0], self.app.pargs.predictions)
 
     @ex(
         help='Run a backtest',
