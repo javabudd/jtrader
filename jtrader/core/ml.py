@@ -54,20 +54,8 @@ class ML:
         # optuna
         pass
 
-    def run_trainer(self):
-        indicators = {
-            'abs': 'abs',
-            'acos': 'acos',
-            'ad': 'ad',
-            'add': 'add',
-            'ema': 'ema'
-        }
-
-        ticker = 'MSFT'
-        indicator_name = indicators['ema']
-        timeframe = '5y'
-
-        api_result_name = f"{ticker}_{indicator_name}_{timeframe}"
+    def run_trainer(self, stock: str, indicator_name: str, timeframe: str = '5y'):
+        api_result_name = f"{stock}_{indicator_name}_{timeframe}"
 
         api_result = self.load_api_result(api_result_name)
 
@@ -75,7 +63,7 @@ class ML:
             print('creating new api result...')
 
             data = self.client.technicals(
-                ticker,
+                stock,
                 indicator_name,
                 timeframe, True
             ).sort_values(by='date', ascending=True)
@@ -84,7 +72,7 @@ class ML:
         else:
             data = api_result
 
-        model_name = f"{ticker}_{indicator_name}_{timeframe}"
+        model_name = f"{stock}_{indicator_name}_{timeframe}"
 
         model = self.load_model(indicator_name)
 

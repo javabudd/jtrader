@@ -317,11 +317,31 @@ class Base(Controller):
 
     @ex(
         help='Start ML Trainer',
-        arguments=[],
+        arguments=[
+            (
+                    ['-t', '--ticker'],
+                    {
+                        'help': 'Ticker to process',
+                        'action': 'store',
+                        'dest': 'ticker',
+                        'required': True
+                    }
+            ),
+            (
+                    ['-f', '--feature'],
+                    {
+                        'help': 'which feature to train against',
+                        'action': 'store',
+                        'dest': 'feature',
+                        'choices': IEX.IEX_TECHNICAL_INDICATORS,
+                        'required': True
+                    }
+            ),
+        ],
     )
     def start_ml_trainer(self):
         """Start ML Command"""
-        ML(self.get_iex_provider(False)).run_trainer()
+        ML(self.get_iex_provider(False)).run_trainer(self.app.pargs.ticker, self.app.pargs.feature)
 
     @ex(
         help='Start ML Predictor',
