@@ -78,7 +78,10 @@ class ML:
 
         training_columns = [
             indicator_name,
-            'volume'
+            'volume',
+            'high',
+            'low',
+            'open',
         ]
 
         x_train, x_test, y_train, y_test = train_test_split(
