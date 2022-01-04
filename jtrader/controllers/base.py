@@ -1,8 +1,11 @@
+import logging
+
 from cement import Controller, ex
 from cement.utils.version import get_version_banner
 
 from jtrader.core.backtester import Backtester
 from jtrader.core.kucoin import KuCoin
+from jtrader.core.ml import ALGORITHMS
 from jtrader.core.ml import ML
 from jtrader.core.news import News
 from jtrader.core.pairs import Pairs
@@ -38,6 +41,10 @@ indicators = [
 
 
 class Base(Controller):
+    logging.basicConfig(
+        format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO
+    )
+
     class Meta:
         label = 'base'
         description = 'Trade them thangs'
@@ -328,20 +335,41 @@ class Base(Controller):
                     }
             ),
             (
-                    ['-f', '--feature'],
+                    ['-a', '--algorithm'],
                     {
-                        'help': 'which feature to train against',
+                        'help': 'which algorithm to use',
                         'action': 'store',
-                        'dest': 'feature',
-                        'choices': IEX.IEX_TECHNICAL_INDICATORS,
+                        'dest': 'algorithm',
+                        'choices': ALGORITHMS,
                         'required': True
+                    }
+            ),
+            (
+                    ['--with-aws'],
+                    {
+                        'help': 'use AWS to train',
+                        'action': 'store_true',
+                        'dest': 'with_aws'
+                    }
+            ),
+            (
+                    ['--with-numerai'],
+                    {
+                        'help': 'use Numerai to train/populate',
+                        'action': 'store_true',
+                        'dest': 'with_numerai'
                     }
             ),
         ],
     )
     def start_ml_trainer(self):
-        """Start ML Command"""
-        ML(self.get_iex_provider(False)).run_trainer(self.app.pargs.ticker, self.app.pargs.feature)
+        """Start ML Trainer Command"""
+        ML(self.get_iex_provider(False)).run_trainer(
+            self.app.pargs.ticker,
+            self.app.pargs.algorithm,
+            self.app.pargs.with_aws,
+            self.app.pargs.with_numerai
+        )
 
     @ex(
         help='Start ML Predictor',
@@ -370,10 +398,10 @@ class Base(Controller):
             ),
         ],
     )
-    def start_ml(self):
-        """Start ML Command"""
+    def start_ml_predictor(self):
+        """Start ML Predictor Command"""
 
-        ML(self.get_iex_provider(False)).run_machine_learning(self.app.pargs.model[0], self.app.pargs.predictions)
+        ML(self.get_iex_provider(False)).run_predictor(self.app.pargs.model[0], self.app.pargs.predictions)
 
     @ex(
         help='Run a backtest',

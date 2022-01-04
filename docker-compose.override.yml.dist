@@ -12,6 +12,7 @@ services:
       - AWS_DEFAULT_REGION=us-west-2
       - AWS_ACCESS_KEY_ID=
       - AWS_SECRET_ACCESS_KEY=
+      - AWS_ML_EXECUTION_ROLE=
       - IEX_CLOUD_API_TOKEN=
       - IEX_CLOUD_SANDBOX_API_TOKEN=
       - SLACK_TOKEN=

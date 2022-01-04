@@ -1,15 +1,16 @@
 from pathlib import Path
 from typing import Union
 
+import numpy as np
 import pandas as pd
-from sklearn import metrics
-from sklearn.linear_model import LinearRegression
-from sklearn.model_selection import train_test_split
 
+import jtrader.core.machine_learning as ml
 from jtrader.core.provider.iex import IEX
 
 API_RESULT_FOLDER = 'data'
-MODEL_FOLDER = 'models'
+ALGORITHMS = [
+    'linear-learner'
+]
 
 
 class ML:
@@ -34,14 +35,6 @@ class ML:
         return model
 
     @staticmethod
-    def save_model(model, name: str) -> None:
-        try:
-            Path(MODEL_FOLDER).mkdir(exist_ok=True, parents=True)
-        except Exception as ex:
-            pass
-        pd.to_pickle(model, f"{MODEL_FOLDER}/{name}.pkl")
-
-    @staticmethod
     def load_model(name: str) -> Union[None, pd.DataFrame]:
         path = Path(name)
         if path.is_file():
@@ -54,68 +47,78 @@ class ML:
         # optuna
         pass
 
-    def run_trainer(self, stock: str, indicator_name: str, timeframe: str = '5y'):
-        api_result_name = f"{stock}_{indicator_name}_{timeframe}"
-
-        api_result = self.load_api_result(api_result_name)
-
-        if api_result is None:
-            print('creating new api result...')
-
-            data = self.client.technicals(
-                stock,
-                indicator_name,
-                timeframe, True
-            ).sort_values(by='date', ascending=True)
-
-            self.save_api_result(data, api_result_name)
+    def run_trainer(
+            self,
+            stock: str,
+            training_algorithm: str,
+            with_aws: bool = False,
+            with_numerai: bool = False,
+            timeframe: str = '5y'
+    ):
+        if with_numerai:
+            data_loader = ml.numerai.NumeraiDataLoader(local_data_location="training_data.parquet")
         else:
-            data = api_result
+            combined = pd.DataFrame()
+            for indicator_name in self.client.IEX_TECHNICAL_INDICATORS:
+                api_result_name = f"{stock}_{indicator_name}_{timeframe}"
 
-        model_name = f"{stock}_{indicator_name}_{timeframe}"
+                api_result = self.load_api_result(api_result_name)
 
-        model = self.load_model(indicator_name)
+                if api_result is None:
+                    print(f"creating new api result for {indicator_name} indicator...")
 
-        training_columns = [
-            indicator_name,
-            'volume',
-            'high',
-            'low',
-            'open',
-        ]
+                    data = self.client.technicals(
+                        stock,
+                        indicator_name,
+                        timeframe, True
+                    ).sort_values(by='date', ascending=True)
 
-        x_train, x_test, y_train, y_test = train_test_split(
-            data[training_columns].values,
-            data['close'].values,
-            test_size=0.2,
-            random_state=0
-        )
+                    self.save_api_result(data, api_result_name)
+                else:
+                    data = api_result
 
-        if model is None:
-            print('creating new model...')
+                if len(combined) == 0:
+                    data.drop(
+                        [
+                            'symbol',
+                            'label',
+                            'subkey',
+                            'updated',
+                            'key',
+                            'id',
+                        ],
+                        axis=1,
+                        inplace=True
+                    )
+                    combined = data
+                else:
+                    if indicator_name in self.client.SPECIAL_INDICATORS:
+                        indicator_name = self.client.SPECIAL_INDICATORS[indicator_name]
 
-            model = LinearRegression(**{})
+                    combined = pd.concat([combined, data[indicator_name].astype('float32')], axis=1)
 
-            model.fit(x_train, y_train)
+            combined.replace([np.inf, -np.inf, np.nan], 0, inplace=True)
+            combined.sort_index(inplace=True, ascending=True)
+            combined.reset_index(level=0, inplace=True)
+            combined['date'] = combined['date'].astype(np.int64) / 1000000
 
-            self.save_model(model, model_name)
+            data_loader = ml.local.LocalDataLoader(['close'], data=combined)
 
-        predicted_test_data = model.predict(x_test)
+        if with_aws:
+            sagemaker = ml.aws.Sagemaker()
+            linear = ml.aws.LinearAwsLinearLearner(data=data_loader, aws_executor=sagemaker)
 
-        absolute_error = metrics.mean_absolute_error(y_test, predicted_test_data)
-        mean_squared_error = metrics.mean_squared_error(y_test, predicted_test_data)
-        r_squared = metrics.r2_score(y_test, predicted_test_data)
+            linear.train()
+        else:
+            local_trainer = ml.local.LocalLinearLearner(
+                data=data_loader,
+                stock=stock,
+                timeframe=timeframe
+            )
 
-        print(
-            {
-                "Model": model_name,
-                "Absolute Error": absolute_error,
-                "Mean Squared Error": mean_squared_error,
-                "R Squared": r_squared
-            }
-        )
+            local_trainer.train()
 
-    def run_machine_learning(self, model_name: str, prediction: list) -> None:
+    def run_predictor(self, model_name: str, prediction: list) -> None:
         model = self.load_model(model_name)
 
         if model is None:
