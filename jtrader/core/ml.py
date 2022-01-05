@@ -7,7 +7,7 @@ import pandas as pd
 import jtrader.core.machine_learning as ml
 from jtrader.core.provider.iex import IEX
 
-API_RESULT_FOLDER = 'data'
+API_RESULT_FOLDER = 'provider_data'
 ALGORITHMS = [
     'linear-learner'
 ]
@@ -102,7 +102,9 @@ class ML:
             combined.reset_index(level=0, inplace=True)
             combined['date'] = combined['date'].astype(np.int64) / 1000000
 
-            data_loader = ml.local.LocalDataLoader(['close'], data=combined)
+            combined.rename(columns={"date": "ds", "close": "y"}, inplace=True)
+
+            data_loader = ml.local.LocalDataLoader([], data=combined)
 
         if with_aws:
             sagemaker = ml.aws.Sagemaker()
@@ -124,6 +126,8 @@ class ML:
         if model is None:
             print('can not load given model')
             return
+
+        prediction = model.make_future_dataframe(periods=365, include_history=False)
 
         print(
             {
