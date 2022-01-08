@@ -1,8 +1,9 @@
 from pathlib import Path
-from typing import Union
+from typing import Union, Optional
 
+import numpy as np
 import pandas as pd
-from sklearn.linear_model import LinearRegression
+from fbprophet import Prophet
 
 from jtrader.core.machine_learning.base_model import BaseModel
 
@@ -35,22 +36,20 @@ class LocalLinearLearner(BaseModel):
             pass
         pd.to_pickle(model, f"{MODEL_FOLDER}/{name}.pkl")
 
-    def train(self) -> None:
-        y_train = self.data.train_data.loc[:, self.data.output_column]
-        x_train = self.data.train_data.loc[:, self.data.feature_columns]
+    def train(self, regressors: Optional[dict] = None) -> Prophet:
+        model = Prophet(daily_seasonality=True)
+        data = self.data.data
 
-        model_name = f"{self.stock}_{self.name}_{self.timeframe}"
+        if regressors is not None:
+            for regressor_name in regressors.keys():
+                model.add_regressor(regressor_name)
+                data[regressor_name] = regressors[regressor_name]
 
-        model = self.load_model(model_name)
+        data.replace([np.inf, -np.inf, np.nan], 0, inplace=True)
 
-        if not model:
-            print('creating new model...')
+        model.fit(data)
 
-            model = LinearRegression(**{})
-
-            model.fit(x_train, y_train)
-
-            self.save_model(model, model_name)
+        return model
 
     def tune(self) -> None:
         pass
@@ -67,6 +66,4 @@ class LocalLinearLearner(BaseModel):
         return model
 
     def execute_prediction(self, data: pd.DataFrame, name: str = "test") -> pd.DataFrame:
-        print('asdf')
-        exit()
         return pd.DataFrame(self._model.predict(data))

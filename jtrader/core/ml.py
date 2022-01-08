@@ -8,6 +8,7 @@ import jtrader.core.machine_learning as ml
 from jtrader.core.provider.iex import IEX
 
 API_RESULT_FOLDER = 'provider_data'
+PREDICTION_FOLDER = 'predictions'
 ALGORITHMS = [
     'linear-learner'
 ]
@@ -26,6 +27,14 @@ class ML:
         pd.to_pickle(api_result, f"{API_RESULT_FOLDER}/{name}.pkl")
 
     @staticmethod
+    def save_prediction_result(prediction, name) -> None:
+        try:
+            Path(PREDICTION_FOLDER).mkdir(exist_ok=True, parents=True)
+        except Exception as ex:
+            pass
+        pd.to_pickle(prediction, f"{PREDICTION_FOLDER}/{name}.pkl")
+
+    @staticmethod
     def load_api_result(name) -> Union[None, pd.DataFrame]:
         path = Path(f"{API_RESULT_FOLDER}/{name}.pkl")
         if path.is_file():
@@ -33,6 +42,15 @@ class ML:
         else:
             model = None
         return model
+
+    @staticmethod
+    def load_prediction_result(name) -> Union[None, pd.DataFrame]:
+        path = Path(f"{PREDICTION_FOLDER}/{name}.pkl")
+        if path.is_file():
+            prediction = pd.read_pickle(f"{PREDICTION_FOLDER}/{name}.pkl")
+        else:
+            prediction = None
+        return prediction
 
     @staticmethod
     def load_model(name: str) -> Union[None, pd.DataFrame]:
@@ -55,12 +73,19 @@ class ML:
             with_numerai: bool = False,
             timeframe: str = '5y'
     ):
+        periods = 60
+
         if with_numerai:
             data_loader = ml.numerai.NumeraiDataLoader(local_data_location="training_data.parquet")
         else:
-            combined = pd.DataFrame()
+            predictions = {}
+            final_prediction_data = None
+            api_result = None
             for indicator_name in self.client.IEX_TECHNICAL_INDICATORS:
                 api_result_name = f"{stock}_{indicator_name}_{timeframe}"
+                prediction_save_name = f"prediction_{stock}_{indicator_name}_{periods}"
+
+                prediction_result = self.load_prediction_result(prediction_save_name)
 
                 api_result = self.load_api_result(api_result_name)
 
@@ -77,48 +102,79 @@ class ML:
                 else:
                     data = api_result
 
-                if len(combined) == 0:
-                    data.drop(
-                        [
-                            'symbol',
-                            'label',
-                            'subkey',
-                            'updated',
-                            'key',
-                            'id',
-                        ],
-                        axis=1,
-                        inplace=True
-                    )
-                    combined = data
-                else:
+                data.drop(
+                    [
+                        'symbol',
+                        'label',
+                        'subkey',
+                        'updated',
+                        'key',
+                        'id',
+                    ],
+                    axis=1,
+                    inplace=True
+                )
+                if prediction_result is None:
                     if indicator_name in self.client.SPECIAL_INDICATORS:
                         indicator_name = self.client.SPECIAL_INDICATORS[indicator_name]
 
-                    combined = pd.concat([combined, data[indicator_name].astype('float32')], axis=1)
+                    data.replace([np.inf, -np.inf, np.nan], 0, inplace=True)
+                    data.reset_index(level=0, inplace=True)
+                    data.rename(columns={"date": "ds", indicator_name: "y"}, inplace=True)
+                    data_loader = ml.local.LocalDataLoader([], data=data)
 
-            combined.replace([np.inf, -np.inf, np.nan], 0, inplace=True)
-            combined.sort_index(inplace=True, ascending=True)
-            combined.reset_index(level=0, inplace=True)
-            combined['date'] = combined['date'].astype(np.int64) / 1000000
+                    if with_aws:
+                        sagemaker = ml.aws.Sagemaker()
+                        linear = ml.aws.LinearAwsLinearLearner(data=data_loader, aws_executor=sagemaker)
 
-            combined.rename(columns={"date": "ds", "close": "y"}, inplace=True)
+                        linear.train()
+                    else:
+                        local_trainer = ml.local.LocalLinearLearner(
+                            data=data_loader,
+                            stock=stock,
+                            timeframe=timeframe
+                        )
 
-            data_loader = ml.local.LocalDataLoader([], data=combined)
+                        model = local_trainer.train()
 
-        if with_aws:
-            sagemaker = ml.aws.Sagemaker()
-            linear = ml.aws.LinearAwsLinearLearner(data=data_loader, aws_executor=sagemaker)
+                        prediction = model.make_future_dataframe(periods=periods, include_history=False)
 
-            linear.train()
-        else:
+                        prediction_result = model.predict(prediction)
+
+                        self.save_prediction_result(prediction_result, prediction_save_name)
+
+                        if final_prediction_data is None:
+                            # @TODO FIX final_prediction_data format
+                            final_prediction_data = prediction_result
+
+                predictions[indicator_name] = prediction_result['yhat']
+
+            if api_result is None:
+                print('API result missing')
+
+            if final_prediction_data is None:
+                api_result.reset_index(level=0, inplace=True)
+                final_prediction_data = pd.DataFrame(
+                    {"ds": api_result['date'], "y": api_result['close']}
+                )
+
+            data_loader = ml.local.LocalDataLoader([], data=final_prediction_data)
             local_trainer = ml.local.LocalLinearLearner(
                 data=data_loader,
                 stock=stock,
                 timeframe=timeframe
             )
 
-            local_trainer.train()
+            model = local_trainer.train(predictions)
+
+            future = model.make_future_dataframe(periods=periods, include_history=False)
+
+            for prediction_name in predictions.keys():
+                future[prediction_name] = predictions[prediction_name]
+
+            prediction = model.predict(future)
+
+            model.plot_components(prediction)
 
     def run_predictor(self, model_name: str, prediction: list) -> None:
         model = self.load_model(model_name)

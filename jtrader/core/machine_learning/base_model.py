@@ -1,6 +1,6 @@
 import logging
 from abc import ABC, abstractmethod
-from typing import Optional
+from typing import Optional, Union
 
 from pandas import DataFrame
 
@@ -14,7 +14,7 @@ class BaseModel(ABC):
         self.data = data
 
     @abstractmethod
-    def train(self) -> None:
+    def train(self, regressors: Optional[dict] = None) -> Union[None, object]:
         """
         Trains the model, with the data provided
         """
