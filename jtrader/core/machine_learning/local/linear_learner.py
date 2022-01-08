@@ -1,9 +1,11 @@
+import itertools
 from pathlib import Path
 from typing import Union, Optional
 
 import numpy as np
 import pandas as pd
 from fbprophet import Prophet
+from fbprophet.diagnostics import cross_validation, performance_metrics
 
 from jtrader.core.machine_learning.base_model import BaseModel
 
@@ -37,15 +39,41 @@ class LocalLinearLearner(BaseModel):
         pd.to_pickle(model, f"{MODEL_FOLDER}/{name}.pkl")
 
     def train(self, regressors: Optional[dict] = None) -> Prophet:
-        model = Prophet(daily_seasonality=True)
+        param_grid = {
+            'changepoint_prior_scale': [0.001, 0.01, 0.1, 0.5],
+            'seasonality_prior_scale': [0.01, 0.1, 1.0, 10.0],
+        }
+
         data = self.data.data
+
+        all_params = [dict(zip(param_grid.keys(), v)) for v in itertools.product(*param_grid.values())]
+        rmses = []
+
+        data.replace([np.inf, -np.inf, np.nan], 0, inplace=True)
+
+        for params in all_params:
+            model = Prophet(**params)
+
+            if regressors is not None:
+                for regressor_name in regressors.keys():
+                    model.add_regressor(regressor_name)
+                    data[regressor_name] = regressors[regressor_name]
+
+            model.fit(data)
+            df_cv = cross_validation(model, horizon='30 days', parallel="processes")
+            df_p = performance_metrics(df_cv, rolling_window=1)
+            rmses.append(df_p['rmse'].values[0])
+
+        tuning_results = pd.DataFrame(all_params)
+        tuning_results['rmse'] = rmses
+        best_params = all_params[np.argmin(rmses)]
+
+        model = Prophet(**best_params)
 
         if regressors is not None:
             for regressor_name in regressors.keys():
                 model.add_regressor(regressor_name)
                 data[regressor_name] = regressors[regressor_name]
-
-        data.replace([np.inf, -np.inf, np.nan], 0, inplace=True)
 
         model.fit(data)
 
