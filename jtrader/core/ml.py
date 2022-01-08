@@ -144,8 +144,9 @@ class ML:
                         self.save_prediction_result(prediction_result, prediction_save_name)
 
                         if final_prediction_data is None:
-                            # @TODO FIX final_prediction_data format
-                            final_prediction_data = prediction_result
+                            final_prediction_data = pd.DataFrame(
+                                {"ds": data['ds'], "y": data['close']}
+                            )
 
                 predictions[indicator_name] = prediction_result['yhat']
 
@@ -175,6 +176,8 @@ class ML:
             prediction = model.predict(future)
 
             model.plot_components(prediction)
+
+            prediction.to_csv('pred.csv')
 
     def run_predictor(self, model_name: str, prediction: list) -> None:
         model = self.load_model(model_name)
