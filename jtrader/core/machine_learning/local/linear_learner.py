@@ -49,8 +49,6 @@ class LocalLinearLearner(BaseModel):
         all_params = [dict(zip(param_grid.keys(), v)) for v in itertools.product(*param_grid.values())]
         rmses = []
 
-        data.replace([np.inf, -np.inf, np.nan], 0, inplace=True)
-
         for params in all_params:
             model = Prophet(**params)
 
@@ -58,6 +56,8 @@ class LocalLinearLearner(BaseModel):
                 for regressor_name in regressors.keys():
                     model.add_regressor(regressor_name)
                     data[regressor_name] = regressors[regressor_name]
+
+            data.replace([np.inf, -np.inf, np.nan], 0, inplace=True)
 
             model.fit(data)
             df_cv = cross_validation(model, horizon='30 days', parallel="processes")
@@ -74,6 +74,8 @@ class LocalLinearLearner(BaseModel):
             for regressor_name in regressors.keys():
                 model.add_regressor(regressor_name)
                 data[regressor_name] = regressors[regressor_name]
+
+        data.replace([np.inf, -np.inf, np.nan], 0, inplace=True)
 
         model.fit(data)
 
