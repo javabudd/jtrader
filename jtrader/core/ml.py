@@ -79,6 +79,7 @@ class ML:
             data_loader = ml.numerai.NumeraiDataLoader(local_data_location="training_data.parquet")
         else:
             predictions = {}
+            feature_training_data = {}
             final_prediction_data = None
             api_result = None
             for indicator_name in self.client.IEX_TECHNICAL_INDICATORS:
@@ -114,6 +115,9 @@ class ML:
                     axis=1,
                     inplace=True
                 )
+
+                feature_training_data[indicator_name] = data[indicator_name]
+
                 if prediction_result is None:
                     if indicator_name in self.client.SPECIAL_INDICATORS:
                         indicator_name = self.client.SPECIAL_INDICATORS[indicator_name]
@@ -164,7 +168,7 @@ class ML:
                 timeframe=timeframe
             )
 
-            local_trainer.train(predictions)
+            local_trainer.train(extra_features=feature_training_data)
 
             prediction = local_trainer.predict(periods=periods, extra_features=predictions)
 

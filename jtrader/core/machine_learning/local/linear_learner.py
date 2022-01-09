@@ -41,15 +41,16 @@ class LocalLinearLearner(BaseModel):
         pd.to_pickle(model, f"{MODEL_FOLDER}/{name}.pkl")
 
     @staticmethod
-    def get_prophet_model(data: pd.DataFrame, prophet_params: dict, regressors: dict = None):
+    def get_prophet_model(data: pd.DataFrame, prophet_params: dict, extra_features: dict = None):
         model = Prophet(**prophet_params)
 
-        if regressors is not None:
-            df = pd.DataFrame(regressors)
-            for regressor_name in regressors.keys():
-                model.add_regressor(regressor_name)
-                if regressor_name not in data:
-                    data[regressor_name] = df[regressor_name].fillna(df[regressor_name].mean())
+        if extra_features is not None:
+            df = pd.DataFrame(extra_features)
+            for feature in extra_features.keys():
+                model.add_regressor(feature)
+                if feature not in data:
+                    values = df[feature].fillna(df[feature].mean()).values
+                    data.insert(len(data.columns), feature, values)
 
         return model
 
@@ -64,7 +65,7 @@ class LocalLinearLearner(BaseModel):
 
         return model
 
-    def train(self, regressors: Optional[dict] = None) -> Prophet:
+    def train(self, extra_features: Optional[dict] = None) -> Prophet:
         param_grid = {
             'changepoint_prior_scale': [0.001, 0.01, 0.1, 0.5],
             'seasonality_prior_scale': [0.01, 0.1, 1.0, 10.0],
@@ -76,7 +77,7 @@ class LocalLinearLearner(BaseModel):
         rmses = []
 
         for params in all_params:
-            model = self.get_prophet_model(data, params, regressors)
+            model = self.get_prophet_model(data, params, extra_features)
 
             model.fit(data)
             df_cv = cross_validation(model, horizon='30 days', parallel="processes")
@@ -87,7 +88,7 @@ class LocalLinearLearner(BaseModel):
         tuning_results['rmse'] = rmses
         best_params = all_params[np.argmin(rmses)]
 
-        model = self.get_prophet_model(data, best_params, regressors)
+        model = self.get_prophet_model(data, best_params, extra_features)
 
         model.fit(data)
 
