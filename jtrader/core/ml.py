@@ -116,21 +116,17 @@ class ML:
                     inplace=True
                 )
 
-                last_column = indicator_name
-                if indicator_name in self.client.INDICATOR_OUTPUTS:
-                    last_column = self.client.INDICATOR_OUTPUTS[indicator_name]
+                if indicator_name in self.client.SPECIAL_INDICATORS:
+                    indicator_name = self.client.SPECIAL_INDICATORS[indicator_name]
 
-                indicator_data = data.iloc[:, data.columns.get_loc(last_column):]
+                indicator_data = data.iloc[:, data.columns.get_loc(indicator_name):]
 
                 if True in indicator_data.isnull().all().values:
                     continue
 
-                feature_training_data[last_column] = indicator_data
+                feature_training_data[indicator_name] = indicator_data
 
                 if prediction_result is None:
-                    if indicator_name in self.client.SPECIAL_INDICATORS:
-                        indicator_name = self.client.SPECIAL_INDICATORS[indicator_name]
-
                     data.replace([np.inf, -np.inf, np.nan], 0, inplace=True)
                     data.reset_index(level=0, inplace=True)
                     data.rename(columns={"date": "ds", indicator_name: "y"}, inplace=True)
