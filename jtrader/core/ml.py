@@ -116,12 +116,16 @@ class ML:
                     inplace=True
                 )
 
-                indicator_data = data.iloc[:, -1:]
+                last_column = indicator_name
+                if indicator_name in self.client.INDICATOR_OUTPUTS:
+                    last_column = self.client.INDICATOR_OUTPUTS[indicator_name]
+
+                indicator_data = data.iloc[:, data.columns.get_loc(last_column):]
 
                 if True in indicator_data.isnull().all().values:
                     continue
 
-                feature_training_data[data.columns[-1]] = indicator_data
+                feature_training_data[last_column] = indicator_data
 
                 if prediction_result is None:
                     if indicator_name in self.client.SPECIAL_INDICATORS:
