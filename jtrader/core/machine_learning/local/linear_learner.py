@@ -97,9 +97,6 @@ class LocalLinearLearner(BaseModel):
 
         return model
 
-    def tune(self) -> None:
-        pass
-
     def predict(
             self,
             data_loader: Optional[DataLoader] = None,
@@ -116,6 +113,9 @@ class LocalLinearLearner(BaseModel):
                 prediction[prediction_name] = extra_features[prediction_name]
 
         return self._model.predict(prediction)
+
+    def tune(self) -> None:
+        pass
 
     def execute_prediction(self, data: pd.DataFrame, name: str = "test") -> pd.DataFrame:
         pass
