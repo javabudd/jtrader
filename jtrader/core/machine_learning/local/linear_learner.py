@@ -55,7 +55,8 @@ class LocalLinearLearner(BaseModel):
             if regressors is not None:
                 for regressor_name in regressors.keys():
                     model.add_regressor(regressor_name)
-                    data[regressor_name] = regressors[regressor_name]
+                    if regressor_name not in data:
+                        data[regressor_name] = regressors[regressor_name]
 
             data.replace([np.inf, -np.inf, np.nan], 0, inplace=True)
 
