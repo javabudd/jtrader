@@ -40,6 +40,19 @@ class LocalLinearLearner(BaseModel):
             pass
         pd.to_pickle(model, f"{MODEL_FOLDER}/{name}.pkl")
 
+    @staticmethod
+    def get_prophet_model(data: pd.DataFrame, prophet_params: dict, regressors: dict = None):
+        model = Prophet(**prophet_params)
+
+        if regressors is not None:
+            df = pd.DataFrame(regressors)
+            for regressor_name in regressors.keys():
+                model.add_regressor(regressor_name)
+                if regressor_name not in data:
+                    data[regressor_name] = df[regressor_name].fillna(df[regressor_name].mean())
+
+        return model
+
     def load_model(self, model_name: str = "") -> Union[bool, pd.DataFrame]:
         path = Path(f"{MODEL_FOLDER}/{model_name}.pkl")
         if path.is_file():
@@ -63,15 +76,7 @@ class LocalLinearLearner(BaseModel):
         rmses = []
 
         for params in all_params:
-            model = Prophet(**params)
-
-            if regressors is not None:
-                for regressor_name in regressors.keys():
-                    model.add_regressor(regressor_name)
-                    if regressor_name not in data:
-                        data[regressor_name] = regressors[regressor_name]
-
-            data.replace([np.inf, -np.inf, np.nan], 0, inplace=True)
+            model = self.get_prophet_model(data, params, regressors)
 
             model.fit(data)
             df_cv = cross_validation(model, horizon='30 days', parallel="processes")
@@ -82,14 +87,7 @@ class LocalLinearLearner(BaseModel):
         tuning_results['rmse'] = rmses
         best_params = all_params[np.argmin(rmses)]
 
-        model = Prophet(**best_params)
-
-        if regressors is not None:
-            for regressor_name in regressors.keys():
-                model.add_regressor(regressor_name)
-                data[regressor_name] = regressors[regressor_name]
-
-        data.replace([np.inf, -np.inf, np.nan], 0, inplace=True)
+        model = self.get_prophet_model(data, best_params, regressors)
 
         model.fit(data)
 
