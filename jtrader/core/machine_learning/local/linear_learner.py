@@ -46,13 +46,13 @@ class LocalLinearLearner(BaseModel):
         if extra_features is not None:
             for feature in extra_features.keys():
                 model.add_regressor(feature)
-                df = extra_features[feature]
-                df.reset_index(level=0, inplace=True)
-                df.rename(columns={"date": "ds"}, inplace=True)
-                data = pd.merge(self.data.data, df, on='ds')
-                data[feature].fillna(data[feature].mean(), inplace=True)
-
-                self.data._data = data
+                if feature not in self.data.data:
+                    df = extra_features[feature]
+                    df.reset_index(level=0, inplace=True)
+                    df.rename(columns={"date": "ds"}, inplace=True)
+                    data = pd.merge(self.data.data, df, on='ds')
+                    data[feature].fillna(data[feature].mean(), inplace=True)
+                    self.data._data = data
 
         return model
 
