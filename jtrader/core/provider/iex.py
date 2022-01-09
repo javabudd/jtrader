@@ -35,19 +35,6 @@ class IEX(Provider):
         "torad": "radians"
     }
 
-    INDICATOR_OUTPUTS = {
-        "adx": "dx",
-        "aroon": "aroon_up",
-        "bbands": "bbands_middle",
-        "di": "plus_di",
-        "dm": "plus_dm",
-        "dpo": "dop",
-        "msw": "msw_lead",
-        "stoch": "stoch_k",
-        "todeg": "degrees",
-        "torad": "radians"
-    }
-
     def __init__(
             self,
             is_sandbox: bool,
