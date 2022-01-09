@@ -135,11 +135,9 @@ class ML:
                             timeframe=timeframe
                         )
 
-                        model = local_trainer.train()
+                        local_trainer.train()
 
-                        prediction = model.make_future_dataframe(periods=periods, include_history=False)
-
-                        prediction_result = model.predict(prediction)
+                        prediction_result = local_trainer.predict(periods=periods)
 
                         self.save_prediction_result(prediction_result, prediction_save_name)
 
@@ -166,16 +164,9 @@ class ML:
                 timeframe=timeframe
             )
 
-            model = local_trainer.train(predictions)
+            local_trainer.train(predictions)
 
-            future = model.make_future_dataframe(periods=periods, include_history=False)
-
-            for prediction_name in predictions.keys():
-                future[prediction_name] = predictions[prediction_name]
-
-            prediction = model.predict(future)
-
-            model.plot_components(prediction)
+            prediction = local_trainer.predict(periods=periods, extra_features=predictions)
 
             prediction.to_csv('pred.csv')
 

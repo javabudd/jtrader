@@ -48,13 +48,21 @@ class BaseModel(ABC):
         """
         pass
 
-    def predict(self, data_loader: Optional[DataLoader] = None, all_data: bool = False) -> DataFrame:
+    def predict(
+            self,
+            data_loader: Optional[DataLoader] = None,
+            all_data: bool = False,
+            periods: int = None,
+            extra_features: Union[dict, list] = None
+    ) -> DataFrame:
         """
         Predict based on an already trained model.
 
         Arguments:
             data_loader: The data to predict. If not provided, it will default to the local data loader.
             all_data: Whether to predict all the data in the data loader. If false, the test data will be predicted.
+            periods: Numer of periods to predict (optional)
+            extra_features: Features to merge with the prediction data set (optional)
         """
         if data_loader is None:
             data_loader = self.data

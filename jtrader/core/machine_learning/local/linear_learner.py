@@ -6,8 +6,10 @@ import numpy as np
 import pandas as pd
 from fbprophet import Prophet
 from fbprophet.diagnostics import cross_validation, performance_metrics
+from pandas import DataFrame
 
 from jtrader.core.machine_learning.base_model import BaseModel
+from .data_loader import DataLoader
 
 MODEL_FOLDER = 'models'
 
@@ -37,6 +39,17 @@ class LocalLinearLearner(BaseModel):
         except Exception as ex:
             pass
         pd.to_pickle(model, f"{MODEL_FOLDER}/{name}.pkl")
+
+    def load_model(self, model_name: str = "") -> Union[bool, pd.DataFrame]:
+        path = Path(f"{MODEL_FOLDER}/{model_name}.pkl")
+        if path.is_file():
+            model = pd.read_pickle(f"{MODEL_FOLDER}/{model_name}.pkl")
+        else:
+            model = False
+
+        self._model = model
+
+        return model
 
     def train(self, regressors: Optional[dict] = None) -> Prophet:
         param_grid = {
@@ -80,21 +93,29 @@ class LocalLinearLearner(BaseModel):
 
         model.fit(data)
 
+        self._model = model
+
         return model
 
     def tune(self) -> None:
         pass
 
-    def load_model(self, model_name: str = "") -> Union[bool, pd.DataFrame]:
-        path = Path(f"{MODEL_FOLDER}/{model_name}.pkl")
-        if path.is_file():
-            model = pd.read_pickle(f"{MODEL_FOLDER}/{model_name}.pkl")
-        else:
-            model = False
+    def predict(
+            self,
+            data_loader: Optional[DataLoader] = None,
+            all_data: bool = False,
+            periods: int = None,
+            extra_features: dict = None
+    ) -> DataFrame:
+        assert self._model is not None
 
-        self._model = model
+        prediction = self._model.make_future_dataframe(periods=periods, include_history=False)
 
-        return model
+        if extra_features is not None:
+            for prediction_name in extra_features.keys():
+                prediction[prediction_name] = extra_features[prediction_name]
+
+        return self._model.predict(prediction)
 
     def execute_prediction(self, data: pd.DataFrame, name: str = "test") -> pd.DataFrame:
-        return pd.DataFrame(self._model.predict(data))
+        pass
