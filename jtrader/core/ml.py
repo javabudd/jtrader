@@ -145,7 +145,7 @@ class ML:
                             model_name=indicator_name
                         )
 
-                        hyperparams = {}
+                        hyperparams = None
                         if stock in ml.local.LocalLinearLearner.hyperparams and \
                                 type(ml.local.LocalLinearLearner.hyperparams[stock]) == dict and \
                                 indicator_name in ml.local.LocalLinearLearner.hyperparams[stock]:
