@@ -385,6 +385,31 @@ class LocalLinearLearner(BaseModel):
                 "seasonality_prior_scale": 0.01,
                 "seasonality_mode": "multiplicative"
             },
+            "trima": {
+                "changepoint_prior_scale": 0.5,
+                "seasonality_prior_scale": 0.01,
+                "seasonality_mode": "additive"
+            },
+            "trix": {
+                "changepoint_prior_scale": 0.001,
+                "seasonality_prior_scale": 0.01,
+                "seasonality_mode": "additive"
+            },
+            "trunc": {
+                "changepoint_prior_scale": 0.5,
+                "seasonality_prior_scale": 0.01,
+                "seasonality_mode": "multiplicative"
+            },
+            "tsf": {
+                "changepoint_prior_scale": 0.5,
+                "seasonality_prior_scale": 0.01,
+                "seasonality_mode": "multiplicative"
+            },
+            "typprice": {
+                "changepoint_prior_scale": 0.5,
+                "seasonality_prior_scale": 0.01,
+                "seasonality_mode": "multiplicative"
+            },
         }
     }
 
