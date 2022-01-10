@@ -7,15 +7,16 @@ from boto3.dynamodb.conditions import Key
 
 class ODM:
     def __init__(self):
-        self.table = boto3.resource('dynamodb').Table('stocks')
+        self.stock_table = boto3.resource('dynamodb').Table('stocks')
+        self.prophet_params_table = boto3.resource('dynamodb').Table('prophet_params')
 
     def get_symbols(self):
         today = date.today()
 
-        return self.table.query(KeyConditionExpression=Key('date').eq(today.isoformat()), ScanIndexForward=False)
+        return self.stock_table.query(KeyConditionExpression=Key('date').eq(today.isoformat()), ScanIndexForward=False)
 
     def get_historical_stock_day(self, ticker: str, day: str):
-        response = self.table.get_item(
+        response = self.stock_table.get_item(
             Key={
                 'ticker': ticker,
                 'date': day
@@ -25,14 +26,23 @@ class ODM:
         return response['Item'] if 'Item' in response else None
 
     def get_historical_stock_range(self, ticker: str, start: date):
-        response = self.table.query(
+        response = self.stock_table.query(
             KeyConditionExpression=Key('ticker').eq(ticker) & Key('date').gte(start.isoformat())
         )
 
         return response['Items'] if 'Items' in response else []
 
+    def get_prophet_params(self, ticker: str):
+        response = self.prophet_params_table.get_item(
+            Key={
+                'ticker': ticker
+            }
+        )
+
+        return response['Item'] if 'Item' in response else None
+
     @staticmethod
-    def put_item(item_writer, ticker, stock):
+    def put_stock(item_writer, ticker, stock):
         stock_open = Decimal(str(stock['open']))
         stock_high = Decimal(str(stock['high']))
         stock_close = Decimal(str(stock['close']))
@@ -115,4 +125,11 @@ class ODM:
                 'change': change,
                 'changePercent': change_percent
             }
+        )
+
+    def put_prophet_params(self, ticker: str, prophet_params: dict):
+        prophet_params['ticker'] = ticker
+
+        self.prophet_params_table.put_item(
+            Item=prophet_params
         )
