@@ -145,7 +145,11 @@ class ML:
                             model_name=indicator_name
                         )
 
-                        local_trainer.train()
+                        hyperparams = {}
+                        if indicator_name in ml.local.LocalLinearLearner.hyperparams:
+                            hyperparams = ml.local.LocalLinearLearner.hyperparams[indicator_name]
+
+                        local_trainer.train(hyperparameters=hyperparams)
 
                         prediction_result = local_trainer.predict(periods=periods)
 

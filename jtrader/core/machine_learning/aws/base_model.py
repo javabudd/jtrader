@@ -216,7 +216,11 @@ class AwsEstimator(AwsBase, ABC):
         self._predictor: RealTimePredictor = None
         self._tuner: HyperparameterTuner = None
 
-    def train(self, hyperparameters: Dict = {}) -> None:
+    def train(
+            self,
+            hyperparameters: Dict = {},
+            extra_features: Optional[dict] = {}
+    ) -> None:
         """
         Trains the model, with the data provided
 
@@ -224,6 +228,7 @@ class AwsEstimator(AwsBase, ABC):
             hyperparameters: The hyperparameters to provide to the Estimator model.
                 See https://docs.aws.amazon.com/sagemaker/latest/dg/algos.html
                 And specific implementations
+            extra_features: Extra features to train against
         """
         LOGGER.info("Starting to train model.")
         self._model = self._get_model(hyperparameters)

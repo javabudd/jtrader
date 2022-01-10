@@ -27,6 +27,67 @@ class LocalLinearLearner(BaseModel):
         "objective_type": "Minimize",
     }
 
+    # this needs to be DB driven
+    hyperparams = {
+        "MSFT": {
+            "abs": {
+                "changepoint_prior_scale": 0.5,
+                "seasonality_prior_scale": 0.01,
+                "seasonality_mode": "multiplicative"
+            },
+            "ad": {
+                "changepoint_prior_scale": 0.1,
+                "seasonality_prior_scale": 0.01,
+                "seasonality_mode": "additive"
+            },
+            "add": {
+                "changepoint_prior_scale": 0.5,
+                "seasonality_prior_scale": 0.01,
+                "seasonality_mode": "multiplicative"
+            },
+            "adosc": {
+                "changepoint_prior_scale": 0.01,
+                "seasonality_prior_scale": 0.1,
+                "seasonality_mode": "multiplicative"
+            },
+            "ao": {
+                "changepoint_prior_scale": 0.01,
+                "seasonality_prior_scale": 0.1,
+                "seasonality_mode": "additive"
+            },
+            "apo": {
+                "changepoint_prior_scale": 0.01,
+                "seasonality_prior_scale": 0.01,
+                "seasonality_mode": "additive"
+            },
+            "aroon_up": {
+                "changepoint_prior_scale": 0.1,
+                "seasonality_prior_scale": 0.01,
+                "seasonality_mode": "multiplicative"
+            },
+            "aroonosc": {
+                "changepoint_prior_scale": 0.001,
+                "seasonality_prior_scale": 0.01,
+                "seasonality_mode": "additive"
+            },
+            "atan": {
+                "changepoint_prior_scale": 0.001,
+                "seasonality_prior_scale": 0.01,
+                "seasonality_mode": "multiplicative"
+            },
+            "atr": {
+                "changepoint_prior_scale": 0.001,
+                "seasonality_prior_scale": 0.01,
+                "seasonality_mode": "multiplicative"
+            },
+            "avgprice": {
+                "changepoint_prior_scale": 0.5,
+                "seasonality_prior_scale": 0.01,
+                "seasonality_mode": "multiplicative"
+            }
+        }
+    }
+
     def __init__(self, data, stock: str, timeframe: str = '5y', model_name: str = None):
         super().__init__(data, model_name)
 
@@ -69,7 +130,11 @@ class LocalLinearLearner(BaseModel):
 
         return model
 
-    def train(self, extra_features: Optional[dict] = None) -> Prophet:
+    def train(
+            self,
+            hyperparameters: Optional[dict] = None,
+            extra_features: Optional[dict] = None
+    ) -> Prophet:
         param_grid = {
             'changepoint_prior_scale': [0.001, 0.01, 0.1, 0.5],
             'seasonality_prior_scale': [0.01, 0.1, 1.0, 10.0],
@@ -79,27 +144,36 @@ class LocalLinearLearner(BaseModel):
         all_params = [dict(zip(param_grid.keys(), v)) for v in itertools.product(*param_grid.values())]
         rmses = []
 
-        fitted_models = {}
-        for params in all_params:
-            param_hash = hashlib.md5(json.dumps(params, sort_keys=True).encode('utf-8')).hexdigest()
-            model = self.get_prophet_model(params, extra_features)
+        # if there are no hyperparameters provided, run auto-tuning
+        if hyperparameters is None:
+            fitted_models = {}
+            for params in all_params:
+                param_hash = hashlib.md5(json.dumps(params, sort_keys=True).encode('utf-8')).hexdigest()
+                model = self.get_prophet_model(params, extra_features)
+
+                model.fit(self.data.data)
+
+                fitted_models[param_hash] = model
+
+                df_cv = cross_validation(model, horizon='30 days', parallel="processes")
+                df_p = performance_metrics(df_cv, rolling_window=1)
+                rmses.append(df_p['rmse'].values[0])
+
+            if len(rmses) > 0:
+                tuning_results = pd.DataFrame(all_params)
+                tuning_results['rmse'] = rmses
+                tuning_results.to_csv(f"predictions/tuning_result_{self.model_name}")
+
+            best_params = all_params[np.argmin(rmses)]
+
+            self._model = fitted_models[
+                hashlib.md5(json.dumps(best_params, sort_keys=True).encode('utf-8')).hexdigest()]
+        else:
+            model = self.get_prophet_model(hyperparameters, extra_features)
 
             model.fit(self.data.data)
 
-            fitted_models[param_hash] = model
-
-            df_cv = cross_validation(model, horizon='30 days', parallel="processes")
-            df_p = performance_metrics(df_cv, rolling_window=1)
-            rmses.append(df_p['rmse'].values[0])
-
-        if len(rmses) > 0:
-            tuning_results = pd.DataFrame(all_params)
-            tuning_results['rmse'] = rmses
-            tuning_results.to_csv(f"predictions/tuning_result_{self.model_name}")
-
-        best_params = all_params[np.argmin(rmses)]
-
-        self._model = fitted_models[hashlib.md5(json.dumps(best_params, sort_keys=True).encode('utf-8')).hexdigest()]
+            self._model = model
 
         return self._model
 
