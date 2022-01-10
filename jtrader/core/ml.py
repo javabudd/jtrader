@@ -146,8 +146,10 @@ class ML:
                         )
 
                         hyperparams = {}
-                        if indicator_name in ml.local.LocalLinearLearner.hyperparams:
-                            hyperparams = ml.local.LocalLinearLearner.hyperparams[indicator_name]
+                        if stock in ml.local.LocalLinearLearner.hyperparams and \
+                                type(ml.local.LocalLinearLearner.hyperparams[stock]) == dict and \
+                                indicator_name in ml.local.LocalLinearLearner.hyperparams[stock]:
+                            hyperparams = ml.local.LocalLinearLearner.hyperparams[stock][indicator_name]
 
                         local_trainer.train(hyperparameters=hyperparams)
 
