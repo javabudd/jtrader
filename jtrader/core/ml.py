@@ -145,13 +145,7 @@ class ML:
                             model_name=indicator_name
                         )
 
-                        hyperparams = None
-                        if stock in ml.local.LocalLinearLearner.hyperparams and \
-                                type(ml.local.LocalLinearLearner.hyperparams[stock]) == dict and \
-                                indicator_name in ml.local.LocalLinearLearner.hyperparams[stock]:
-                            hyperparams = ml.local.LocalLinearLearner.hyperparams[stock][indicator_name]
-
-                        local_trainer.train(hyperparameters=hyperparams)
+                        local_trainer.train()
 
                         prediction_result = local_trainer.predict(periods=periods)
 

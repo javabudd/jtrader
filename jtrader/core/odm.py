@@ -133,7 +133,7 @@ class ODM:
         )
 
     def put_prophet_params(self, ticker: str, feature: str, prophet_params: dict):
-        odm_item = prophet_params
+        odm_item = prophet_params.copy()
         odm_item['ticker_feature'] = ticker + '_' + feature
 
         for key in odm_item.keys():
