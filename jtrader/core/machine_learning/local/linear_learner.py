@@ -420,6 +420,21 @@ class LocalLinearLearner(BaseModel):
                 "seasonality_prior_scale": 0.1,
                 "seasonality_mode": "multiplicative"
             },
+            "vhf": {
+                "changepoint_prior_scale": 0.1,
+                "seasonality_prior_scale": 0.01,
+                "seasonality_mode": "multiplicative"
+            },
+            "vidya": {
+                "changepoint_prior_scale": 0.5,
+                "seasonality_prior_scale": 0.01,
+                "seasonality_mode": "multiplicative"
+            },
+            "volatility": {
+                "changepoint_prior_scale": 0.01,
+                "seasonality_prior_scale": 0.01,
+                "seasonality_mode": "multiplicative"
+            },
         }
     }
 
