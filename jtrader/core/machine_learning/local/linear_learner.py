@@ -145,7 +145,7 @@ class LocalLinearLearner(BaseModel):
         rmses = []
 
         # if there are no hyperparameters provided, run auto-tuning
-        if hyperparameters is None:
+        if hyperparameters is None or len(hyperparameters) == 0:
             fitted_models = {}
             for params in all_params:
                 param_hash = hashlib.md5(json.dumps(params, sort_keys=True).encode('utf-8')).hexdigest()
