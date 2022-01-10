@@ -84,7 +84,197 @@ class LocalLinearLearner(BaseModel):
                 "changepoint_prior_scale": 0.5,
                 "seasonality_prior_scale": 0.01,
                 "seasonality_mode": "multiplicative"
-            }
+            },
+            "bbands_upper": {
+                "changepoint_prior_scale": 0.5,
+                "seasonality_prior_scale": 0.01,
+                "seasonality_mode": "multiplicative"
+            },
+            "bop": {
+                "changepoint_prior_scale": 0.1,
+                "seasonality_prior_scale": 0.01,
+                "seasonality_mode": "additive"
+            },
+            "cci": {
+                "changepoint_prior_scale": 0.1,
+                "seasonality_prior_scale": 0.01,
+                "seasonality_mode": "additive"
+            },
+            "ceil": {
+                "changepoint_prior_scale": 0.5,
+                "seasonality_prior_scale": 0.01,
+                "seasonality_mode": "multiplicative"
+            },
+            "cmo": {
+                "changepoint_prior_scale": 0.1,
+                "seasonality_prior_scale": 0.01,
+                "seasonality_mode": "multiplicative"
+            },
+            "cosh": {
+                "changepoint_prior_scale": 0.5,
+                "seasonality_prior_scale": 0.1,
+                "seasonality_mode": "multiplicative"
+            },
+            "cvi": {
+                "changepoint_prior_scale": 0.01,
+                "seasonality_prior_scale": 0.01,
+                "seasonality_mode": "multiplicative"
+            },
+            "decay": {
+                "changepoint_prior_scale": 0.5,
+                "seasonality_prior_scale": 0.01,
+                "seasonality_mode": "additive"
+            },
+            "dema": {
+                "changepoint_prior_scale": 0.5,
+                "seasonality_prior_scale": 0.01,
+                "seasonality_mode": "multiplicative"
+            },
+            "dop": {
+                "changepoint_prior_scale": 0.01,
+                "seasonality_prior_scale": 0.01,
+                "seasonality_mode": "additive"
+            },
+            "dx": {
+                "changepoint_prior_scale": 0.1,
+                "seasonality_prior_scale": 0.01,
+                "seasonality_mode": "additive"
+            },
+            "edecay": {
+                "changepoint_prior_scale": 0.5,
+                "seasonality_prior_scale": 0.01,
+                "seasonality_mode": "multiplicative"
+            },
+            "ema": {
+                "changepoint_prior_scale": 0.1,
+                "seasonality_prior_scale": 0.01,
+                "seasonality_mode": "additive"
+            },
+            "emv": {
+                "changepoint_prior_scale": 0.01,
+                "seasonality_prior_scale": 0.01,
+                "seasonality_mode": "additive"
+            },
+            "exp": {
+                "changepoint_prior_scale": 0.5,
+                "seasonality_prior_scale": 0.1,
+                "seasonality_mode": "multiplicative"
+            },
+            "fisher": {
+                "changepoint_prior_scale": 0.01,
+                "seasonality_prior_scale": 0.01,
+                "seasonality_mode": "multiplicative"
+            },
+            "fosc": {
+                "changepoint_prior_scale": 0.1,
+                "seasonality_prior_scale": 0.01,
+                "seasonality_mode": "multiplicative"
+            },
+            "hma": {
+                "changepoint_prior_scale": 0.5,
+                "seasonality_prior_scale": 0.01,
+                "seasonality_mode": "multiplicative"
+            },
+            "kama": {
+                "changepoint_prior_scale": 0.5,
+                "seasonality_prior_scale": 0.01,
+                "seasonality_mode": "additive"
+            },
+            "kvo": {
+                "changepoint_prior_scale": 0.1,
+                "seasonality_prior_scale": 0.01,
+                "seasonality_mode": "multiplicative"
+            },
+            "lag": {
+                "changepoint_prior_scale": 0.5,
+                "seasonality_prior_scale": 0.01,
+                "seasonality_mode": "multiplicative"
+            },
+            "linreg": {
+                "changepoint_prior_scale": 0.5,
+                "seasonality_prior_scale": 0.01,
+                "seasonality_mode": "multiplicative"
+            },
+            "linregintercept": {
+                "changepoint_prior_scale": 0.5,
+                "seasonality_prior_scale": 0.01,
+                "seasonality_mode": "additive"
+            },
+            "linregslope": {
+                "changepoint_prior_scale": 0.01,
+                "seasonality_prior_scale": 0.01,
+                "seasonality_mode": "additive"
+            },
+            "ln": {
+                "changepoint_prior_scale": 0.01,
+                "seasonality_prior_scale": 0.1,
+                "seasonality_mode": "additive"
+            },
+            "log10": {
+                "changepoint_prior_scale": 0.01,
+                "seasonality_prior_scale": 10,
+                "seasonality_mode": "additive"
+            },
+            "macd": {
+                "changepoint_prior_scale": 0.001,
+                "seasonality_prior_scale": 10,
+                "seasonality_mode": "additive"
+            },
+            "mass": {
+                "changepoint_prior_scale": 0.1,
+                "seasonality_prior_scale": 0.01,
+                "seasonality_mode": "multiplicative"
+            },
+            "matr": {
+                "changepoint_prior_scale": 0.01,
+                "seasonality_prior_scale": 0.01,
+                "seasonality_mode": "multiplicative"
+            },
+            "max": {
+                "changepoint_prior_scale": 0.5,
+                "seasonality_prior_scale": 0.01,
+                "seasonality_mode": "additive"
+            },
+            "md": {
+                "changepoint_prior_scale": 0.001,
+                "seasonality_prior_scale": 0.01,
+                "seasonality_mode": "multiplicative"
+            },
+            "medprice": {
+                "changepoint_prior_scale": 0.5,
+                "seasonality_prior_scale": 0.01,
+                "seasonality_mode": "multiplicative"
+            },
+            "mfi": {
+                "changepoint_prior_scale": 0.01,
+                "seasonality_prior_scale": 0.01,
+                "seasonality_mode": "multiplicative"
+            },
+            "min": {
+                "changepoint_prior_scale": 0.5,
+                "seasonality_prior_scale": 0.01,
+                "seasonality_mode": "additive"
+            },
+            "mom": {
+                "changepoint_prior_scale": 0.01,
+                "seasonality_prior_scale": 0.01,
+                "seasonality_mode": "additive"
+            },
+            "msw_lead": {
+                "changepoint_prior_scale": 0.5,
+                "seasonality_prior_scale": 0.01,
+                "seasonality_mode": "additive"
+            },
+            "mul": {
+                "changepoint_prior_scale": 0.5,
+                "seasonality_prior_scale": 0.01,
+                "seasonality_mode": "multiplicative"
+            },
+            "nvi": {
+                "changepoint_prior_scale": 0.1,
+                "seasonality_prior_scale": 0.01,
+                "seasonality_mode": "multiplicative"
+            },
         }
     }
 
