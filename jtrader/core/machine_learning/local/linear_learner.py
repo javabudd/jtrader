@@ -11,6 +11,7 @@ from fbprophet.diagnostics import cross_validation, performance_metrics
 from pandas import DataFrame
 
 from jtrader.core.machine_learning.base_model import BaseModel
+from jtrader.core.odm import ODM
 from .data_loader import DataLoader
 
 MODEL_FOLDER = 'models'
@@ -444,6 +445,7 @@ class LocalLinearLearner(BaseModel):
         self.stock = stock
         self.timeframe = timeframe
         self._model = None
+        self.db = ODM()
 
     @staticmethod
     def save_model(model, name: str) -> None:
@@ -485,18 +487,21 @@ class LocalLinearLearner(BaseModel):
             hyperparameters: Optional[dict] = None,
             extra_features: Optional[dict] = None
     ) -> Prophet:
-        param_grid = {
-            'changepoint_prior_scale': [0.001, 0.01, 0.1, 0.5],
-            'seasonality_prior_scale': [0.01, 0.1, 1.0, 10.0],
-            'seasonality_mode': ['additive', 'multiplicative']
-        }
-
-        all_params = [dict(zip(param_grid.keys(), v)) for v in itertools.product(*param_grid.values())]
-        rmses = []
+        if hyperparameters is None or len(hyperparameters) == 0:
+            hyperparameters = self.db.get_prophet_params(self.stock)
 
         # if there are no hyperparameters provided, run auto-tuning
-        if hyperparameters is None or len(hyperparameters) == 0:
+        if hyperparameters is None:
+            param_grid = {
+                'changepoint_prior_scale': [0.001, 0.01, 0.1, 0.5],
+                'seasonality_prior_scale': [0.01, 0.1, 1.0, 10.0],
+                'seasonality_mode': ['additive', 'multiplicative']
+            }
+
             fitted_models = {}
+            all_params = [dict(zip(param_grid.keys(), v)) for v in itertools.product(*param_grid.values())]
+            rmses = []
+
             for params in all_params:
                 param_hash = hashlib.md5(json.dumps(params, sort_keys=True).encode('utf-8')).hexdigest()
                 model = self.get_prophet_model(params, extra_features)
@@ -509,15 +514,14 @@ class LocalLinearLearner(BaseModel):
                 df_p = performance_metrics(df_cv, rolling_window=1)
                 rmses.append(df_p['rmse'].values[0])
 
-            if len(rmses) > 0:
-                tuning_results = pd.DataFrame(all_params)
-                tuning_results['rmse'] = rmses
-                tuning_results.to_csv(f"predictions/tuning_result_{self.model_name}")
-
             best_params = all_params[np.argmin(rmses)]
 
+            if len(rmses) > 0:
+                self.db.put_prophet_params(self.stock, best_params)
+
             self._model = fitted_models[
-                hashlib.md5(json.dumps(best_params, sort_keys=True).encode('utf-8')).hexdigest()]
+                hashlib.md5(json.dumps(best_params, sort_keys=True).encode('utf-8')).hexdigest()
+            ]
         else:
             model = self.get_prophet_model(hyperparameters, extra_features)
 
