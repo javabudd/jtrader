@@ -71,6 +71,7 @@ class LocalLinearLearner(BaseModel):
         param_grid = {
             'changepoint_prior_scale': [0.001, 0.01, 0.1, 0.5],
             'seasonality_prior_scale': [0.01, 0.1, 1.0, 10.0],
+            'seasonality_mode': ['additive', 'multiplicative']
         }
 
         all_params = [dict(zip(param_grid.keys(), v)) for v in itertools.product(*param_grid.values())]
@@ -94,6 +95,9 @@ class LocalLinearLearner(BaseModel):
 
         self._model = model
 
+        print(f"Tuning Results: ")
+        print(tuning_results)
+
         return model
 
     def predict(
@@ -107,11 +111,13 @@ class LocalLinearLearner(BaseModel):
 
         prediction = self._model.make_future_dataframe(periods=periods, include_history=False)
 
+        prediction_no_weekdays = prediction[prediction['ds'].dt.dayofweek < 5]
+
         if extra_features is not None:
             for prediction_name in extra_features.keys():
                 prediction[prediction_name] = extra_features[prediction_name]
 
-        return self._model.predict(prediction)
+        return self._model.predict(prediction_no_weekdays)
 
     def tune(self) -> None:
         pass
