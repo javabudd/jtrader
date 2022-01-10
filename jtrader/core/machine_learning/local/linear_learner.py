@@ -436,6 +436,11 @@ class LocalLinearLearner(BaseModel):
                 "seasonality_prior_scale": 0.01,
                 "seasonality_mode": "multiplicative"
             },
+            "vosc": {
+                "changepoint_prior_scale": 0.1,
+                "seasonality_prior_scale": 0.01,
+                "seasonality_mode": "additive"
+            },
         }
     }
 
@@ -488,7 +493,7 @@ class LocalLinearLearner(BaseModel):
             extra_features: Optional[dict] = None
     ) -> Prophet:
         if hyperparameters is None or len(hyperparameters) == 0:
-            hyperparameters = self.db.get_prophet_params(self.stock)
+            hyperparameters = self.db.get_prophet_params(self.stock, self.model_name)
 
         # if there are no hyperparameters provided, run auto-tuning
         if hyperparameters is None:
@@ -517,7 +522,7 @@ class LocalLinearLearner(BaseModel):
             best_params = all_params[np.argmin(rmses)]
 
             if len(rmses) > 0:
-                self.db.put_prophet_params(self.stock, best_params)
+                self.db.put_prophet_params(self.stock, self.model_name, best_params)
 
             self._model = fitted_models[
                 hashlib.md5(json.dumps(best_params, sort_keys=True).encode('utf-8')).hexdigest()

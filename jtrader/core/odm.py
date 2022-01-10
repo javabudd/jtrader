@@ -32,10 +32,10 @@ class ODM:
 
         return response['Items'] if 'Items' in response else []
 
-    def get_prophet_params(self, ticker: str):
+    def get_prophet_params(self, ticker: str, feature: str):
         response = self.prophet_params_table.get_item(
             Key={
-                'ticker': ticker
+                'ticker_feature': ticker + '_' + feature
             }
         )
 
@@ -127,8 +127,8 @@ class ODM:
             }
         )
 
-    def put_prophet_params(self, ticker: str, prophet_params: dict):
-        prophet_params['ticker'] = ticker
+    def put_prophet_params(self, ticker: str, feature: str, prophet_params: dict):
+        prophet_params['ticker_feature'] = ticker + '_' + feature
 
         self.prophet_params_table.put_item(
             Item=prophet_params
