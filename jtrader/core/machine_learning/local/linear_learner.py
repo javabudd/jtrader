@@ -1,4 +1,6 @@
+import hashlib
 import itertools
+import json
 from pathlib import Path
 from typing import Union, Optional
 
@@ -25,8 +27,8 @@ class LocalLinearLearner(BaseModel):
         "objective_type": "Minimize",
     }
 
-    def __init__(self, data, stock: str, timeframe: str = '5y'):
-        super().__init__(data)
+    def __init__(self, data, stock: str, timeframe: str = '5y', model_name: str = None):
+        super().__init__(data, model_name)
 
         self.stock = stock
         self.timeframe = timeframe
@@ -77,28 +79,29 @@ class LocalLinearLearner(BaseModel):
         all_params = [dict(zip(param_grid.keys(), v)) for v in itertools.product(*param_grid.values())]
         rmses = []
 
+        fitted_models = {}
         for params in all_params:
+            param_hash = hashlib.md5(json.dumps(params, sort_keys=True).encode('utf-8')).hexdigest()
             model = self.get_prophet_model(params, extra_features)
 
             model.fit(self.data.data)
+
+            fitted_models[param_hash] = model
+
             df_cv = cross_validation(model, horizon='30 days', parallel="processes")
             df_p = performance_metrics(df_cv, rolling_window=1)
             rmses.append(df_p['rmse'].values[0])
 
-        tuning_results = pd.DataFrame(all_params)
-        tuning_results['rmse'] = rmses
+        if len(rmses) > 0:
+            tuning_results = pd.DataFrame(all_params)
+            tuning_results['rmse'] = rmses
+            tuning_results.to_csv(f"predictions/tuning_result_{self.model_name}")
+
         best_params = all_params[np.argmin(rmses)]
 
-        model = self.get_prophet_model(best_params, extra_features)
+        self._model = fitted_models[hashlib.md5(json.dumps(best_params, sort_keys=True).encode('utf-8')).hexdigest()]
 
-        model.fit(self.data.data)
-
-        self._model = model
-
-        print(f"Tuning Results: ")
-        print(tuning_results)
-
-        return model
+        return self._model
 
     def predict(
             self,

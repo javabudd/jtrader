@@ -141,7 +141,8 @@ class ML:
                         local_trainer = ml.local.LocalLinearLearner(
                             data=data_loader,
                             stock=stock,
-                            timeframe=timeframe
+                            timeframe=timeframe,
+                            model_name=indicator_name
                         )
 
                         local_trainer.train()
@@ -170,7 +171,8 @@ class ML:
             local_trainer = ml.local.LocalLinearLearner(
                 data=data_loader,
                 stock=stock,
-                timeframe=timeframe
+                timeframe=timeframe,
+                model_name='close'
             )
 
             local_trainer.train(extra_features=feature_training_data)
