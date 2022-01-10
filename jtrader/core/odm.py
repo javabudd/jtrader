@@ -39,7 +39,12 @@ class ODM:
             }
         )
 
-        return response['Item'] if 'Item' in response else None
+        params = None
+        if 'Item' in response:
+            params = response['Item']
+            params.pop('ticker_feature', None)
+
+        return params
 
     @staticmethod
     def put_stock(item_writer, ticker, stock):
@@ -128,8 +133,14 @@ class ODM:
         )
 
     def put_prophet_params(self, ticker: str, feature: str, prophet_params: dict):
-        prophet_params['ticker_feature'] = ticker + '_' + feature
+        odm_item = prophet_params
+        odm_item['ticker_feature'] = ticker + '_' + feature
+
+        for key in odm_item.keys():
+            item = odm_item[key]
+            if type(item) == float:
+                odm_item[key] = Decimal(str(item))
 
         self.prophet_params_table.put_item(
-            Item=prophet_params
+            Item=odm_item
         )
