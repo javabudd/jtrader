@@ -275,6 +275,81 @@ class LocalLinearLearner(BaseModel):
                 "seasonality_prior_scale": 0.01,
                 "seasonality_mode": "multiplicative"
             },
+            "obv": {
+                "changepoint_prior_scale": 0.5,
+                "seasonality_prior_scale": 0.01,
+                "seasonality_mode": "additive"
+            },
+            "ppo": {
+                "changepoint_prior_scale": 0.01,
+                "seasonality_prior_scale": 0.01,
+                "seasonality_mode": "additive"
+            },
+            "psar": {
+                "changepoint_prior_scale": 0.5,
+                "seasonality_prior_scale": 0.01,
+                "seasonality_mode": "multiplicative"
+            },
+            "pvi": {
+                "changepoint_prior_scale": 0.5,
+                "seasonality_prior_scale": 0.01,
+                "seasonality_mode": "multiplicative"
+            },
+            "qstick": {
+                "changepoint_prior_scale": 0.001,
+                "seasonality_prior_scale": 0.1,
+                "seasonality_mode": "multiplicative"
+            },
+            "roc": {
+                "changepoint_prior_scale": 0.01,
+                "seasonality_prior_scale": 0.01,
+                "seasonality_mode": "additive"
+            },
+            "rocr": {
+                "changepoint_prior_scale": 0.5,
+                "seasonality_prior_scale": 0.01,
+                "seasonality_mode": "multiplicative"
+            },
+            "round": {
+                "changepoint_prior_scale": 0.5,
+                "seasonality_prior_scale": 0.01,
+                "seasonality_mode": "multiplicative"
+            },
+            "rsi": {
+                "changepoint_prior_scale": 0.01,
+                "seasonality_prior_scale": 0.01,
+                "seasonality_mode": "multiplicative"
+            },
+            "sin": {
+                "changepoint_prior_scale": 0.5,
+                "seasonality_prior_scale": 0.01,
+                "seasonality_mode": "multiplicative"
+            },
+            "sinh": {
+                "changepoint_prior_scale": 0.5,
+                "seasonality_prior_scale": 0.1,
+                "seasonality_mode": "multiplicative"
+            },
+            "sma": {
+                "changepoint_prior_scale": 0.5,
+                "seasonality_prior_scale": 0.01,
+                "seasonality_mode": "additive"
+            },
+            "sqrt": {
+                "changepoint_prior_scale": 0.1,
+                "seasonality_prior_scale": 0.01,
+                "seasonality_mode": "additive"
+            },
+            "stddev": {
+                "changepoint_prior_scale": 0.001,
+                "seasonality_prior_scale": 0.01,
+                "seasonality_mode": "multiplicative"
+            },
+            "stderr": {
+                "changepoint_prior_scale": 0.001,
+                "seasonality_prior_scale": 0.01,
+                "seasonality_mode": "multiplicative"
+            },
         }
     }
 
