@@ -410,6 +410,16 @@ class LocalLinearLearner(BaseModel):
                 "seasonality_prior_scale": 0.01,
                 "seasonality_mode": "multiplicative"
             },
+            "ultosc": {
+                "changepoint_prior_scale": 0.1,
+                "seasonality_prior_scale": 0.01,
+                "seasonality_mode": "multiplicative"
+            },
+            "var": {
+                "changepoint_prior_scale": 0.001,
+                "seasonality_prior_scale": 0.1,
+                "seasonality_mode": "multiplicative"
+            },
         }
     }
 
