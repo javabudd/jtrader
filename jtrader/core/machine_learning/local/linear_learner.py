@@ -300,6 +300,11 @@ class LocalLinearLearner(BaseModel):
                 "seasonality_prior_scale": 0.1,
                 "seasonality_mode": "multiplicative"
             },
+            "radians": {
+                "changepoint_prior_scale": 0.5,
+                "seasonality_prior_scale": 0.01,
+                "seasonality_mode": "multiplicative"
+            },
             "roc": {
                 "changepoint_prior_scale": 0.01,
                 "seasonality_prior_scale": 0.01,
@@ -346,6 +351,36 @@ class LocalLinearLearner(BaseModel):
                 "seasonality_mode": "multiplicative"
             },
             "stderr": {
+                "changepoint_prior_scale": 0.001,
+                "seasonality_prior_scale": 0.01,
+                "seasonality_mode": "multiplicative"
+            },
+            "stochrsi": {
+                "changepoint_prior_scale": 0.5,
+                "seasonality_prior_scale": 0.01,
+                "seasonality_mode": "multiplicative"
+            },
+            "stock_k": {
+                "changepoint_prior_scale": 0.1,
+                "seasonality_prior_scale": 0.01,
+                "seasonality_mode": "multiplicative"
+            },
+            "sum": {
+                "changepoint_prior_scale": 0.5,
+                "seasonality_prior_scale": 0.01,
+                "seasonality_mode": "additive"
+            },
+            "tan": {
+                "changepoint_prior_scale": 0.001,
+                "seasonality_prior_scale": 0.1,
+                "seasonality_mode": "multiplicative"
+            },
+            "tema": {
+                "changepoint_prior_scale": 0.5,
+                "seasonality_prior_scale": 0.01,
+                "seasonality_mode": "additive"
+            },
+            "tr": {
                 "changepoint_prior_scale": 0.001,
                 "seasonality_prior_scale": 0.01,
                 "seasonality_mode": "multiplicative"
