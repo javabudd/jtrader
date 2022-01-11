@@ -156,7 +156,7 @@ class ML:
                                 {"ds": data['ds'], "y": data['close']}
                             )
 
-                predictions[indicator_name] = prediction_result['yhat']
+                predictions[indicator_name] = prediction_result
 
             if api_result is None:
                 print('API result missing')

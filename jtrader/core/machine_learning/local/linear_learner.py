@@ -53,8 +53,8 @@ class LocalLinearLearner(BaseModel):
                     df = extra_features[feature]
                     df.reset_index(level=0, inplace=True)
                     df.rename(columns={"date": "ds"}, inplace=True)
+                    df.fillna(extra_features[feature].mean(), inplace=True)
                     data = pd.merge(self.data.data, df, on='ds')
-                    data[feature].fillna(data[feature].mean(), inplace=True)
                     self.data._data = data
 
         return model
@@ -133,8 +133,10 @@ class LocalLinearLearner(BaseModel):
         prediction_no_weekdays = prediction[prediction['ds'].dt.dayofweek < 5]
 
         if extra_features is not None:
-            for prediction_name in extra_features.keys():
-                prediction[prediction_name] = extra_features[prediction_name]
+            for feature in extra_features.keys():
+                extra_features[feature].drop(extra_features[feature].columns.difference(['ds','yhat']), 1, inplace=True)
+                extra_features[feature].rename(columns={"yhat": feature}, inplace=True)
+                prediction_no_weekdays = pd.merge(prediction_no_weekdays, extra_features[feature], on='ds')
 
         return self._model.predict(prediction_no_weekdays)
 
