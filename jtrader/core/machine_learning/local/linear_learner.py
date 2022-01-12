@@ -1,4 +1,6 @@
+import hashlib
 import itertools
+import json
 from pathlib import Path
 from typing import Union, Optional
 
@@ -9,10 +11,10 @@ from prophet.diagnostics import cross_validation, performance_metrics
 from pandas import DataFrame
 
 from jtrader.core.machine_learning.base_model import BaseModel
+from jtrader.core.odm import ODM
 from .data_loader import DataLoader
 
 MODEL_FOLDER = 'models'
-
 
 class LocalLinearLearner(BaseModel):
     container_name: str = "linear-learner"
@@ -25,12 +27,13 @@ class LocalLinearLearner(BaseModel):
         "objective_type": "Minimize",
     }
 
-    def __init__(self, data, stock: str, timeframe: str = '5y'):
-        super().__init__(data)
+    def __init__(self, data, stock: str, timeframe: str = '5y', model_name: str = None):
+        super().__init__(data, model_name)
 
         self.stock = stock
         self.timeframe = timeframe
         self._model = None
+        self.db = ODM()
 
     @staticmethod
     def save_model(model, name: str) -> None:
@@ -40,17 +43,19 @@ class LocalLinearLearner(BaseModel):
             pass
         pd.to_pickle(model, f"{MODEL_FOLDER}/{name}.pkl")
 
-    @staticmethod
-    def get_prophet_model(data: pd.DataFrame, prophet_params: dict, extra_features: dict = None):
+    def get_prophet_model(self, prophet_params: dict, extra_features: dict = None):
         model = Prophet(**prophet_params)
 
         if extra_features is not None:
-            df = pd.DataFrame(extra_features)
             for feature in extra_features.keys():
                 model.add_regressor(feature)
-                if feature not in data:
-                    values = df[feature].fillna(df[feature].mean()).values
-                    data.insert(len(data.columns), feature, values)
+                if feature not in self.data.data:
+                    df = extra_features[feature]
+                    df.reset_index(level=0, inplace=True)
+                    df.rename(columns={"date": "ds"}, inplace=True)
+                    df.fillna(extra_features[feature].mean(), inplace=True)
+                    data = pd.merge(self.data.data, df, on='ds')
+                    self.data._data = data
 
         return model
 
@@ -65,36 +70,54 @@ class LocalLinearLearner(BaseModel):
 
         return model
 
-    def train(self, extra_features: Optional[dict] = None) -> Prophet:
-        param_grid = {
-            'changepoint_prior_scale': [0.001, 0.01, 0.1, 0.5],
-            'seasonality_prior_scale': [0.01, 0.1, 1.0, 10.0],
-        }
+    def train(
+            self,
+            hyperparameters: Optional[dict] = None,
+            extra_features: Optional[dict] = None
+    ) -> Prophet:
+        if hyperparameters is None or len(hyperparameters) == 0:
+            hyperparameters = self.db.get_prophet_params(self.stock, self.model_name)
 
-        data = self.data.data
+        # if there are no hyperparameters provided, run auto-tuning
+        if hyperparameters is None:
+            param_grid = {
+                'changepoint_prior_scale': [0.001, 0.01, 0.1, 0.5],
+                'seasonality_prior_scale': [0.01, 0.1, 1.0, 10.0],
+                'seasonality_mode': ['additive', 'multiplicative']
+            }
 
-        all_params = [dict(zip(param_grid.keys(), v)) for v in itertools.product(*param_grid.values())]
-        rmses = []
+            fitted_models = {}
+            all_params = [dict(zip(param_grid.keys(), v)) for v in itertools.product(*param_grid.values())]
+            rmses = []
 
-        for params in all_params:
-            model = self.get_prophet_model(data, params, extra_features)
+            for params in all_params:
+                param_hash = hashlib.md5(json.dumps(params, sort_keys=True).encode('utf-8')).hexdigest()
+                model = self.get_prophet_model(params, extra_features)
 
-            model.fit(data)
-            df_cv = cross_validation(model, horizon='30 days', parallel="processes")
-            df_p = performance_metrics(df_cv, rolling_window=1)
-            rmses.append(df_p['rmse'].values[0])
+                model.fit(self.data.data)
 
-        tuning_results = pd.DataFrame(all_params)
-        tuning_results['rmse'] = rmses
-        best_params = all_params[np.argmin(rmses)]
+                fitted_models[param_hash] = model
 
-        model = self.get_prophet_model(data, best_params, extra_features)
+                df_cv = cross_validation(model, horizon='30 days', parallel="processes")
+                df_p = performance_metrics(df_cv, rolling_window=1)
+                rmses.append(df_p['rmse'].values[0])
 
-        model.fit(data)
+            best_params = all_params[np.argmin(rmses)]
 
-        self._model = model
+            if len(rmses) > 0:
+                self.db.put_prophet_params(self.stock, self.model_name, best_params)
 
-        return model
+            self._model = fitted_models[
+                hashlib.md5(json.dumps(best_params, sort_keys=True).encode('utf-8')).hexdigest()
+            ]
+        else:
+            model = self.get_prophet_model(hyperparameters, extra_features)
+
+            model.fit(self.data.data)
+
+            self._model = model
+
+        return self._model
 
     def predict(
             self,
@@ -107,11 +130,15 @@ class LocalLinearLearner(BaseModel):
 
         prediction = self._model.make_future_dataframe(periods=periods, include_history=False)
 
-        if extra_features is not None:
-            for prediction_name in extra_features.keys():
-                prediction[prediction_name] = extra_features[prediction_name]
+        prediction_no_weekdays = prediction[prediction['ds'].dt.dayofweek < 5]
 
-        return self._model.predict(prediction)
+        if extra_features is not None:
+            for feature in extra_features.keys():
+                extra_features[feature].drop(extra_features[feature].columns.difference(['ds','yhat']), 1, inplace=True)
+                extra_features[feature].rename(columns={"yhat": feature}, inplace=True)
+                prediction_no_weekdays = pd.merge(prediction_no_weekdays, extra_features[feature], on='ds')
+
+        return self._model.predict(prediction_no_weekdays)
 
     def tune(self) -> None:
         pass

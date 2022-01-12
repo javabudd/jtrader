@@ -116,12 +116,17 @@ class ML:
                     inplace=True
                 )
 
-                feature_training_data[indicator_name] = data[indicator_name]
+                if indicator_name in self.client.SPECIAL_INDICATORS:
+                    indicator_name = self.client.SPECIAL_INDICATORS[indicator_name]
+
+                indicator_data = data.iloc[:, data.columns.get_loc(indicator_name):]
+
+                if True in indicator_data.isnull().all().values:
+                    continue
+
+                feature_training_data[indicator_name] = indicator_data
 
                 if prediction_result is None:
-                    if indicator_name in self.client.SPECIAL_INDICATORS:
-                        indicator_name = self.client.SPECIAL_INDICATORS[indicator_name]
-
                     data.replace([np.inf, -np.inf, np.nan], 0, inplace=True)
                     data.reset_index(level=0, inplace=True)
                     data.rename(columns={"date": "ds", indicator_name: "y"}, inplace=True)
@@ -136,7 +141,8 @@ class ML:
                         local_trainer = ml.local.LocalLinearLearner(
                             data=data_loader,
                             stock=stock,
-                            timeframe=timeframe
+                            timeframe=timeframe,
+                            model_name=indicator_name
                         )
 
                         local_trainer.train()
@@ -150,7 +156,7 @@ class ML:
                                 {"ds": data['ds'], "y": data['close']}
                             )
 
-                predictions[indicator_name] = prediction_result['yhat']
+                predictions[indicator_name] = prediction_result
 
             if api_result is None:
                 print('API result missing')
@@ -165,7 +171,8 @@ class ML:
             local_trainer = ml.local.LocalLinearLearner(
                 data=data_loader,
                 stock=stock,
-                timeframe=timeframe
+                timeframe=timeframe,
+                model_name='close'
             )
 
             local_trainer.train(extra_features=feature_training_data)

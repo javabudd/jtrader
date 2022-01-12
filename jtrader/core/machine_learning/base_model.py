@@ -10,11 +10,16 @@ LOGGER = logging.getLogger(__name__)
 
 
 class BaseModel(ABC):
-    def __init__(self, data: DataLoader) -> None:
+    def __init__(self, data: DataLoader, model_name: str = None) -> None:
         self.data = data
+        self.model_name = model_name
 
     @abstractmethod
-    def train(self, regressors: Optional[dict] = None) -> Union[None, object]:
+    def train(
+            self,
+            hyperparameters: Optional[dict] = None,
+            extra_features: Optional[dict] = None
+    ) -> Union[None, object]:
         """
         Trains the model, with the data provided
         """

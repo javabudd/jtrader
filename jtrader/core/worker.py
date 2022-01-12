@@ -61,8 +61,8 @@ class Worker:
             self.logger.debug('odm count: ' + str(odm_entry_length))
             self.logger.debug('provider count: ' + str(len(provider_entries)))
 
-            with self.odm.table.batch_writer(overwrite_by_pkeys=['ticker', 'date']) as batch:
+            with self.odm.stock_table.batch_writer(overwrite_by_pkeys=['ticker', 'date']) as batch:
                 for result in provider_entries:
-                    self.odm.put_item(batch, stock_symbol, result)
+                    self.odm.put_stock(batch, stock_symbol, result)
 
         return True
