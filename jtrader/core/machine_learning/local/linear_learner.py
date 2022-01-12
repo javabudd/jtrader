@@ -6,8 +6,8 @@ from typing import Union, Optional
 
 import numpy as np
 import pandas as pd
-from fbprophet import Prophet
-from fbprophet.diagnostics import cross_validation, performance_metrics
+from prophet import Prophet
+from prophet.diagnostics import cross_validation, performance_metrics
 from pandas import DataFrame
 
 from jtrader.core.machine_learning.base_model import BaseModel
