@@ -132,7 +132,7 @@ class ML:
 
                 indicator_data = data.iloc[:, data.columns.get_loc(indicator_name):]
 
-                if True in indicator_data.isnull().all().values:
+                if True in indicator_data.isnull().all().values or indicator_data[indicator_name].sum() == 0:
                     continue
 
                 feature_training_data[indicator_name] = indicator_data
@@ -141,9 +141,6 @@ class ML:
                     data.replace([np.inf, -np.inf, np.nan], 0, inplace=True)
                     data.reset_index(level=0, inplace=True)
                     data.rename(columns={"date": "ds", indicator_name: "y"}, inplace=True)
-
-                    if data['y'].sum() == 0:
-                        continue
 
                     data_loader = ml.local.LocalDataLoader([], data=data)
 
