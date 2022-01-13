@@ -18,7 +18,8 @@ class BaseModel(ABC):
     def train(
             self,
             hyperparameters: Optional[dict] = None,
-            extra_features: Optional[dict] = None
+            extra_features: Optional[dict] = None,
+            with_dask: Optional[bool] = False
     ) -> Union[None, object]:
         """
         Trains the model, with the data provided

@@ -1,8 +1,10 @@
+import asyncio
 from pathlib import Path
 from typing import Union
 
 import numpy as np
 import pandas as pd
+from dask.distributed import Worker
 
 import jtrader.core.machine_learning as ml
 from jtrader.core.provider.iex import IEX
@@ -17,6 +19,14 @@ ALGORITHMS = [
 class ML:
     def __init__(self, iex_provider: IEX):
         self.client = iex_provider
+
+    @staticmethod
+    def start_dask_worker(address: str):
+        async def f(scheduler_address):
+            w = await Worker(scheduler_address)
+            await w.finished()
+
+        asyncio.get_event_loop().run_until_complete(f(f"tcp://{address}"))
 
     @staticmethod
     def save_api_result(api_result, name) -> None:
@@ -71,6 +81,7 @@ class ML:
             training_algorithm: str,
             with_aws: bool = False,
             with_numerai: bool = False,
+            with_dask: bool = False,
             timeframe: str = '5y'
     ):
         periods = 60
@@ -145,7 +156,7 @@ class ML:
                             model_name=indicator_name
                         )
 
-                        local_trainer.train()
+                        local_trainer.train(with_dask=with_dask)
 
                         prediction_result = local_trainer.predict(periods=periods)
 
@@ -175,7 +186,7 @@ class ML:
                 model_name='close'
             )
 
-            local_trainer.train(extra_features=feature_training_data)
+            local_trainer.train(with_dask=with_dask, extra_features=feature_training_data)
 
             prediction = local_trainer.predict(periods=periods, extra_features=predictions)
 

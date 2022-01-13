@@ -6,15 +6,16 @@ from typing import Union, Optional
 
 import numpy as np
 import pandas as pd
+from pandas import DataFrame
 from prophet import Prophet
 from prophet.diagnostics import cross_validation, performance_metrics
-from pandas import DataFrame
 
 from jtrader.core.machine_learning.base_model import BaseModel
 from jtrader.core.odm import ODM
 from .data_loader import DataLoader
 
 MODEL_FOLDER = 'models'
+
 
 class LocalLinearLearner(BaseModel):
     container_name: str = "linear-learner"
@@ -73,7 +74,8 @@ class LocalLinearLearner(BaseModel):
     def train(
             self,
             hyperparameters: Optional[dict] = None,
-            extra_features: Optional[dict] = None
+            extra_features: Optional[dict] = None,
+            with_dask: Optional[bool] = False
     ) -> Prophet:
         if hyperparameters is None or len(hyperparameters) == 0:
             hyperparameters = self.db.get_prophet_params(self.stock, self.model_name)
@@ -98,7 +100,11 @@ class LocalLinearLearner(BaseModel):
 
                 fitted_models[param_hash] = model
 
-                df_cv = cross_validation(model, horizon='30 days', parallel="processes")
+                mode = 'processes'
+                if with_dask:
+                    mode = 'dask'
+
+                df_cv = cross_validation(model, horizon='30 days', parallel=mode)
                 df_p = performance_metrics(df_cv, rolling_window=1)
                 rmses.append(df_p['rmse'].values[0])
 
@@ -134,7 +140,8 @@ class LocalLinearLearner(BaseModel):
 
         if extra_features is not None:
             for feature in extra_features.keys():
-                extra_features[feature].drop(extra_features[feature].columns.difference(['ds','yhat']), 1, inplace=True)
+                extra_features[feature].drop(extra_features[feature].columns.difference(['ds', 'yhat']), 1,
+                                             inplace=True)
                 extra_features[feature].rename(columns={"yhat": feature}, inplace=True)
                 prediction_no_weekdays = pd.merge(prediction_no_weekdays, extra_features[feature], on='ds')
 

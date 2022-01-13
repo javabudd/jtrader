@@ -219,7 +219,8 @@ class AwsEstimator(AwsBase, ABC):
     def train(
             self,
             hyperparameters: Dict = {},
-            extra_features: Optional[dict] = {}
+            extra_features: Optional[dict] = {},
+            with_dask: Optional[bool] = False
     ) -> None:
         """
         Trains the model, with the data provided
@@ -229,6 +230,7 @@ class AwsEstimator(AwsBase, ABC):
                 See https://docs.aws.amazon.com/sagemaker/latest/dg/algos.html
                 And specific implementations
             extra_features: Extra features to train against
+            with_dask: With dask cluster
         """
         LOGGER.info("Starting to train model.")
         self._model = self._get_model(hyperparameters)

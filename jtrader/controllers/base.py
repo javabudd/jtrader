@@ -368,7 +368,8 @@ class Base(Controller):
             self.app.pargs.ticker,
             self.app.pargs.algorithm,
             self.app.pargs.with_aws,
-            self.app.pargs.with_numerai
+            self.app.pargs.with_numerai,
+            self.app.pargs.with_dask,
         )
 
     @ex(
@@ -402,6 +403,24 @@ class Base(Controller):
         """Start ML Predictor Command"""
 
         ML(self.get_iex_provider(False)).run_predictor(self.app.pargs.model[0], self.app.pargs.predictions)
+
+    @ex(
+        help='Start Dask Worker',
+        arguments=[
+            (
+                    ['-a', '--address'],
+                    {
+                        'help': 'Cluster address to connect to',
+                        'action': 'store',
+                        'dest': 'address',
+                        'required': True
+                    }
+            ),
+        ],
+    )
+    def start_dask_worker(self):
+        """Start Dask Worker Command"""
+        ML(self.get_iex_provider(False)).start_dask_worker(self.app.pargs.address)
 
     @ex(
         help='Run a backtest',
