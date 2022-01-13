@@ -360,6 +360,14 @@ class Base(Controller):
                         'dest': 'with_numerai'
                     }
             ),
+            (
+                    ['--with-dask'],
+                    {
+                        'help': 'use Dask to perform cross validation',
+                        'action': 'store_true',
+                        'dest': 'with_dask'
+                    }
+            ),
         ],
     )
     def start_ml_trainer(self):
