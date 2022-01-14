@@ -81,13 +81,13 @@ class ML:
             training_algorithm: str,
             with_aws: bool = False,
             with_numerai: bool = False,
-            with_dask: bool = False,
+            dask_cluster_address: str = None,
             timeframe: str = '5y'
     ):
         periods = 60
 
         if with_numerai:
-            data_loader = ml.numerai.NumeraiDataLoader(local_data_location="training_data.parquet")
+            raise NotImplementedError()
         else:
             predictions = {}
             feature_training_data = {}
@@ -157,7 +157,7 @@ class ML:
                             model_name=indicator_name
                         )
 
-                        local_trainer.train(with_dask=with_dask)
+                        local_trainer.train(dask_cluster_address=dask_cluster_address)
 
                         prediction_result = local_trainer.predict(periods=periods)
 
@@ -187,7 +187,7 @@ class ML:
                 model_name='close'
             )
 
-            local_trainer.train(with_dask=with_dask, extra_features=feature_training_data)
+            local_trainer.train(dask_cluster_address=dask_cluster_address, extra_features=feature_training_data)
 
             prediction = local_trainer.predict(periods=periods, extra_features=predictions)
 

@@ -75,7 +75,7 @@ class LocalLinearLearner(BaseModel):
             self,
             hyperparameters: Optional[dict] = None,
             extra_features: Optional[dict] = None,
-            with_dask: Optional[bool] = False
+            dask_cluster_address: Optional[str] = None
     ) -> Prophet:
         if hyperparameters is None or len(hyperparameters) == 0:
             hyperparameters = self.db.get_prophet_params(self.stock, self.model_name)
@@ -101,7 +101,9 @@ class LocalLinearLearner(BaseModel):
                 fitted_models[param_hash] = model
 
                 mode = 'processes'
-                if with_dask:
+                if dask_cluster_address:
+                    from distributed import Client
+                    Client(address=dask_cluster_address)
                     mode = 'dask'
 
                 df_cv = cross_validation(model, horizon='30 days', parallel=mode)

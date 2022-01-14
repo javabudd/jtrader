@@ -361,11 +361,11 @@ class Base(Controller):
                     }
             ),
             (
-                    ['--with-dask'],
+                    ['--dask-cluster-address'],
                     {
-                        'help': 'use Dask to perform cross validation',
+                        'help': 'Dask cluster address to perform cross validation on',
                         'action': 'store_true',
-                        'dest': 'with_dask'
+                        'dest': 'dask_cluster_address'
                     }
             ),
         ],
@@ -377,7 +377,7 @@ class Base(Controller):
             self.app.pargs.algorithm,
             self.app.pargs.with_aws,
             self.app.pargs.with_numerai,
-            self.app.pargs.with_dask,
+            self.app.pargs.dask_cluster_address,
         )
 
     @ex(

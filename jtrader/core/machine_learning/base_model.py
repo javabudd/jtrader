@@ -19,7 +19,7 @@ class BaseModel(ABC):
             self,
             hyperparameters: Optional[dict] = None,
             extra_features: Optional[dict] = None,
-            with_dask: Optional[bool] = False
+            dask_cluster_address: Optional[str] = None
     ) -> Union[None, object]:
         """
         Trains the model, with the data provided
