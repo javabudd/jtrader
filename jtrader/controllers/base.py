@@ -425,20 +425,29 @@ class Base(Controller):
                     }
             ),
             (
-                    ['-wa', '--worker-address'],
+                    ['-c', '--contact-address'],
                     {
-                        'help': 'Worker address to start on',
+                        'help': 'Contact address to listen to',
                         'action': 'store',
-                        'dest': 'worker_address',
+                        'dest': 'contact_address',
                         'required': True
                     }
             ),
             (
-                    ['-wp', '--worker-port'],
+                    ['-l', '--listen-address'],
                     {
-                        'help': 'Worker port to start on',
+                        'help': 'Worker address to listen on',
                         'action': 'store',
-                        'dest': 'worker_port',
+                        'dest': 'listen_address',
+                        'required': True
+                    }
+            ),
+            (
+                    ['-lp', '--listen-address-port'],
+                    {
+                        'help': 'Worker port to listen on',
+                        'action': 'store',
+                        'dest': 'listen_address_port',
                         'required': True,
                         'type': int
                     }
@@ -449,8 +458,9 @@ class Base(Controller):
         """Start Dask Worker Command"""
         ML(self.get_iex_provider(False)).start_dask_worker(
             self.app.pargs.address,
-            self.app.pargs.worker_address,
-            self.app.pargs.worker_port
+            self.app.pargs.contact_address,
+            self.app.pargs.listen_address,
+            self.app.pargs.listen_address_port,
         )
 
     @ex(
