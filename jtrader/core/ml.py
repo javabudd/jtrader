@@ -4,7 +4,7 @@ from typing import Union
 
 import numpy as np
 import pandas as pd
-from dask.distributed import Worker
+from dask.distributed import Worker, Scheduler
 
 import jtrader.core.machine_learning as ml
 from jtrader.core.provider.iex import IEX
@@ -27,6 +27,15 @@ class ML:
             await w.finished()
 
         asyncio.get_event_loop().run_until_complete(f(f"tcp://{address}"))
+
+    @staticmethod
+    def start_dask_scheduler():
+        async def f():
+            s = Scheduler()
+            s = await s
+            await s.finished()
+
+        asyncio.get_event_loop().run_until_complete(f())
 
     @staticmethod
     def save_api_result(api_result, name) -> None:

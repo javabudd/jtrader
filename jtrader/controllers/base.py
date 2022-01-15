@@ -364,7 +364,7 @@ class Base(Controller):
                     ['--dask-cluster-address'],
                     {
                         'help': 'Dask cluster address to perform cross validation on',
-                        'action': 'store_true',
+                        'action': 'store',
                         'dest': 'dask_cluster_address'
                     }
             ),
@@ -429,6 +429,15 @@ class Base(Controller):
     def start_dask_worker(self):
         """Start Dask Worker Command"""
         ML(self.get_iex_provider(False)).start_dask_worker(self.app.pargs.address)
+
+    @ex(
+        help='Start Dask Scheduler',
+        arguments=[],
+    )
+    def start_dask_scheduler(self):
+        """Start Dask Worker Command"""
+        ML(self.get_iex_provider(False)).start_dask_scheduler()
+
 
     @ex(
         help='Run a backtest',
