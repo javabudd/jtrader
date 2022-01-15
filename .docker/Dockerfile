@@ -48,4 +48,4 @@ RUN find / -name '*.pyc' -delete && python setup.py install
 
 WORKDIR /
 
-CMD ["jtrader", "-d", "start-worker"]
+CMD ["jtrader", "-d", "start-dask-scheduler"]
