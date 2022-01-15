@@ -1,10 +1,11 @@
-import asyncio
-from pathlib import Path
-from typing import Union
+from __future__ import annotations
 
+import asyncio
 import numpy as np
 import pandas as pd
 from dask.distributed import Worker, Scheduler
+from pathlib import Path
+from typing import Union
 
 import jtrader.core.machine_learning as ml
 from jtrader.core.provider.iex import IEX
@@ -21,7 +22,12 @@ class ML:
         self.client = iex_provider
 
     @staticmethod
-    def start_dask_worker(address: str, contact_address:str, listen_address: str, listen_address_port: int):
+    def start_dask_worker(
+            address: str,
+            listen_address: str,
+            listen_address_port: int,
+            contact_address: str | None = None
+    ):
         async def f():
             w = await Worker(
                 address,

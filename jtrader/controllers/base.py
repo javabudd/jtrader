@@ -430,7 +430,6 @@ class Base(Controller):
                         'help': 'Contact address to listen to',
                         'action': 'store',
                         'dest': 'contact_address',
-                        'required': True
                     }
             ),
             (
@@ -458,9 +457,9 @@ class Base(Controller):
         """Start Dask Worker Command"""
         ML(self.get_iex_provider(False)).start_dask_worker(
             self.app.pargs.address,
-            self.app.pargs.contact_address,
             self.app.pargs.listen_address,
             self.app.pargs.listen_address_port,
+            self.app.pargs.contact_address,
         )
 
     @ex(
