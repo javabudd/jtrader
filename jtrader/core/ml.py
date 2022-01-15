@@ -22,16 +22,16 @@ class ML:
 
     @staticmethod
     def start_dask_worker(address: str, contact_address:str, listen_address: str, listen_address_port: int):
-        async def f(scheduler_address):
+        async def f():
             w = await Worker(
-                scheduler_address,
+                address,
                 contact_address=contact_address,
                 host=listen_address,
                 port=listen_address_port
             )
             await w.finished()
 
-        asyncio.get_event_loop().run_until_complete(f(f"tcp://{address}"))
+        asyncio.get_event_loop().run_until_complete(f())
 
     @staticmethod
     def start_dask_scheduler():
