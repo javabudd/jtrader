@@ -21,9 +21,9 @@ class ML:
         self.client = iex_provider
 
     @staticmethod
-    def start_dask_worker(address: str):
+    def start_dask_worker(address: str, worker_address: str, worker_port: int):
         async def f(scheduler_address):
-            w = await Worker(scheduler_address, port=3000)
+            w = await Worker(scheduler_address=scheduler_address, address=worker_address, port=worker_port)
             await w.finished()
 
         asyncio.get_event_loop().run_until_complete(f(f"tcp://{address}"))

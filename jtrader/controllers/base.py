@@ -424,11 +424,34 @@ class Base(Controller):
                         'required': True
                     }
             ),
+            (
+                    ['-wa', '--worker-address'],
+                    {
+                        'help': 'Worker address to start on',
+                        'action': 'store',
+                        'dest': 'worker_address',
+                        'required': True
+                    }
+            ),
+            (
+                    ['-wp', '--worker-port'],
+                    {
+                        'help': 'Worker port to start on',
+                        'action': 'store',
+                        'dest': 'worker_port',
+                        'required': True,
+                        'type': int
+                    }
+            ),
         ],
     )
     def start_dask_worker(self):
         """Start Dask Worker Command"""
-        ML(self.get_iex_provider(False)).start_dask_worker(self.app.pargs.address)
+        ML(self.get_iex_provider(False)).start_dask_worker(
+            self.app.pargs.address,
+            self.app.pargs.worker_address,
+            self.app.pargs.worker_port
+        )
 
     @ex(
         help='Start Dask Scheduler',
@@ -437,7 +460,6 @@ class Base(Controller):
     def start_dask_scheduler(self):
         """Start Dask Worker Command"""
         ML(self.get_iex_provider(False)).start_dask_scheduler()
-
 
     @ex(
         help='Run a backtest',
