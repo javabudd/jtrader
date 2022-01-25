@@ -110,3 +110,4 @@ venv.bak/
 out.csv
 docker-compose.override.yml
 **.db
+dask-worker-space

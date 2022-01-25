@@ -1,8 +1,11 @@
+import logging
+
 from cement import Controller, ex
 from cement.utils.version import get_version_banner
 
 from jtrader.core.backtester import Backtester
 from jtrader.core.kucoin import KuCoin
+from jtrader.core.ml import ALGORITHMS
 from jtrader.core.ml import ML
 from jtrader.core.news import News
 from jtrader.core.pairs import Pairs
@@ -38,6 +41,10 @@ indicators = [
 
 
 class Base(Controller):
+    logging.basicConfig(
+        format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO
+    )
+
     class Meta:
         label = 'base'
         description = 'Trade them thangs'
@@ -328,20 +335,50 @@ class Base(Controller):
                     }
             ),
             (
-                    ['-f', '--feature'],
+                    ['-a', '--algorithm'],
                     {
-                        'help': 'which feature to train against',
+                        'help': 'which algorithm to use',
                         'action': 'store',
-                        'dest': 'feature',
-                        'choices': IEX.IEX_TECHNICAL_INDICATORS,
+                        'dest': 'algorithm',
+                        'choices': ALGORITHMS,
                         'required': True
+                    }
+            ),
+            (
+                    ['--with-aws'],
+                    {
+                        'help': 'use AWS to train',
+                        'action': 'store_true',
+                        'dest': 'with_aws'
+                    }
+            ),
+            (
+                    ['--with-numerai'],
+                    {
+                        'help': 'use Numerai to train/populate',
+                        'action': 'store_true',
+                        'dest': 'with_numerai'
+                    }
+            ),
+            (
+                    ['--dask-cluster-address'],
+                    {
+                        'help': 'Dask cluster address to perform cross validation on',
+                        'action': 'store',
+                        'dest': 'dask_cluster_address'
                     }
             ),
         ],
     )
     def start_ml_trainer(self):
-        """Start ML Command"""
-        ML(self.get_iex_provider(False)).run_trainer(self.app.pargs.ticker, self.app.pargs.feature)
+        """Start ML Trainer Command"""
+        ML(self.get_iex_provider(False)).run_trainer(
+            self.app.pargs.ticker,
+            self.app.pargs.algorithm,
+            self.app.pargs.with_aws,
+            self.app.pargs.with_numerai,
+            self.app.pargs.dask_cluster_address,
+        )
 
     @ex(
         help='Start ML Predictor',
@@ -370,10 +407,68 @@ class Base(Controller):
             ),
         ],
     )
-    def start_ml(self):
-        """Start ML Command"""
+    def start_ml_predictor(self):
+        """Start ML Predictor Command"""
 
-        ML(self.get_iex_provider(False)).run_machine_learning(self.app.pargs.model[0], self.app.pargs.predictions)
+        ML(self.get_iex_provider(False)).run_predictor(self.app.pargs.model[0], self.app.pargs.predictions)
+
+    @ex(
+        help='Start Dask Worker',
+        arguments=[
+            (
+                    ['-a', '--address'],
+                    {
+                        'help': 'Cluster address to connect to',
+                        'action': 'store',
+                        'dest': 'address',
+                        'required': True
+                    }
+            ),
+            (
+                    ['-c', '--contact-address'],
+                    {
+                        'help': 'Contact address to listen to',
+                        'action': 'store',
+                        'dest': 'contact_address',
+                    }
+            ),
+            (
+                    ['-l', '--listen-address'],
+                    {
+                        'help': 'Worker address to listen on',
+                        'action': 'store',
+                        'dest': 'listen_address',
+                        'required': True
+                    }
+            ),
+            (
+                    ['-lp', '--listen-address-port'],
+                    {
+                        'help': 'Worker port to listen on',
+                        'action': 'store',
+                        'dest': 'listen_address_port',
+                        'required': True,
+                        'type': int
+                    }
+            ),
+        ],
+    )
+    def start_dask_worker(self):
+        """Start Dask Worker Command"""
+        ML(self.get_iex_provider(False)).start_dask_worker(
+            self.app.pargs.address,
+            self.app.pargs.listen_address,
+            self.app.pargs.listen_address_port,
+            self.app.pargs.contact_address,
+        )
+
+    @ex(
+        help='Start Dask Scheduler',
+        arguments=[],
+    )
+    def start_dask_scheduler(self):
+        """Start Dask Worker Command"""
+        ML(self.get_iex_provider(False)).start_dask_scheduler()
 
     @ex(
         help='Run a backtest',

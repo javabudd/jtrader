@@ -1,20 +1,52 @@
+from __future__ import annotations
+
+import asyncio
+import numpy as np
+import pandas as pd
+from dask.distributed import Worker, Scheduler
 from pathlib import Path
 from typing import Union
 
-import pandas as pd
-from sklearn import metrics
-from sklearn.linear_model import LinearRegression
-from sklearn.model_selection import train_test_split
-
+import jtrader.core.machine_learning as ml
 from jtrader.core.provider.iex import IEX
 
-API_RESULT_FOLDER = 'data'
-MODEL_FOLDER = 'models'
+API_RESULT_FOLDER = 'provider_data'
+PREDICTION_FOLDER = 'predictions'
+ALGORITHMS = [
+    'linear-learner'
+]
 
 
 class ML:
     def __init__(self, iex_provider: IEX):
         self.client = iex_provider
+
+    @staticmethod
+    def start_dask_worker(
+            address: str,
+            listen_address: str,
+            listen_address_port: int,
+            contact_address: str | None = None
+    ):
+        async def f():
+            w = await Worker(
+                address,
+                contact_address=contact_address,
+                host=listen_address,
+                port=listen_address_port
+            )
+            await w.finished()
+
+        asyncio.get_event_loop().run_until_complete(f())
+
+    @staticmethod
+    def start_dask_scheduler():
+        async def f():
+            s = Scheduler(port=8786)
+            s = await s
+            await s.finished()
+
+        asyncio.get_event_loop().run_until_complete(f())
 
     @staticmethod
     def save_api_result(api_result, name) -> None:
@@ -23,6 +55,14 @@ class ML:
         except Exception as ex:
             pass
         pd.to_pickle(api_result, f"{API_RESULT_FOLDER}/{name}.pkl")
+
+    @staticmethod
+    def save_prediction_result(prediction, name) -> None:
+        try:
+            Path(PREDICTION_FOLDER).mkdir(exist_ok=True, parents=True)
+        except Exception as ex:
+            pass
+        pd.to_pickle(prediction, f"{PREDICTION_FOLDER}/{name}.pkl")
 
     @staticmethod
     def load_api_result(name) -> Union[None, pd.DataFrame]:
@@ -34,12 +74,13 @@ class ML:
         return model
 
     @staticmethod
-    def save_model(model, name: str) -> None:
-        try:
-            Path(MODEL_FOLDER).mkdir(exist_ok=True, parents=True)
-        except Exception as ex:
-            pass
-        pd.to_pickle(model, f"{MODEL_FOLDER}/{name}.pkl")
+    def load_prediction_result(name) -> Union[None, pd.DataFrame]:
+        path = Path(f"{PREDICTION_FOLDER}/{name}.pkl")
+        if path.is_file():
+            prediction = pd.read_pickle(f"{PREDICTION_FOLDER}/{name}.pkl")
+        else:
+            prediction = None
+        return prediction
 
     @staticmethod
     def load_model(name: str) -> Union[None, pd.DataFrame]:
@@ -54,73 +95,132 @@ class ML:
         # optuna
         pass
 
-    def run_trainer(self, stock: str, indicator_name: str, timeframe: str = '5y'):
-        api_result_name = f"{stock}_{indicator_name}_{timeframe}"
+    def run_trainer(
+            self,
+            stock: str,
+            training_algorithm: str,
+            with_aws: bool = False,
+            with_numerai: bool = False,
+            dask_cluster_address: str = None,
+            timeframe: str = '5y'
+    ):
+        periods = 60
 
-        api_result = self.load_api_result(api_result_name)
-
-        if api_result is None:
-            print('creating new api result...')
-
-            data = self.client.technicals(
-                stock,
-                indicator_name,
-                timeframe, True
-            ).sort_values(by='date', ascending=True)
-
-            self.save_api_result(data, api_result_name)
+        if with_numerai:
+            raise NotImplementedError()
         else:
-            data = api_result
+            predictions = {}
+            feature_training_data = {}
+            final_prediction_data = None
+            api_result = None
+            for indicator_name in self.client.IEX_TECHNICAL_INDICATORS:
+                api_result_name = f"{stock}_{indicator_name}_{timeframe}"
+                prediction_save_name = f"prediction_{stock}_{indicator_name}_{periods}"
 
-        model_name = f"{stock}_{indicator_name}_{timeframe}"
+                prediction_result = self.load_prediction_result(prediction_save_name)
 
-        model = self.load_model(indicator_name)
+                api_result = self.load_api_result(api_result_name)
 
-        training_columns = [
-            indicator_name,
-            'volume',
-            'high',
-            'low',
-            'open',
-        ]
+                if api_result is None:
+                    print(f"creating new api result for {indicator_name} indicator...")
 
-        x_train, x_test, y_train, y_test = train_test_split(
-            data[training_columns].values,
-            data['close'].values,
-            test_size=0.2,
-            random_state=0
-        )
+                    data = self.client.technicals(
+                        stock,
+                        indicator_name,
+                        timeframe, True
+                    ).sort_values(by='date', ascending=True)
 
-        if model is None:
-            print('creating new model...')
+                    self.save_api_result(data, api_result_name)
+                else:
+                    data = api_result
 
-            model = LinearRegression(**{})
+                data.drop(
+                    [
+                        'symbol',
+                        'label',
+                        'subkey',
+                        'updated',
+                        'key',
+                        'id',
+                    ],
+                    axis=1,
+                    inplace=True
+                )
 
-            model.fit(x_train, y_train)
+                if indicator_name in self.client.SPECIAL_INDICATORS:
+                    indicator_name = self.client.SPECIAL_INDICATORS[indicator_name]
 
-            self.save_model(model, model_name)
+                indicator_data = data.iloc[:, data.columns.get_loc(indicator_name):]
 
-        predicted_test_data = model.predict(x_test)
+                if True in indicator_data.isnull().all().values or indicator_data[indicator_name].sum() == 0:
+                    continue
 
-        absolute_error = metrics.mean_absolute_error(y_test, predicted_test_data)
-        mean_squared_error = metrics.mean_squared_error(y_test, predicted_test_data)
-        r_squared = metrics.r2_score(y_test, predicted_test_data)
+                feature_training_data[indicator_name] = indicator_data
 
-        print(
-            {
-                "Model": model_name,
-                "Absolute Error": absolute_error,
-                "Mean Squared Error": mean_squared_error,
-                "R Squared": r_squared
-            }
-        )
+                if prediction_result is None:
+                    data.replace([np.inf, -np.inf, np.nan], 0, inplace=True)
+                    data.reset_index(level=0, inplace=True)
+                    data.rename(columns={"date": "ds", indicator_name: "y"}, inplace=True)
 
-    def run_machine_learning(self, model_name: str, prediction: list) -> None:
+                    data_loader = ml.local.LocalDataLoader([], data=data)
+
+                    if with_aws:
+                        sagemaker = ml.aws.Sagemaker()
+                        linear = ml.aws.LinearAwsLinearLearner(data=data_loader, aws_executor=sagemaker)
+
+                        linear.train()
+                    else:
+                        local_trainer = ml.local.LocalLinearLearner(
+                            data=data_loader,
+                            stock=stock,
+                            timeframe=timeframe,
+                            model_name=indicator_name
+                        )
+
+                        local_trainer.train(dask_cluster_address=dask_cluster_address)
+
+                        prediction_result = local_trainer.predict(periods=periods)
+
+                        self.save_prediction_result(prediction_result, prediction_save_name)
+
+                        if final_prediction_data is None:
+                            final_prediction_data = pd.DataFrame(
+                                {"ds": data['ds'], "y": data['close']}
+                            )
+
+                predictions[indicator_name] = prediction_result
+
+            if api_result is None:
+                print('API result missing')
+
+            if final_prediction_data is None:
+                api_result.reset_index(level=0, inplace=True)
+                final_prediction_data = pd.DataFrame(
+                    {"ds": api_result['date'], "y": api_result['close']}
+                )
+
+            data_loader = ml.local.LocalDataLoader([], data=final_prediction_data)
+            local_trainer = ml.local.LocalLinearLearner(
+                data=data_loader,
+                stock=stock,
+                timeframe=timeframe,
+                model_name='close'
+            )
+
+            local_trainer.train(dask_cluster_address=dask_cluster_address, extra_features=feature_training_data)
+
+            prediction = local_trainer.predict(periods=periods, extra_features=predictions)
+
+            prediction.to_csv('pred.csv')
+
+    def run_predictor(self, model_name: str, prediction: list) -> None:
         model = self.load_model(model_name)
 
         if model is None:
             print('can not load given model')
             return
+
+        prediction = model.make_future_dataframe(periods=365, include_history=False)
 
         print(
             {
