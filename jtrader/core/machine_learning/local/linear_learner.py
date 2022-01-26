@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import hashlib
 import itertools
 import json
@@ -44,8 +46,54 @@ class LocalLinearLearner(BaseModel):
             pass
         pd.to_pickle(model, f"{MODEL_FOLDER}/{name}.pkl")
 
-    def get_prophet_model(self, prophet_params: dict, extra_features: dict = None):
+    def get_prophet_model(
+            self,
+            prophet_params: dict,
+            extra_features: dict | None = None,
+            seasonality_params: dict | None = None
+    ):
+        print(prophet_params)
+        exit()
         model = Prophet(**prophet_params)
+
+        model.add_country_holidays(country_name='US')
+
+        if seasonality_params is not None:
+            for key in seasonality_params.keys():
+                if type(seasonality_params[key]) != dict:
+                    continue
+
+                if 'fourier' not in seasonality_params[key] or 'prior_scale' not in seasonality_params[key]:
+                    continue
+
+                if key == 'monthly':
+                    model.add_seasonality(
+                        name='monthly',
+                        period=21,
+                        fourier_order=seasonality_params[key]['fourier'],
+                        prior_scale=seasonality_params[key]['prior_scale']
+                    )
+                if key == 'daily':
+                    model.add_seasonality(
+                        name='daily',
+                        period=1,
+                        fourier_order=seasonality_params[key]['fourier'],
+                        prior_scale=seasonality_params[key]['prior_scale']
+                    )
+                if key == 'weekly':
+                    model.add_seasonality(
+                        name='weekly',
+                        period=5,
+                        fourier_order=seasonality_params[key]['fourier'],
+                        prior_scale=seasonality_params[key]['prior_scale']
+                    )
+                if key == 'yearly':
+                    model.add_seasonality(
+                        name='yearly',
+                        period=252,
+                        fourier_order=seasonality_params[key]['fourier'],
+                        prior_scale=seasonality_params[key]['prior_scale']
+                    )
 
         if extra_features is not None:
             for feature in extra_features.keys():
@@ -82,6 +130,15 @@ class LocalLinearLearner(BaseModel):
 
         # if there are no hyperparameters provided, run auto-tuning
         if hyperparameters is None:
+            seasonality_grid = {
+                'fourier': [0.005, .01, 0.05, 0.5, 1, 5, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100],
+                'prior_scale': [0.005, .01, 0.05, 0.5, 1, 5, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100]
+            }
+
+
+            seasonality_param_grid = {
+                'monthly':
+            }
             param_grid = {
                 'changepoint_prior_scale': [0.001, 0.01, 0.1, 0.5],
                 'seasonality_prior_scale': [0.01, 0.1, 1.0, 10.0],
@@ -94,7 +151,7 @@ class LocalLinearLearner(BaseModel):
 
             for params in all_params:
                 param_hash = hashlib.md5(json.dumps(params, sort_keys=True).encode('utf-8')).hexdigest()
-                model = self.get_prophet_model(params, extra_features)
+                model = self.get_prophet_model(params, extra_features, params['seasonality'])
 
                 model.fit(self.data.data)
 
@@ -106,7 +163,13 @@ class LocalLinearLearner(BaseModel):
                     Client(address=dask_cluster_address)
                     mode = 'dask'
 
-                df_cv = cross_validation(model, horizon='30 days', parallel=mode)
+                df_cv = cross_validation(
+                    model,
+                    horizon="365 days",
+                    period="182.5 days",
+                    initial="730 days",
+                    parallel=mode
+                )
                 df_p = performance_metrics(df_cv, rolling_window=1)
                 rmses.append(df_p['rmse'].values[0])
 
