@@ -8,7 +8,7 @@ from pathlib import Path
 from typing import Union
 
 import jtrader.core.machine_learning as ml
-from jtrader.core.provider.iex import IEX
+from jtrader.core.provider import IEX
 
 API_RESULT_FOLDER = 'provider_data'
 PREDICTION_FOLDER = 'predictions'

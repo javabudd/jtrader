@@ -1,6 +1,6 @@
 import json
 
-from jtrader.core.provider.iex import IEX
+from jtrader.core.provider import IEX
 
 
 class News(IEX):

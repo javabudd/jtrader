@@ -1,20 +1,38 @@
+from __future__ import annotations
+
 from abc import ABC, abstractmethod
+from logging import getLogger
+
+import pandas as pd
 
 from jtrader.core.provider import Provider
 
 
 class Trader(ABC):
+    KLINE_COLUMNS = ['date', 'open', 'close', 'high', 'low', 'volume', 'amount']
+
     def __init__(self, provider: Provider, ticker: str):
         self.provider = provider
         self.ticker = ticker
+        self.frames: pd.Dataframe | None = None
+        self.logger = getLogger()
+
+    def start_trader(self):
+        self.logger.info('looking up previous data...')
+
+        previous = self.provider.chart(self.ticker, '1d')
+
+        self.frames = pd.concat(
+            [pd.DataFrame(previous, columns=self.KLINE_COLUMNS)],
+            ignore_index=True
+        )
+
+        self._subscribe_to_websocket()
 
     @abstractmethod
-    async def on_websocket_message(self, message) -> None:
-        pass
+    async def _on_websocket_message(self, message) -> None:
+        raise NotImplemented
 
     @abstractmethod
-    def subscribe_to_websocket(self) -> None:
-        pass
-
-    def get_one_min_dataset(self):
-        return self.provider.chart(self.ticker, '1m')
+    def _subscribe_to_websocket(self) -> None:
+        raise NotImplemented

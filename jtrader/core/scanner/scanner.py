@@ -16,7 +16,7 @@ from jtrader.core.indicator import __INDICATOR_MAP__
 from jtrader.core.indicator.chain import Chain
 from jtrader.core.indicator.indicator import Indicator
 from jtrader.core.odm import ODM
-from jtrader.core.provider.iex import IEX
+from jtrader.core.provider import IEX
 
 
 class Scanner(IEX):

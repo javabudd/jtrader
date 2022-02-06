@@ -1,4 +1,5 @@
 import logging
+
 from cement import Controller, ex
 from cement.utils.version import get_version_banner
 
@@ -6,16 +7,17 @@ from jtrader.core.backtester import Backtester
 from jtrader.core.ml import ALGORITHMS
 from jtrader.core.ml import ML
 from jtrader.core.news import News
-from jtrader.core.provider.iex import IEX
-from jtrader.core.provider.kucoin import KuCoin as KuCoinProvider
+from jtrader.core.provider import IEX
+from jtrader.core.provider import KuCoin as KuCoinProvider
 from jtrader.core.scanner.hqm import HighQualityMomentum
 from jtrader.core.scanner.lqm import LowQualityMomentum
 from jtrader.core.scanner.momentum import Momentum
 from jtrader.core.scanner.premarketmomentum import PreMarketMomentum
 from jtrader.core.scanner.scanner import Scanner
 from jtrader.core.scanner.value import Value
-from jtrader.core.trader.kucoin import KuCoin
-from jtrader.core.trader.pairs import Pairs
+from jtrader.core.trader import KuCoin
+from jtrader.core.trader import LoopRing
+from jtrader.core.trader import Pairs
 from jtrader.core.worker import Worker
 from ..core.version import get_version
 
@@ -537,32 +539,22 @@ class Base(Controller):
         self.app.render({'results': results}, 'start_backtester.jinja2')
 
     @ex(
-        help='Run a Pairs analysis',
+        help='Run the trader',
         arguments=[
             (
-                    ['-c', '--comparison-ticker'],
+                    ['-x', '--exchange'],
                     {
-                        'help': 'which ticker to compare against',
-                        'action': 'append',
-                        'dest': 'comparison_ticker',
-                        'required': True
+                        'help': 'which exchange to run against',
+                        'action': 'store',
+                        'dest': 'exchange',
+                        'required': True,
+                        'choices': [
+                            'kucoin',
+                            'loopring',
+                            'pairs'
+                        ],
                     }
             ),
-        ],
-    )
-    def start_pairs(self):
-        """Start Pairs Command"""
-        pairs = Pairs(
-            self.app.log,
-            self.get_iex_provider(False),
-            self.app.pargs.comparison_ticker,
-        )
-
-        pairs.run_detection()
-
-    @ex(
-        help='Run the KuCoin trader',
-        arguments=[
             (
                     ['-t', '--ticker'],
                     {
@@ -582,11 +574,22 @@ class Base(Controller):
             ),
         ],
     )
-    def start_kucoin_trader(self):
-        """Start KuCoin trader Command"""
-        kucoin = KuCoin(self.get_kucoin_provider(self.app.pargs.is_sandbox), self.app.pargs.ticker, self.app.log)
+    def start_trader(self):
+        """Start trader Command"""
+        exchange = self.app.pargs.exhange
 
-        kucoin.subscribe()
+        trader = None
+        if exchange == 'kucoin':
+            trader = KuCoin(self.get_kucoin_provider(self.app.pargs.is_sandbox), self.app.pargs.ticker)
+        elif exchange == 'loopring':
+            trader = LoopRing(self.get_loopring_provider(), self.app.pargs.ticker)
+        elif exchange == 'pairs':
+            trader = Pairs(self.get_iex_provider(False), self.app.pargs.ticker)
+
+        if trader is None:
+            raise RuntimeError
+
+        trader.start_trader()
 
     def get_iex_provider(self, is_sandbox: bool, version: str = 'stable'):
         return IEX(is_sandbox, self.app.log, version)

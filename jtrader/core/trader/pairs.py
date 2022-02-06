@@ -3,7 +3,6 @@ from datetime import datetime
 
 import numpy as np
 import pandas as pd
-from cement.core.log import LogInterface
 from dateutil.relativedelta import relativedelta
 from sklearn import linear_model
 from sklearn.metrics import r2_score
@@ -15,18 +14,20 @@ from jtrader.core.trader import Trader
 
 
 class Pairs(Trader):
-    def __init__(self, logger: LogInterface, provider: Provider, comparison_ticker: str):
+    def __init__(self, provider: Provider, comparison_ticker: str):
         super().__init__(provider, comparison_ticker[0])
-        self.logger = logger
         self.odm = ODM()
 
-    async def on_websocket_message(self, message) -> None:
-        pass
+    def start_trader(self):
+        self.__run_detection()
 
-    def subscribe_to_websocket(self) -> None:
-        pass
+    async def _on_websocket_message(self, message) -> None:
+        await super()._on_websocket_message(message)
 
-    def run_detection(self):
+    def _subscribe_to_websocket(self) -> None:
+        super()._subscribe_to_websocket()
+
+    def __run_detection(self):
         today = datetime.today()
         delta = 730
         start = today + relativedelta(days=-delta)
@@ -54,9 +55,9 @@ class Pairs(Trader):
 
                 continue
 
-            self.validate_regression(stock['symbol'], data, comparison_data)
+            self.__validate_regression(stock['symbol'], data, comparison_data)
 
-    def validate_regression(self, ticker, data, comparison_data):
+    def __validate_regression(self, ticker, data, comparison_data):
         n = 60
 
         regr = linear_model.LinearRegression()
@@ -78,11 +79,11 @@ class Pairs(Trader):
         if cd > .9:
             self.logger.info(f"{ticker} qualifies with R2 score of {cd}")
 
-            return self.validate_regression_threshold(ticker, data, comparison_data, n)
+            return self.__validate_regression_threshold(ticker, data, comparison_data, n)
 
         return False
 
-    def validate_regression_threshold(self, ticker, data, comparison_data, n):
+    def __validate_regression_threshold(self, ticker, data, comparison_data, n):
         # Step 1: Generate the spread of two log price series
         # 𝑆𝑝𝑟𝑒𝑎𝑑𝑡 = log(𝑌𝑡)−(𝛼+𝛽log(𝑋𝑡))
         x2 = comparison_data['close'][-n:].astype('float')

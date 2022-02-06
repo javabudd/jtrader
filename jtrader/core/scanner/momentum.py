@@ -6,7 +6,7 @@ import pandas as pd
 import time
 
 from jtrader import chunks
-from jtrader.core.provider.iex import IEX
+from jtrader.core.provider import IEX
 
 relative_volume = 'Relative Volume (30 Day)'
 change_from_close = 'Change From Close (%)'

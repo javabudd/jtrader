@@ -8,7 +8,7 @@ import pandas as pd
 from scipy import stats
 
 from jtrader import chunks
-from jtrader.core.provider.iex import IEX
+from jtrader.core.provider import IEX
 
 csv_columns = [
     'Ticker',

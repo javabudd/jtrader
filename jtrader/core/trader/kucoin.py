@@ -1,9 +1,3 @@
-from datetime import datetime, timedelta
-
-import pandas as pd
-from cement.core.log import LogInterface
-from jtrader.core.kucoin import KuCoin as KuCoinProvider
-
 from jtrader.core.indicator import __INDICATOR_MAP__
 from jtrader.core.indicator.chain import Chain
 from jtrader.core.indicator.indicator import Indicator
@@ -11,40 +5,11 @@ from jtrader.core.trader import Trader
 
 
 class KuCoin(Trader):
-    KLINE_COLUMNS = ['date', 'open', 'close', 'high', 'low', 'volume', 'amount']
-
-    def __init__(self, provider: KuCoinProvider, ticker: str, logger: LogInterface):
-        super().__init__(provider, ticker)
-        self.has_initial_dataset = False
-        self.frames = None
-        self.logger = logger
-
-    async def on_websocket_message(self, message) -> None:
-        def get_previous_dataset(dataset_start_time: str) -> list:
-            date = datetime.fromtimestamp(int(dataset_start_time))
-
-            start = date - timedelta(days=1)
-
-            return self.provider.client.get_kline_data(
-                self.ticker,
-                start=start.microsecond,
-                kline_type="1min"
-            )
-
+    async def _on_websocket_message(self, message) -> None:
         def handle_candles_add(candle_data):
             self.logger.info('candle added...')
             candles = candle_data['data']['candles']
             start_time = candles[0]
-
-            if self.frames is None:
-                self.logger.info('looking up previous data...')
-                previous = get_previous_dataset(start_time)
-
-                self.frames = pd.concat(
-                    [pd.DataFrame(previous, columns=self.KLINE_COLUMNS)],
-                    ignore_index=True
-                )
-
             latest_item = self.frames.iloc[0]
 
             if start_time != latest_item['date']:
@@ -78,5 +43,5 @@ class KuCoin(Trader):
         else:
             self.logger.info(message)
 
-    def subscribe_to_websocket(self) -> None:
-        self.provider.connect_websocket(self.ticker, self.on_websocket_message)
+    def _subscribe_to_websocket(self) -> None:
+        self.provider.connect_websocket(self.ticker, self._on_websocket_message)
