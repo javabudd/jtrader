@@ -6,7 +6,6 @@ from typing import Optional, List
 
 import numpy as np
 import pandas as pd
-from cement.core.log import LogInterface
 from cement.utils.shell import spawn_thread
 from dateutil.relativedelta import relativedelta
 from pyEX import PyEXception
@@ -23,12 +22,11 @@ class Scanner(IEX):
     def __init__(
             self,
             is_sandbox: bool,
-            logger: LogInterface,
             indicators: Optional[List[Indicator]],
             as_intraday: Optional[bool] = True,
             no_notifications: Optional[bool] = False
     ):
-        super().__init__(is_sandbox, logger, no_notifications=no_notifications)
+        super().__init__(is_sandbox, no_notifications=no_notifications)
 
         self.as_intraday = as_intraday
         self.odm = ODM()

@@ -4,22 +4,17 @@ import asyncio
 import os
 from abc import ABC, abstractmethod
 from datetime import datetime
+from logging import getLogger
 from typing import Optional
 
-from cement.core.log import LogInterface
 from slack_sdk import WebClient
 from slack_sdk.errors import SlackApiError
 
 
 class Provider(ABC):
-    def __init__(
-            self,
-            is_sandbox: bool,
-            logger: LogInterface,
-            no_notifications: Optional[bool] = False
-    ):
+    def __init__(self, is_sandbox: bool, no_notifications: Optional[bool] = False):
         self.is_sandbox = is_sandbox
-        self.logger = logger
+        self.logger = getLogger()
         self.no_notifications = no_notifications
 
         self.client_prop = None

@@ -6,20 +6,14 @@ from datetime import datetime
 from kucoin.asyncio import KucoinSocketManager
 from typing import Optional
 
-from cement.core.log import LogInterface
 from kucoin.client import Client
 
 from jtrader.core.provider import Provider
 
 
 class KuCoin(Provider):
-    def __init__(
-            self,
-            is_sandbox: bool,
-            logger: LogInterface,
-            no_notifications: Optional[bool] = False
-    ):
-        super().__init__(is_sandbox, logger, no_notifications)
+    def __init__(self, is_sandbox: bool, no_notifications: Optional[bool] = False):
+        super().__init__(is_sandbox, no_notifications)
 
         self.client_prop = Client(
             os.environ.get('KUCOIN_API_TOKEN'),

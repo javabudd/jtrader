@@ -9,6 +9,7 @@ from jtrader.core.ml import ML
 from jtrader.core.news import News
 from jtrader.core.provider import IEX
 from jtrader.core.provider import KuCoin as KuCoinProvider
+from jtrader.core.provider import LoopRing as LoopRingProvider
 from jtrader.core.scanner.hqm import HighQualityMomentum
 from jtrader.core.scanner.lqm import LowQualityMomentum
 from jtrader.core.scanner.momentum import Momentum
@@ -59,6 +60,18 @@ class Base(Controller):
                 }
             ),
         ]
+
+    @staticmethod
+    def get_iex_provider(is_sandbox: bool, version: str = 'stable') -> IEX:
+        return IEX(is_sandbox, version)
+
+    @staticmethod
+    def get_kucoin_provider(is_sandbox: bool) -> KuCoinProvider:
+        return KuCoinProvider(is_sandbox)
+
+    @staticmethod
+    def get_loopring_provider(is_sandbox: bool) -> LoopRingProvider:
+        return LoopRingProvider(is_sandbox)
 
     def _default(self):
         """Default action if no sub-command is passed."""
@@ -271,7 +284,6 @@ class Base(Controller):
 
         Scanner(
             is_sandbox,
-            self.app.log,
             self.app.pargs.indicators,
             self.app.pargs.stock_list,
             no_notifications=self.app.pargs.no_notifications
@@ -317,7 +329,6 @@ class Base(Controller):
 
         Scanner(
             is_sandbox,
-            self.app.log,
             self.app.pargs.indicators,
             as_intraday=False,
             no_notifications=self.app.pargs.no_notifications
@@ -582,17 +593,11 @@ class Base(Controller):
         if exchange == 'kucoin':
             trader = KuCoin(self.get_kucoin_provider(self.app.pargs.is_sandbox), self.app.pargs.ticker)
         elif exchange == 'loopring':
-            trader = LoopRing(self.get_loopring_provider(), self.app.pargs.ticker)
+            trader = LoopRing(self.get_loopring_provider(self.app.pargs.is_sandbox), self.app.pargs.ticker)
         elif exchange == 'pairs':
-            trader = Pairs(self.get_iex_provider(False), self.app.pargs.ticker)
+            trader = Pairs(self.get_iex_provider(self.app.pargs.is_sandbox), self.app.pargs.ticker)
 
         if trader is None:
             raise RuntimeError
 
         trader.start_trader()
-
-    def get_iex_provider(self, is_sandbox: bool, version: str = 'stable'):
-        return IEX(is_sandbox, self.app.log, version)
-
-    def get_kucoin_provider(self, is_sandbox: bool):
-        return KuCoinProvider(is_sandbox, self.app.log)

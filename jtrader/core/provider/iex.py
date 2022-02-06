@@ -8,7 +8,6 @@ from typing import Union
 
 import pandas as pd
 import pyEX as IEXClient
-from cement.core.log import LogInterface
 
 from jtrader.core.provider import Provider
 
@@ -42,11 +41,10 @@ class IEX(Provider):
     def __init__(
             self,
             is_sandbox: bool,
-            logger: LogInterface,
             version: Optional[str] = 'stable',
             no_notifications: Optional[bool] = False
     ):
-        super().__init__(is_sandbox, logger, no_notifications)
+        super().__init__(is_sandbox, no_notifications)
 
         token = os.environ.get('IEX_CLOUD_API_TOKEN')
         if self.is_sandbox:
