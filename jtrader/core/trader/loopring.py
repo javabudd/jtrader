@@ -1,3 +1,5 @@
+import json
+
 from jtrader.core.trader import Trader
 
 
@@ -5,9 +7,15 @@ class LoopRing(Trader):
     def __init__(self, provider, ticker):
         super().__init__(provider, ticker)
 
-    async def _on_websocket_message(self, message) -> None:
+    def _on_websocket_message(self, ws, message) -> None:
         self.logger.info('Received message: ' + str(message))
 
+        if message == 'ping':
+            ws.send('pong')
+
+            return
+
+        message = json.loads(message)
         if 'op' in message and message['op'] == 'sub':
             return
 

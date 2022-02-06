@@ -21,8 +21,8 @@ class Pairs(Trader):
     def start_trader(self):
         self.__run_detection()
 
-    async def _on_websocket_message(self, message) -> None:
-        await super()._on_websocket_message(message)
+    def _on_websocket_message(self, ws, message) -> None:
+        super()._on_websocket_message(ws, message)
 
     def __run_detection(self):
         today = datetime.today()

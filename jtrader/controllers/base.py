@@ -132,7 +132,7 @@ class Base(Controller):
         if is_sandbox:
             self.app.log.info('Starting in sandbox mode...')
 
-        results = LowQualityMomentum(is_sandbox, self.app.log).run()
+        results = LowQualityMomentum(is_sandbox).run()
 
         self.app.render({'results': results}, 'get_lqm_stats.jinja2')
 
@@ -156,7 +156,7 @@ class Base(Controller):
         if is_sandbox:
             self.app.log.info('Starting in sandbox mode...')
 
-        results = HighQualityMomentum(is_sandbox, self.app.log).run()
+        results = HighQualityMomentum(is_sandbox).run()
 
         self.app.render({'results': results}, 'get_hqm_stats.jinja2')
 
@@ -180,7 +180,7 @@ class Base(Controller):
         if is_sandbox:
             self.app.log.info('Starting in sandbox mode...')
 
-        results = Value(is_sandbox, self.app.log).run()
+        results = Value(is_sandbox).run()
 
         self.app.render({'results': results}, 'get_value_stats.jinja2')
 
@@ -204,7 +204,7 @@ class Base(Controller):
         if is_sandbox:
             self.app.log.info('Starting in sandbox mode...')
 
-        results = PreMarketMomentum(is_sandbox, self.app.log).run()
+        results = PreMarketMomentum(is_sandbox).run()
 
         self.app.render({'results': results}, 'start_pmm_scanner.jinja2')
 
@@ -228,7 +228,7 @@ class Base(Controller):
         if is_sandbox:
             self.app.log.info('Starting in sandbox mode...')
 
-        results = Momentum(is_sandbox, self.app.log).run()
+        results = Momentum(is_sandbox).run()
 
         self.app.render({"results": results}, 'start_mm_scanner.jinja2')
 

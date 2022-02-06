@@ -22,7 +22,7 @@ class Trader(ABC):
         self.logger = getLogger()
 
     def start_trader(self):
-        self.logger.info('Looking up previous dataset...')
+        self.logger.info('looking up previous data...')
 
         date = datetime.now()
         start = date - timedelta(days=1)
@@ -36,7 +36,7 @@ class Trader(ABC):
         self.provider.connect_websocket(self.ticker, self._on_websocket_message)
 
     @abstractmethod
-    async def _on_websocket_message(self, message) -> None:
+    def _on_websocket_message(self, ws, message) -> None:
         raise NotImplemented
 
     def _execute_chain_validation(self):

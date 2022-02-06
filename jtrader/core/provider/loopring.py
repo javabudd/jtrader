@@ -26,33 +26,39 @@ class LoopRing(Provider):
             ticker: str,
             on_websocket_message: callable
     ) -> None:
+        def _on_websocket_open(websocket_connection):
+            websocket_connection.send(json.dumps({
+                "op": "sub",
+                "unsubscribeAll": True,
+                "topics": [
+                    {
+                        "topic": "candlestick",
+                        "market": ticker,
+                        "interval": "1min"
+                    }
+                ]
+            }))
+
+        def _on_websocket_error(websocket_connection, error):
+            print(error)
+
+        def _on_websocket_close(websocket_connection, close_status_code, close_msg):
+            print(close_status_code, close_msg)
+
+            self.logger.info('Websocket connection closing...')
+
         response = self.client.get(f"{self.BASE_URL}/v3/ws/key")
         api_key = json.loads(response.text)['key']
-        socket = websocket.create_connection(
-            f'wss://ws.api3.loopring.io/v3/ws?wsApiKey={api_key}'
+
+        ws = websocket.WebSocketApp(
+            f'wss://ws.api3.loopring.io/v3/ws?wsApiKey={api_key}',
+            on_open=_on_websocket_open,
+            on_message=on_websocket_message,
+            on_error=_on_websocket_error,
+            on_close=_on_websocket_close
         )
 
-        socket.send(json.dumps({
-            "op": "sub",
-            "unsubscribeAll": True,
-            "topics": [
-                {
-                    "topic": "candlestick",
-                    "market": "LRC-ETH",
-                    "interval": "1min"
-                }
-            ]
-        }))
-
-        while True:
-            msg = socket.recv()
-            if msg == 'ping':
-                socket.send('pong')
-                await asyncio.sleep(20, loop=loop)
-                continue
-
-            await on_websocket_message(json.loads(msg))
-            await asyncio.sleep(20, loop=loop)
+        ws.run_forever()
 
     def chart(self, stock: str, start: datetime, end: datetime | None) -> dict:
         start = int(time.mktime(start.timetuple()) * 1000)
