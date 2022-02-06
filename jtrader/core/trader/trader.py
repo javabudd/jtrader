@@ -6,6 +6,9 @@ from logging import getLogger
 
 import pandas as pd
 
+from jtrader.core.indicator import __INDICATOR_MAP__
+from jtrader.core.indicator.chain import Chain
+from jtrader.core.indicator.indicator import Indicator
 from jtrader.core.provider import Provider
 
 
@@ -35,3 +38,15 @@ class Trader(ABC):
     @abstractmethod
     async def _on_websocket_message(self, message) -> None:
         raise NotImplemented
+
+    def _execute_chain_validation(self):
+        chain = Chain(self.ticker, __INDICATOR_MAP__['all'])
+
+        for validator in chain.get_validation_chain(True):
+            is_valid = validator.is_valid(self.frames)
+
+            if is_valid is not None:
+                if is_valid == Indicator.BULLISH:
+                    self.logger.info(validator.get_name() + ': BULLISH')
+                elif is_valid == Indicator.BEARISH:
+                    self.logger.warning(validator.get_name() + ': BEARISH')

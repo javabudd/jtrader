@@ -1,6 +1,3 @@
-from jtrader.core.indicator import __INDICATOR_MAP__
-from jtrader.core.indicator.chain import Chain
-from jtrader.core.indicator.indicator import Indicator
 from jtrader.core.trader import Trader
 
 
@@ -26,16 +23,7 @@ class KuCoin(Trader):
                 self.frames.sort_values(by=['date'], inplace=True, ascending=False)
                 self.frames.reset_index(inplace=True, drop=True)
 
-            chain = Chain(self.ticker, __INDICATOR_MAP__['all'])
-
-            for validator in chain.get_validation_chain(True):
-                is_valid = validator.is_valid(self.frames)
-
-                if is_valid is not None:
-                    if is_valid == Indicator.BULLISH:
-                        self.logger.info(validator.get_name() + ': BULLISH')
-                    elif is_valid == Indicator.BEARISH:
-                        self.logger.warning(validator.get_name() + ': BEARISH')
+            self._execute_chain_validation()
 
         if 'subject' in message:
             if message['subject'] == 'trade.candles.add':
