@@ -37,8 +37,9 @@ class LoopRing(Provider):
             "unsubscribeAll": True,
             "topics": [
                 {
-                    "topic": "ticker",
-                    "market": "LRC-ETH"
+                    "topic": "candlestick",
+                    "market": "LRC-ETH",
+                    "interval": "1min"
                 }
             ]
         }))

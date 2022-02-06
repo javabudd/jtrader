@@ -6,17 +6,19 @@ class LoopRing(Trader):
         super().__init__(provider, ticker)
 
     async def _on_websocket_message(self, message) -> None:
+        self.logger.info('Received message: ' + str(message))
+
         if 'op' in message and message['op'] == 'sub':
             return
 
         item = {
-            "date": message['topic']['data'][1],
-            "open": message['topic']['data'][4],
-            "close": message['topic']['data'][7],
-            "high": message['topic']['data'][5],
-            "low": message['topic']['data'][6],
-            "volume": message['topic']['data'][3],
-            "amount": message['topic']['data'][2],
+            "date": message['topic']['data'][0],
+            "open": message['topic']['data'][2],
+            "close": message['topic']['data'][3],
+            "high": message['topic']['data'][4],
+            "low": message['topic']['data'][5],
+            "volume": message['topic']['data'][7],
+            "amount": message['topic']['data'][6],
         }
 
         self.frames = self.frames.append(item, ignore_index=True)

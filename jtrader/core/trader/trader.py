@@ -22,7 +22,7 @@ class Trader(ABC):
         self.logger = getLogger()
 
     def start_trader(self):
-        self.logger.info('looking up previous data...')
+        self.logger.info('Looking up previous dataset...')
 
         date = datetime.now()
         start = date - timedelta(days=1)
