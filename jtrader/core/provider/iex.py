@@ -1,4 +1,8 @@
+from __future__ import annotations
+
+import asyncio
 import os
+from datetime import datetime
 from typing import Optional
 from typing import Union
 
@@ -51,11 +55,16 @@ class IEX(Provider):
 
         self.client_prop = IEXClient.Client(token, version)
 
-    async def register_websockets(self, loop, ticker: str) -> None:
-        return
+    async def register_websockets(
+            self,
+            loop: asyncio.AbstractEventLoop,
+            ticker: str,
+            on_websocket_message: callable
+    ) -> None:
+        raise NotImplemented
 
-    def chart(self, stock: str, timeframe: str) -> dict:
-        return self.client.stocks.chart(stock, timeframe=timeframe)
+    def chart(self, stock: str, start: datetime, end: datetime | None) -> dict:
+        return self.client.stocks.chart(stock, timeframe='1d')
 
     def intraday(self, stock: str) -> dict:
         return self.client.stocks.intraday(stock)

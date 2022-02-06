@@ -1,7 +1,9 @@
-from ta.volume import VolumeWeightedAveragePrice
-from pandas import DataFrame
 from decimal import Decimal
+
 import talib
+from pandas import DataFrame
+from ta.volume import VolumeWeightedAveragePrice
+
 from jtrader.core.indicator.indicator import Indicator
 
 

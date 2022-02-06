@@ -1,6 +1,9 @@
+from __future__ import annotations
+
 import asyncio
 import os
 from abc import ABC, abstractmethod
+from datetime import datetime
 from typing import Optional
 
 from cement.core.log import LogInterface
@@ -29,7 +32,7 @@ class Provider(ABC):
         return self.client_prop
 
     @abstractmethod
-    def chart(self, stock: str, timeframe: str) -> dict:
+    def chart(self, stock: str, start: datetime, end: datetime | None) -> dict:
         raise NotImplemented
 
     @abstractmethod

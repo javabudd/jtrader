@@ -1,11 +1,12 @@
 from __future__ import annotations
 
 import asyncio
+from pathlib import Path
+from typing import Union
+
 import numpy as np
 import pandas as pd
 from dask.distributed import Worker, Scheduler
-from pathlib import Path
-from typing import Union
 
 import jtrader.core.machine_learning as ml
 from jtrader.core.provider import IEX

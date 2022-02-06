@@ -5,8 +5,9 @@ from typing import Dict, Optional
 
 # Amazon libraries
 from boto3.session import Session as BotoSession
-from sagemaker import TrainingInput
 from sagemaker.session import Session
+
+from sagemaker import TrainingInput
 
 LOGGER = logging.getLogger(__name__)
 

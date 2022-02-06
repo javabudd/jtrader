@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
+from datetime import datetime, timedelta
 from logging import getLogger
 
 import pandas as pd
@@ -20,7 +21,10 @@ class Trader(ABC):
     def start_trader(self):
         self.logger.info('looking up previous data...')
 
-        previous = self.provider.chart(self.ticker, '1d')
+        date = datetime.now()
+        start = date - timedelta(days=1)
+
+        previous = self.provider.chart(self.ticker, start, None)
 
         self.frames = pd.concat(
             [pd.DataFrame(previous, columns=self.KLINE_COLUMNS)],

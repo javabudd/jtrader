@@ -1,5 +1,8 @@
+from __future__ import annotations
+
 import asyncio
 import os
+from datetime import datetime
 from kucoin.asyncio import KucoinSocketManager
 from typing import Optional
 
@@ -38,8 +41,13 @@ class KuCoin(Provider):
         while True:
             await asyncio.sleep(20, loop=loop)
 
-    def chart(self, stock: str, timeframe: str) -> dict:
-        return super().chart(stock, timeframe)
+    def chart(self, stock: str, start: datetime, end: datetime | None) -> dict:
+        return self.client.get_kline_data(
+            stock,
+            start=start.microsecond,
+            end=end,
+            kline_type="1min"
+        )
 
     def symbols(self) -> dict:
         return super().symbols()

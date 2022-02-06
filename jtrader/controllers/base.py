@@ -576,7 +576,7 @@ class Base(Controller):
     )
     def start_trader(self):
         """Start trader Command"""
-        exchange = self.app.pargs.exhange
+        exchange = self.app.pargs.exchange
 
         trader = None
         if exchange == 'kucoin':
