@@ -2,24 +2,24 @@ from datetime import datetime, timedelta
 
 import pandas as pd
 from cement.core.log import LogInterface
+from jtrader.core.kucoin import KuCoin as KuCoinProvider
 
 from jtrader.core.indicator import __INDICATOR_MAP__
 from jtrader.core.indicator.chain import Chain
 from jtrader.core.indicator.indicator import Indicator
-from jtrader.core.provider.kucoin import KuCoin as KuCoinProvider
+from jtrader.core.trader import Trader
 
 
-class KuCoin:
+class KuCoin(Trader):
     KLINE_COLUMNS = ['date', 'open', 'close', 'high', 'low', 'volume', 'amount']
 
     def __init__(self, provider: KuCoinProvider, ticker: str, logger: LogInterface):
-        self.provider = provider
+        super().__init__(provider, ticker)
         self.has_initial_dataset = False
-        self.ticker = ticker
         self.frames = None
         self.logger = logger
 
-    async def on_websocket_message(self, message):
+    async def on_websocket_message(self, message) -> None:
         def get_previous_dataset(dataset_start_time: str) -> list:
             date = datetime.fromtimestamp(int(dataset_start_time))
 
@@ -78,5 +78,5 @@ class KuCoin:
         else:
             self.logger.info(message)
 
-    def subscribe(self) -> None:
+    def subscribe_to_websocket(self) -> None:
         self.provider.connect_websocket(self.ticker, self.on_websocket_message)

@@ -10,23 +10,21 @@ from sklearn.metrics import r2_score
 from sklearn.model_selection import train_test_split
 
 from jtrader.core.odm import ODM
-from jtrader.core.provider.provider import Provider
+from jtrader.core.provider import Provider
+from jtrader.core.trader import Trader
 
 
-class Pairs:
-    """
-    """
-
-    def __init__(
-            self,
-            logger: LogInterface,
-            provider: Provider,
-            comparison_ticker: str
-    ):
+class Pairs(Trader):
+    def __init__(self, logger: LogInterface, provider: Provider, comparison_ticker: str):
+        super().__init__(provider, comparison_ticker[0])
         self.logger = logger
-        self.provider = provider
         self.odm = ODM()
-        self.comparison_ticker = comparison_ticker[0]
+
+    async def on_websocket_message(self, message) -> None:
+        pass
+
+    def subscribe_to_websocket(self) -> None:
+        pass
 
     def run_detection(self):
         today = datetime.today()
@@ -35,11 +33,11 @@ class Pairs:
         stock_list = self.provider.symbols()
 
         comparison_data = pd.DataFrame(
-            self.odm.get_historical_stock_range(self.comparison_ticker, start)
+            self.odm.get_historical_stock_range(self.ticker, start)
         )
 
         if len(comparison_data) <= 0:
-            self.logger.warning(f"Retrieved empty data set for stock {self.comparison_ticker}")
+            self.logger.warning(f"Retrieved empty data set for stock {self.ticker}")
 
             return
 

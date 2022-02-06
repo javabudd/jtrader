@@ -1,14 +1,11 @@
 import logging
-
 from cement import Controller, ex
 from cement.utils.version import get_version_banner
 
 from jtrader.core.backtester import Backtester
-from jtrader.core.kucoin import KuCoin
 from jtrader.core.ml import ALGORITHMS
 from jtrader.core.ml import ML
 from jtrader.core.news import News
-from jtrader.core.pairs import Pairs
 from jtrader.core.provider.iex import IEX
 from jtrader.core.provider.kucoin import KuCoin as KuCoinProvider
 from jtrader.core.scanner.hqm import HighQualityMomentum
@@ -17,6 +14,8 @@ from jtrader.core.scanner.momentum import Momentum
 from jtrader.core.scanner.premarketmomentum import PreMarketMomentum
 from jtrader.core.scanner.scanner import Scanner
 from jtrader.core.scanner.value import Value
+from jtrader.core.trader.kucoin import KuCoin
+from jtrader.core.trader.pairs import Pairs
 from jtrader.core.worker import Worker
 from ..core.version import get_version
 

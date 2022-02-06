@@ -30,11 +30,15 @@ class Provider(ABC):
 
     @abstractmethod
     def chart(self, stock: str, timeframe: str) -> dict:
-        pass
+        raise NotImplemented
+
+    @abstractmethod
+    def intraday(self, stock: str) -> dict:
+        raise NotImplemented
 
     @abstractmethod
     def symbols(self) -> dict:
-        pass
+        raise NotImplemented
 
     @abstractmethod
     async def register_websockets(

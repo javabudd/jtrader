@@ -10,7 +10,7 @@ from pyEX import PyEXception
 
 from jtrader import chunk_threaded
 from jtrader.core.odm import ODM
-from jtrader.core.provider.provider import Provider
+from jtrader.core.provider import Provider
 from jtrader.core.utils.stock import timeframe_to_days
 
 

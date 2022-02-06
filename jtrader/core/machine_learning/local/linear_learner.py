@@ -82,6 +82,11 @@ class LocalLinearLearner(BaseModel):
 
         # if there are no hyperparameters provided, run auto-tuning
         if hyperparameters is None:
+            seasonality_grid = {
+                'fourier': [0.005, .01, 0.05, 0.5, 1, 5, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100],
+                'prior_scale': [0.005, .01, 0.05, 0.5, 1, 5, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100]
+            }
+
             param_grid = {
                 'changepoint_prior_scale': [0.001, 0.01, 0.1, 0.5],
                 'seasonality_prior_scale': [0.01, 0.1, 1.0, 10.0],

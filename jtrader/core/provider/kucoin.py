@@ -1,12 +1,12 @@
 import asyncio
 import os
+from kucoin.asyncio import KucoinSocketManager
 from typing import Optional
 
 from cement.core.log import LogInterface
-from kucoin.asyncio import KucoinSocketManager
 from kucoin.client import Client
 
-from jtrader.core.provider.provider import Provider
+from jtrader.core.provider import Provider
 
 
 class KuCoin(Provider):
@@ -39,7 +39,10 @@ class KuCoin(Provider):
             await asyncio.sleep(20, loop=loop)
 
     def chart(self, stock: str, timeframe: str) -> dict:
-        return {}
+        return super().chart(stock, timeframe)
 
     def symbols(self) -> dict:
-        return {}
+        return super().symbols()
+
+    def intraday(self, stock: str) -> dict:
+        return super().intraday(stock)

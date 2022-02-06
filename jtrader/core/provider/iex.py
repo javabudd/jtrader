@@ -6,7 +6,7 @@ import pandas as pd
 import pyEX as IEXClient
 from cement.core.log import LogInterface
 
-from jtrader.core.provider.provider import Provider
+from jtrader.core.provider import Provider
 
 
 class IEX(Provider):
@@ -56,6 +56,9 @@ class IEX(Provider):
 
     def chart(self, stock: str, timeframe: str) -> dict:
         return self.client.stocks.chart(stock, timeframe=timeframe)
+
+    def intraday(self, stock: str) -> dict:
+        return self.client.stocks.intraday(stock)
 
     def symbols(self) -> dict:
         return self.client.refdata.iexSymbols()
