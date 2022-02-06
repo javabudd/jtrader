@@ -23,7 +23,6 @@ class Trader(ABC):
 
         date = datetime.now()
         start = date - timedelta(days=1)
-
         previous = self.provider.chart(self.ticker, start, None)
 
         self.frames = pd.concat(

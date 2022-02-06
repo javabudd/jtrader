@@ -23,3 +23,5 @@ pystan==2.19.1.1
 prophet==1.0.1
 plotly==5.5.0
 dask[complete]
+requests
+websocket-client==1.2.3
