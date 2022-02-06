@@ -36,6 +36,3 @@ class LoopRing(Trader):
                     self.logger.info(validator.get_name() + ': BULLISH')
                 elif is_valid == Indicator.BEARISH:
                     self.logger.warning(validator.get_name() + ': BEARISH')
-
-    def _subscribe_to_websocket(self) -> None:
-        self.provider.connect_websocket(self.ticker, self._on_websocket_message)

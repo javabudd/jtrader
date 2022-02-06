@@ -42,6 +42,3 @@ class KuCoin(Trader):
                 handle_candles_add(message)
         else:
             self.logger.info(message)
-
-    def _subscribe_to_websocket(self) -> None:
-        self.provider.connect_websocket(self.ticker, self._on_websocket_message)

@@ -30,12 +30,8 @@ class Trader(ABC):
             ignore_index=True
         )
 
-        self._subscribe_to_websocket()
+        self.provider.connect_websocket(self.ticker, self._on_websocket_message)
 
     @abstractmethod
     async def _on_websocket_message(self, message) -> None:
-        raise NotImplemented
-
-    @abstractmethod
-    def _subscribe_to_websocket(self) -> None:
         raise NotImplemented
