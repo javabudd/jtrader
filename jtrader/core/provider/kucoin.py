@@ -35,7 +35,7 @@ class KuCoin(Provider):
         while True:
             await asyncio.sleep(20, loop=loop)
 
-    def chart(self, stock: str, start: datetime, end: datetime | None) -> dict:
+    def chart(self, stock: str, start: datetime, end: datetime | None) -> dict | list:
         return self.client.get_kline_data(
             stock,
             start=start.microsecond,

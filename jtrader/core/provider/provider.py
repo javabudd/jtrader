@@ -27,7 +27,7 @@ class Provider(ABC):
         return self.client_prop
 
     @abstractmethod
-    def chart(self, stock: str, start: datetime, end: datetime | None) -> dict:
+    def chart(self, stock: str, start: datetime, end: datetime | None) -> dict | list:
         raise NotImplemented
 
     @abstractmethod

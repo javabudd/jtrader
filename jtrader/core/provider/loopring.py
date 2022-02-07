@@ -34,18 +34,16 @@ class LoopRing(Provider):
                     {
                         "topic": "candlestick",
                         "market": ticker,
-                        "interval": "1min"
+                        "interval": "5min"
                     }
                 ]
             }))
 
         def _on_websocket_error(websocket_connection, error):
-            print(error)
+            self.logger.error(error)
 
         def _on_websocket_close(websocket_connection, close_status_code, close_msg):
-            print(close_status_code, close_msg)
-
-            self.logger.info('Websocket connection closing...')
+            self.logger.info(f'Websocket connection closing. Reason: {close_msg}')
 
         response = self.client.get(f"{self.BASE_URL}/v3/ws/key")
         api_key = json.loads(response.text)['key']
@@ -60,30 +58,28 @@ class LoopRing(Provider):
 
         ws.run_forever()
 
-    def chart(self, stock: str, start: datetime, end: datetime | None) -> dict:
+    def chart(self, stock: str, start: datetime, end: datetime | None) -> dict | list:
         start = int(time.mktime(start.timetuple()) * 1000)
         end = int(time.mktime(end.timetuple()) * 1000) if end is not None else int(
             time.mktime(datetime.now().timetuple()) * 1000)
 
         response = self.client.get(
-            f"{self.BASE_URL}/api/v3/candlestick?market={stock}&interval=1min&start={start}&end={end}&limit=1440"
+            f"{self.BASE_URL}/api/v3/candlestick?market={stock}&interval=5min&start={start}&end={end}&limit=1440"
         )
 
         candles = json.loads(response.text)['candlesticks']
 
-        data = {}
+        data = []
         for candle in candles:
-            data.update(
+            data.append(
                 {
-                    candles.index(candle): {
-                        'date': candle[0],
-                        'open': candle[1],
-                        'close': candle[2],
-                        'high': candle[3],
-                        'low': candle[4],
-                        'volume': candle[6],
-                        'amount': candle[2]
-                    }
+                    'date': candle[0],
+                    'open': candle[2],
+                    'close': candle[3],
+                    'high': candle[4],
+                    'low': candle[5],
+                    'volume': candle[7],
+                    'amount': candle[1]
                 }
             )
 
