@@ -40,6 +40,8 @@ class Trader(ABC):
         raise NotImplemented
 
     def _execute_chain_validation(self):
+        self.logger.info(f'Validating {self.ticker}...')
+
         chain = Chain(self.ticker, __INDICATOR_MAP__['all'])
 
         for validator in chain.get_validation_chain(True):
