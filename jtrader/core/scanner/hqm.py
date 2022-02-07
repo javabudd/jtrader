@@ -51,7 +51,7 @@ class HighQualityMomentum(IEX):
             data = self.client.stocks.batch(symbol_string, ["quote", "stats"])
             for symbol in symbol_string.split(','):
                 if symbol not in data or 'quote' not in data[symbol] or data[symbol]['quote'] is None \
-                        or data[symbol]['quote']['close'] is None:
+                        or data[symbol]['quote']['close'] is None or data[symbol]['quote']['peRatio'] is None:
                     continue
 
                 series.append(
