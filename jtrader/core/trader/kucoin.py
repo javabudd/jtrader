@@ -2,7 +2,7 @@ from jtrader.core.trader import Trader
 
 
 class KuCoin(Trader):
-    def _on_websocket_message(self, ws, message) -> None:
+    async def _on_websocket_message(self, message) -> None:
         def handle_candles_add(candle_data):
             self.logger.info('candle added...')
             candles = candle_data['data']['candles']

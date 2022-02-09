@@ -39,7 +39,7 @@ class KuCoin(Provider):
         return self.client.get_kline_data(
             stock,
             start=start.microsecond,
-            end=end,
+            end=end.microsecond if end else None,
             kline_type="1min"
         )
 

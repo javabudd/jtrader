@@ -36,7 +36,7 @@ class Trader(ABC):
         self.provider.connect_websocket(self.ticker, self._on_websocket_message)
 
     @abstractmethod
-    def _on_websocket_message(self, ws, message) -> None:
+    async def _on_websocket_message(self, ws, message) -> None:
         raise NotImplemented
 
     def _execute_chain_validation(self):
