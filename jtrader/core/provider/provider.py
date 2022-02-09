@@ -66,10 +66,12 @@ class Provider(ABC):
         loop.stop()
 
     def send_notification(self, message: str, slack_channel: Optional[str] = '#stock-scanner', **kwargs) -> None:
-        if self.no_notifications:
+        slack_token = os.environ.get('SLACK_TOKEN')
+
+        if self.no_notifications or slack_token is None:
             return
 
-        client = WebClient(token=os.environ.get('SLACK_TOKEN'))
+        client = WebClient(token=slack_token)
 
         if self.is_sandbox:
             slack_channel = '#stock-scanner-dev'
