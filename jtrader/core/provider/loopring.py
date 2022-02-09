@@ -34,7 +34,7 @@ class LoopRing(Provider):
                     {
                         "topic": "candlestick",
                         "market": ticker,
-                        "interval": "5min"
+                        "interval": "1min"
                     }
                 ]
             }))
@@ -64,7 +64,7 @@ class LoopRing(Provider):
             time.mktime(datetime.now().timetuple()) * 1000)
 
         response = self.client.get(
-            f"{self.BASE_URL}/api/v3/candlestick?market={stock}&interval=5min&start={start}&end={end}&limit=1440"
+            f"{self.BASE_URL}/api/v3/candlestick?market={stock}&interval=1min&start={start}&end={end}&limit=1440"
         )
 
         candles = json.loads(response.text)['candlesticks']

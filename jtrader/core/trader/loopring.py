@@ -9,6 +9,7 @@ class LoopRing(Trader):
 
     def _on_websocket_message(self, ws, message) -> None:
         if message == 'ping':
+            self.logger.debug('pong')
             ws.send('pong')
             return
 
