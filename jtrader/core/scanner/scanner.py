@@ -127,20 +127,13 @@ class Scanner(IEX):
 
                 return False
 
-        args = {"logger": self.logger}
         if len(self.indicators) > 1:
-            self.indicators = [
-                Chain(
-                    ticker,
-                    self.indicators,
-                    **args
-                )
-            ]
+            self.indicators = [Chain(ticker, self.indicators)]
 
         for indicator_class in self.indicators:
             indicator = indicator_class
             if not isinstance(indicator, Chain):
-                indicator = indicator(ticker, **args)
+                indicator = indicator(ticker)
 
             passed_validators = {}
             try:
@@ -151,7 +144,7 @@ class Scanner(IEX):
                     chain_index = 0
                     previous_validation = None
                     for indicator_chain in chain:
-                        indicator_chain = indicator_chain(ticker, **args)
+                        indicator_chain = indicator_chain(ticker)
                         is_valid = indicator_chain.is_valid(data)
 
                         if is_valid is None or (
@@ -187,9 +180,6 @@ class Scanner(IEX):
                 break
 
             if len(passed_validators) > 0:
-                # test the theories
-
-                # notify if successful
                 message = {
                     "ticker": ticker,
                     "signal_period": period,

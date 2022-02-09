@@ -2,8 +2,8 @@ from jtrader.core.indicator.indicator import Indicator
 
 
 class Chain(Indicator):
-    def __init__(self, ticker: str, validators: list, **kwargs):
-        super().__init__(ticker, **kwargs)
+    def __init__(self, ticker: str, validators: list):
+        super().__init__(ticker)
 
         self.validators = validators
 

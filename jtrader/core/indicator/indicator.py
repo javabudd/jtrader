@@ -1,8 +1,8 @@
 from abc import ABC, abstractmethod
-from typing import Optional, Union, TypeVar
+from logging import getLogger, Logger
+from typing import Union, TypeVar
 
 import numpy as np
-from cement.core.log import LogInterface
 from pandas import DataFrame
 
 
@@ -20,8 +20,8 @@ class Indicator(ABC):
     BULLISH = TypeVar('BULLISH')
     BEARISH = TypeVar('BEARISH')
 
-    def __init__(self, ticker: str, logger: Optional[LogInterface] = None):
-        self.logger_prop = logger
+    def __init__(self, ticker: str):
+        self.logger_prop = getLogger()
         self.ticker = ticker
         self.time_period = self.WINDOW_SIZE_TEN
         self.fast_period = self.WINDOW_SIZE_FOURTEEN
@@ -50,7 +50,7 @@ class Indicator(ABC):
         return dataframe
 
     @property
-    def logger(self) -> LogInterface:
+    def logger(self) -> Logger:
         if self.logger_prop is None:
             raise RuntimeError
 
