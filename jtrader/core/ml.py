@@ -114,82 +114,99 @@ class ML:
             feature_training_data = {}
             final_prediction_data = None
             api_result = None
-            for indicator_name in self.client.IEX_TECHNICAL_INDICATORS:
-                api_result_name = f"{stock}_{indicator_name}_{timeframe}"
-                prediction_save_name = f"prediction_{stock}_{indicator_name}_{periods}"
+            for data_type in self.client.IEX_DATA_POINTS.keys():
+                for indicator_name in self.client.IEX_DATA_POINTS[data_type]:
+                    api_result_name = f"{stock}_{indicator_name}_{timeframe}"
+                    prediction_save_name = f"prediction_{stock}_{indicator_name}_{periods}"
 
-                prediction_result = self.load_prediction_result(prediction_save_name)
+                    if data_type == 'economic':
+                        api_result_name = f"{indicator_name}_{timeframe}"
+                        prediction_save_name = f"prediction_{indicator_name}_{periods}"
 
-                api_result = self.load_api_result(api_result_name)
+                    api_result = self.load_api_result(api_result_name)
 
-                if api_result is None:
-                    print(f"creating new api result for {indicator_name} indicator...")
+                    if api_result is None:
+                        print(f"creating new api result for {indicator_name} indicator...")
 
-                    data = self.client.technicals(
-                        stock,
-                        indicator_name,
-                        timeframe, True
-                    ).sort_values(by='date', ascending=True)
+                        if data_type == 'indicators':
+                            data = self.client.technicals(
+                                stock,
+                                indicator_name,
+                                timeframe,
+                                True
+                            ).sort_values(by='date', ascending=True)
+                        elif data_type == 'economic':
+                            data = self.client.economic(
+                                'CPI',
+                                timeframe,
+                                True
+                            ).sort_values(by='updated', ascending=True)
+                        else:
+                            raise RuntimeError
 
-                    self.save_api_result(data, api_result_name)
-                else:
-                    data = api_result
-
-                data.drop(
-                    [
-                        'symbol',
-                        'label',
-                        'subkey',
-                        'updated',
-                        'key',
-                        'id',
-                    ],
-                    axis=1,
-                    inplace=True
-                )
-
-                if indicator_name in self.client.SPECIAL_INDICATORS:
-                    indicator_name = self.client.SPECIAL_INDICATORS[indicator_name]
-
-                indicator_data = data.iloc[:, data.columns.get_loc(indicator_name):]
-
-                if True in indicator_data.isnull().all().values or indicator_data[indicator_name].sum() == 0:
-                    continue
-
-                feature_training_data[indicator_name] = indicator_data
-
-                if prediction_result is None:
-                    data.replace([np.inf, -np.inf, np.nan], 0, inplace=True)
-                    data.reset_index(level=0, inplace=True)
-                    data.rename(columns={"date": "ds", indicator_name: "y"}, inplace=True)
-
-                    data_loader = ml.local.LocalDataLoader([], data=data)
-
-                    if with_aws:
-                        sagemaker = ml.aws.Sagemaker()
-                        linear = ml.aws.LinearAwsLinearLearner(data=data_loader, aws_executor=sagemaker)
-
-                        linear.train()
+                        self.save_api_result(data, api_result_name)
                     else:
-                        local_trainer = ml.local.LocalLinearLearner(
-                            data=data_loader,
-                            stock=stock,
-                            timeframe=timeframe,
-                            model_name=indicator_name
-                        )
+                        data = api_result
 
-                        local_trainer.train(dask_cluster_address=dask_cluster_address)
+                    data.drop(
+                        [
+                            'symbol',
+                            'label',
+                            'subkey',
+                            'updated',
+                            'key',
+                            'id',
+                        ],
+                        axis=1,
+                        inplace=True,
+                        errors='ignore'
+                    )
 
-                        prediction_result = local_trainer.predict(periods=periods)
+                    if indicator_name in self.client.SPECIAL_INDICATORS:
+                        indicator_name = self.client.SPECIAL_INDICATORS[indicator_name]
 
-                        self.save_prediction_result(prediction_result, prediction_save_name)
 
-                        if final_prediction_data is None:
-                            final_prediction_data = pd.DataFrame(
-                                {"ds": data['ds'], "y": data['close']}
+                    indicator_data = data.iloc[:, data.columns.get_loc(indicator_name):]
+
+                    if True in indicator_data.isnull().all().values or indicator_data[indicator_name].sum() == 0:
+                        continue
+
+                    feature_training_data[indicator_name] = indicator_data
+
+                    prediction_result = self.load_prediction_result(prediction_save_name)
+
+                    if prediction_result is None:
+                        data.replace([np.inf, -np.inf, np.nan], 0, inplace=True)
+                        data.reset_index(level=0, inplace=True)
+                        data.rename(columns={"date": "ds", indicator_name: "y"}, inplace=True)
+
+                        data_loader = ml.local.LocalDataLoader([], data=data)
+
+                        if with_aws:
+                            sagemaker = ml.aws.Sagemaker()
+                            linear = ml.aws.LinearAwsLinearLearner(data=data_loader, aws_executor=sagemaker)
+
+                            linear.train()
+                        else:
+                            local_trainer = ml.local.LocalLinearLearner(
+                                data=data_loader,
+                                stock=stock,
+                                timeframe=timeframe,
+                                model_name=indicator_name
                             )
 
-                predictions[indicator_name] = prediction_result
+                            local_trainer.train(dask_cluster_address=dask_cluster_address)
+
+                            prediction_result = local_trainer.predict(periods=periods)
+
+                            self.save_prediction_result(prediction_result, prediction_save_name)
+
+                            if final_prediction_data is None:
+                                final_prediction_data = pd.DataFrame(
+                                    {"ds": data['ds'], "y": data['close']}
+                                )
+
+                    predictions[indicator_name] = prediction_result
 
             if api_result is None:
                 print('API result missing')

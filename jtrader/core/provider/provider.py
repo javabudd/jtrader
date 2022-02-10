@@ -31,6 +31,10 @@ class Provider(ABC):
         raise NotImplemented
 
     @abstractmethod
+    def economic(self, economic_type: str, timeframe: str, as_dataframe: bool = False):
+        raise NotImplemented
+
+    @abstractmethod
     def intraday(self, stock: str) -> dict:
         raise NotImplemented
 

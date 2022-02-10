@@ -24,6 +24,10 @@ class IEX(Provider):
         'var', 'vhf', 'vidya', 'volatility', 'vosc', 'vwma', 'wad', 'wcprice', 'wilders', 'willr', 'wma', 'zlema'
     ]
 
+    IEX_ECONOMIC_DATA = [
+        'CPIUCSL'
+    ]
+
     SPECIAL_INDICATORS = {
         "adx": "dx",
         "aroon": "aroon_up",
@@ -35,7 +39,13 @@ class IEX(Provider):
         "natr": "matr",
         "stoch": "stock_k",
         "todeg": "degrees",
-        "torad": "radians"
+        "torad": "radians",
+        "CPIUCSL": "value"
+    }
+
+    IEX_DATA_POINTS = {
+        'economic': IEX_ECONOMIC_DATA,
+        'indicators': IEX_TECHNICAL_INDICATORS,
     }
 
     def __init__(
@@ -81,3 +91,18 @@ class IEX(Provider):
             return self.client.stocks.technicalsDF(stock, indicator_name, range=timeframe)
 
         return self.client.stock.technicals(stock, indicator_name, range=timeframe)
+
+    def economic(self, economic_type: str, timeframe: str, as_dataframe: bool = False):
+        if economic_type == 'CPI':
+            args = {"id": 'ECONOMIC', "from_": '2017-02-10', "to_": '2022-02-10', "limit": 2000}
+            if as_dataframe:
+                frame = self.client.stocks.timeSeriesDF(**args)
+                frame['date'] = frame['updated'].values
+
+                return frame
+            series_list = self.client.stocks.timeSeries(**args)
+            series_list['date'] = series_list['updated']
+
+            return series_list
+
+        raise NotImplemented
