@@ -55,6 +55,8 @@ class LocalLinearLearner(BaseModel):
                     df.reset_index(level=0, inplace=True)
                     df.rename(columns={"date": "ds"}, inplace=True)
                     df.fillna(extra_features[feature].mean(), inplace=True)
+                    self.data.data['ds'] = self.data.data['ds'].astype('datetime64[ns]')
+                    df['ds'] = df['ds'].astype('datetime64[ns]')
                     data = pd.merge(self.data.data, df, on='ds')
                     self.data._data = data
 

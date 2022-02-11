@@ -98,6 +98,8 @@ class IEX(Provider):
             if as_dataframe:
                 frame = self.client.stocks.timeSeriesDF(**args)
                 frame['date'] = frame['updated'].values
+                frame['date'] = frame['date'].dt.strftime('%Y-%m-%d')
+                frame.set_index('date', inplace=True)
 
                 return frame
             series_list = self.client.stocks.timeSeries(**args)

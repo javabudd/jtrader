@@ -140,7 +140,7 @@ class ML:
                                 'CPI',
                                 timeframe,
                                 True
-                            ).sort_values(by='updated', ascending=True)
+                            ).sort_values(by='date', ascending=True)
                         else:
                             raise RuntimeError
 
@@ -164,7 +164,6 @@ class ML:
 
                     if indicator_name in self.client.SPECIAL_INDICATORS:
                         indicator_name = self.client.SPECIAL_INDICATORS[indicator_name]
-
 
                     indicator_data = data.iloc[:, data.columns.get_loc(indicator_name):]
 
