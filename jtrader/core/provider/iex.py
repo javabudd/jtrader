@@ -40,7 +40,7 @@ class IEX(Provider):
         "stoch": "stock_k",
         "todeg": "degrees",
         "torad": "radians",
-        "CPIUCSL": "value"
+        "CPIUCSL": "cpi_value"
     }
 
     IEX_DATA_POINTS = {
@@ -100,11 +100,8 @@ class IEX(Provider):
                 frame['date'] = frame['updated'].values
                 frame['date'] = frame['date'].dt.strftime('%Y-%m-%d')
                 frame.set_index('date', inplace=True)
+                frame.rename(columns={'value': 'cpi_value'}, inplace=True)
 
                 return frame
-            series_list = self.client.stocks.timeSeries(**args)
-            series_list['date'] = series_list['updated']
-
-            return series_list
 
         raise NotImplemented
