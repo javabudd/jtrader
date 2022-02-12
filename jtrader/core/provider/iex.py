@@ -66,6 +66,7 @@ class IEX(Provider):
             token = os.environ.get('IEX_CLOUD_SANDBOX_API_TOKEN')
 
         self.client_prop = IEXClient.Client(token, version)
+        self.last_date = None
 
     async def register_websockets(
             self,
@@ -104,14 +105,25 @@ class IEX(Provider):
                 "key": "CPIAUCSL",
                 "from_": (now - timedelta(days=(365 * int(timeframe[0])))).strftime('%Y-%m-%d'),
                 "to_": now.strftime('%Y-%m-%d'),
-                "limit": 2000,
-                "dateField": "updated"
+                "last": 1000,
             }
 
+            time_diff = timedelta(days=30)
             if as_dataframe:
                 frame = self.client.stocks.timeSeriesDF(**args)
                 frame['date'] = frame['updated'].values
-                frame['date'] = frame['date'].dt.strftime('%Y-%m-%d')
+
+                def lam(x):
+                    if self.last_date is None:
+                        self.last_date = x['date']
+
+                        return self.last_date
+
+                    self.last_date = self.last_date - time_diff
+
+                    return self.last_date
+
+                frame['date'] = frame.apply(lam, axis=1)
                 frame.set_index('date', inplace=True)
                 frame.rename(columns={'value': 'cpi_value'}, inplace=True)
 
