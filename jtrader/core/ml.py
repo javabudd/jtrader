@@ -115,12 +115,14 @@ class ML:
             api_result = None
             for data_type in self.client.IEX_DATA_POINTS.keys():
                 for indicator_name in self.client.IEX_DATA_POINTS[data_type]:
+                    is_stock_specific_param = True
                     api_result_name = f"{stock}_{indicator_name}_{timeframe}"
                     prediction_save_name = f"prediction_{stock}_{indicator_name}_{periods}"
 
                     if data_type == 'economic':
                         api_result_name = f"{indicator_name}_{timeframe}"
                         prediction_save_name = f"prediction_{indicator_name}_{periods}"
+                        is_stock_specific_param = False
 
                     api_result = self.load_api_result(api_result_name)
 
@@ -176,6 +178,7 @@ class ML:
                         data.replace([np.inf, -np.inf, np.nan], 0, inplace=True)
                         data.reset_index(level=0, inplace=True)
                         data.rename(columns={"date": "ds", indicator_name: "y"}, inplace=True)
+                        data['ds'] = pd.to_datetime(data['ds'])
 
                         data_loader = ml.local.LocalDataLoader([], data=data)
 
@@ -189,7 +192,8 @@ class ML:
                                 data=data_loader,
                                 stock=stock,
                                 timeframe=timeframe,
-                                model_name=indicator_name
+                                model_name=indicator_name,
+                                is_stock_specific=is_stock_specific_param
                             )
 
                             local_trainer.train(dask_cluster_address=dask_cluster_address)
@@ -212,6 +216,7 @@ class ML:
                 }
             )
 
+            final_prediction_data['ds'] = pd.to_datetime(final_prediction_data['ds'])
             final_prediction_data.reset_index(level=0, drop=True, inplace=True)
 
             data_loader = ml.local.LocalDataLoader([], data=final_prediction_data)
@@ -222,7 +227,10 @@ class ML:
                 model_name='close'
             )
 
-            local_trainer.train(dask_cluster_address=dask_cluster_address, extra_features=feature_training_data)
+            local_trainer.train(
+                dask_cluster_address=dask_cluster_address,
+                extra_features=feature_training_data
+            )
 
             prediction = local_trainer.predict(periods=periods, extra_features=predictions)
 
