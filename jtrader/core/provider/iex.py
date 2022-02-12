@@ -25,7 +25,7 @@ class IEX(Provider):
     ]
 
     IEX_TRAINABLE_INDICATORS = [
-        'abs', 'macd', 'obv', 'rsi', 'volatility'
+        'adosc', 'cvi', 'macd', 'obv', 'rsi', 'vwma'
     ]
 
     IEX_ECONOMIC_DATA = [
