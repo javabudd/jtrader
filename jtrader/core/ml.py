@@ -113,8 +113,11 @@ class ML:
             predictions = {}
             feature_training_data = {}
             api_result = None
-            for data_type in self.client.IEX_DATA_POINTS.keys():
-                for indicator_name in self.client.IEX_DATA_POINTS[data_type]:
+            data_points = self.client.IEX_DATA_POINTS
+            data_points['indicators'] = ['abs', 'macd', 'rsi']
+
+            for data_type in data_points.keys():
+                for indicator_name in data_points[data_type]:
                     api_result_name = f"{stock}_{indicator_name}_{timeframe}"
                     prediction_save_name = f"prediction_{stock}_{indicator_name}_{periods}"
 
