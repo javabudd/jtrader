@@ -112,7 +112,6 @@ class ML:
         else:
             predictions = {}
             feature_training_data = {}
-            final_prediction_data = None
             api_result = None
             for data_type in self.client.IEX_DATA_POINTS.keys():
                 for indicator_name in self.client.IEX_DATA_POINTS[data_type]:
@@ -129,14 +128,14 @@ class ML:
                         print(f"creating new api result for {indicator_name} indicator...")
 
                         if data_type == 'indicators':
-                            data = self.client.technicals(
+                            api_result = self.client.technicals(
                                 stock,
                                 indicator_name,
                                 timeframe,
                                 True
                             ).sort_values(by='date', ascending=True)
                         elif data_type == 'economic':
-                            data = self.client.economic(
+                            api_result = self.client.economic(
                                 'CPI',
                                 timeframe,
                                 True
@@ -144,11 +143,9 @@ class ML:
                         else:
                             raise RuntimeError
 
-                        self.save_api_result(data, api_result_name)
-                    else:
-                        data = api_result
+                        self.save_api_result(api_result, api_result_name)
 
-                    data.drop(
+                    api_result.drop(
                         [
                             'symbol',
                             'label',
@@ -165,7 +162,7 @@ class ML:
                     if indicator_name in self.client.SPECIAL_INDICATORS:
                         indicator_name = self.client.SPECIAL_INDICATORS[indicator_name]
 
-                    indicator_data = data.iloc[:, data.columns.get_loc(indicator_name):]
+                    indicator_data = api_result.iloc[:, api_result.columns.get_loc(indicator_name):]
 
                     if True in indicator_data.isnull().all().values or indicator_data[indicator_name].sum() == 0:
                         continue
@@ -175,6 +172,7 @@ class ML:
                     prediction_result = self.load_prediction_result(prediction_save_name)
 
                     if prediction_result is None:
+                        data = api_result.copy()
                         data.replace([np.inf, -np.inf, np.nan], 0, inplace=True)
                         data.reset_index(level=0, inplace=True)
                         data.rename(columns={"date": "ds", indicator_name: "y"}, inplace=True)
@@ -200,21 +198,21 @@ class ML:
 
                             self.save_prediction_result(prediction_result, prediction_save_name)
 
-                            if final_prediction_data is None:
-                                final_prediction_data = pd.DataFrame(
-                                    {"ds": data['ds'], "y": data['close']}
-                                )
-
                     predictions[indicator_name] = prediction_result
 
             if api_result is None:
                 print('API result missing')
 
-            if final_prediction_data is None:
-                api_result.reset_index(level=0, inplace=True)
-                final_prediction_data = pd.DataFrame(
-                    {"ds": api_result['date'], "y": api_result['close']}
-                )
+                return
+
+            final_prediction_data = pd.DataFrame(
+                {
+                    "ds": api_result.index,
+                    "y": api_result['close']
+                }
+            )
+
+            final_prediction_data.reset_index(level=0, drop=True, inplace=True)
 
             data_loader = ml.local.LocalDataLoader([], data=final_prediction_data)
             local_trainer = ml.local.LocalLinearLearner(

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import os
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Optional
 from typing import Union
 
@@ -94,7 +94,16 @@ class IEX(Provider):
 
     def economic(self, economic_type: str, timeframe: str, as_dataframe: bool = False):
         if economic_type == 'CPI':
-            args = {"id": 'ECONOMIC', "from_": '2017-02-10', "to_": '2022-02-10', "limit": 2000}
+            now = datetime.now()
+            args = {
+                "id": 'ECONOMIC',
+                "key": "CPIAUCSL",
+                "from_": (now - timedelta(days=(365 * int(timeframe[0])))).strftime('%Y-%m-%d'),
+                "to_": now.strftime('%Y-%m-%d'),
+                "limit": 2000,
+                "dateField": "updated"
+            }
+
             if as_dataframe:
                 frame = self.client.stocks.timeSeriesDF(**args)
                 frame['date'] = frame['updated'].values
