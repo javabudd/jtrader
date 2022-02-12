@@ -24,6 +24,10 @@ class IEX(Provider):
         'var', 'vhf', 'vidya', 'volatility', 'vosc', 'vwma', 'wad', 'wcprice', 'wilders', 'willr', 'wma', 'zlema'
     ]
 
+    IEX_TRAINABLE_INDICATORS = [
+        'abs', 'macd', 'obv', 'rsi'
+    ]
+
     IEX_ECONOMIC_DATA = [
         'CPIUCSL'
     ]
@@ -45,7 +49,7 @@ class IEX(Provider):
 
     IEX_DATA_POINTS = {
         'economic': IEX_ECONOMIC_DATA,
-        'indicators': IEX_TECHNICAL_INDICATORS,
+        'indicators': IEX_TRAINABLE_INDICATORS,
     }
 
     def __init__(
