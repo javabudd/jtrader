@@ -13,6 +13,9 @@ from jtrader.core.provider import Provider
 
 
 class IEX(Provider):
+    IEX_DATA_TYPE_ECONOMICS = 'economics'
+    IEX_DATA_TYPE_INDICATOR = 'indicators'
+
     IEX_TECHNICAL_INDICATORS = [
         'abs', 'acos', 'ad', 'add', 'adosc', 'adx', 'ao', 'apo', 'aroon', 'aroonosc', 'asin', 'atan', 'atr',
         'avgprice', 'bbands', 'bop', 'cci', 'ceil', 'cmo', 'cos', 'cosh', 'crossany', 'crossover', 'cvi', 'decay',
@@ -28,8 +31,8 @@ class IEX(Provider):
         'adosc', 'cvi', 'macd', 'obv', 'rsi', 'vwma'
     ]
 
-    IEX_ECONOMIC_DATA = [
-        'CPIUCSL'
+    IEX_TRAINABLE_ECONOMICS = [
+        'CPIAUCSL',
     ]
 
     SPECIAL_INDICATORS = {
@@ -44,12 +47,13 @@ class IEX(Provider):
         "stoch": "stock_k",
         "todeg": "degrees",
         "torad": "radians",
-        "CPIUCSL": "cpi_value"
+        "CPIAUCSL": "cpi_value",
+        "UNRATE": "unrate_value"
     }
 
-    IEX_DATA_POINTS = {
-        'economic': IEX_ECONOMIC_DATA,
-        'indicators': IEX_TRAINABLE_INDICATORS,
+    IEX_TRAINABLE_DATA_POINTS = {
+        IEX_DATA_TYPE_ECONOMICS: IEX_TRAINABLE_ECONOMICS,
+        IEX_DATA_TYPE_INDICATOR: IEX_TRAINABLE_INDICATORS,
     }
 
     def __init__(
@@ -98,35 +102,41 @@ class IEX(Provider):
         return self.client.stock.technicals(stock, indicator_name, range=timeframe)
 
     def economic(self, economic_type: str, timeframe: str, as_dataframe: bool = False):
-        if economic_type == 'CPI':
-            now = datetime.now()
-            args = {
-                "id": 'ECONOMIC',
-                "key": "CPIAUCSL",
-                "from_": (now - timedelta(days=(365 * int(timeframe[0])))).strftime('%Y-%m-%d'),
-                "to_": now.strftime('%Y-%m-%d'),
-                "last": 1000,
-            }
+        now = datetime.now()
+        args = {
+            "id": 'ECONOMIC',
+            "key": None,
+            "from_": (now - timedelta(days=(365 * int(timeframe[0])))).strftime('%Y-%m-%d'),
+            "to_": now.strftime('%Y-%m-%d'),
+            "last": 1000,
+        }
 
-            time_diff = timedelta(days=30)
+        if economic_type == 'CPI':
+            args['key'] = 'CPIAUCSL'
             if as_dataframe:
                 frame = self.client.stocks.timeSeriesDF(**args)
                 frame['date'] = frame['updated'].values
-
-                def lam(x):
-                    if self.last_date is None:
-                        self.last_date = x['date']
-
-                        return self.last_date
-
-                    self.last_date = self.last_date - time_diff
-
-                    return self.last_date
-
-                frame['date'] = frame.apply(lam, axis=1)
+                frame['date'] = frame.apply(self.adjust_economic_dates, axis=1)
+                frame['date'] = pd.to_datetime(frame['date'].dt.strftime('%Y-%m-%d'))
                 frame.set_index('date', inplace=True)
                 frame.rename(columns={'value': 'cpi_value'}, inplace=True)
 
                 return frame
+        elif economic_type == 'UNRATE':
+            args['key'] = 'UNRATE'
+            if as_dataframe:
+                frame = self.client.stocks.timeSeriesDF(**args)
+                print(frame)
+                exit()
 
         raise NotImplemented
+
+    def adjust_economic_dates(self, x):
+        if self.last_date is None:
+            self.last_date = x['date']
+
+            return self.last_date
+
+        self.last_date = self.last_date - timedelta(days=30)
+
+        return self.last_date

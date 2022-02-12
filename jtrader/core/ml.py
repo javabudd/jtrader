@@ -113,13 +113,13 @@ class ML:
             predictions = {}
             feature_training_data = {}
             api_result = None
-            for data_type in self.client.IEX_DATA_POINTS.keys():
-                for indicator_name in self.client.IEX_DATA_POINTS[data_type]:
+            for data_type in self.client.IEX_TRAINABLE_DATA_POINTS.keys():
+                for indicator_name in self.client.IEX_TRAINABLE_DATA_POINTS[data_type]:
                     is_stock_specific_param = True
                     api_result_name = f"{stock}_{indicator_name}_{timeframe}"
                     prediction_save_name = f"prediction_{stock}_{indicator_name}_{periods}"
 
-                    if data_type == 'economic':
+                    if data_type == self.client.IEX_DATA_TYPE_ECONOMICS:
                         api_result_name = f"{indicator_name}_{timeframe}"
                         prediction_save_name = f"prediction_{indicator_name}_{periods}"
                         is_stock_specific_param = False
@@ -129,14 +129,14 @@ class ML:
                     if api_result is None:
                         print(f"creating new api result for {indicator_name} indicator...")
 
-                        if data_type == 'indicators':
+                        if data_type == self.client.IEX_DATA_TYPE_INDICATOR:
                             api_result = self.client.technicals(
                                 stock,
                                 indicator_name,
                                 timeframe,
                                 True
                             ).sort_values(by='date', ascending=True)
-                        elif data_type == 'economic':
+                        elif data_type == self.client.IEX_DATA_TYPE_ECONOMICS:
                             api_result = self.client.economic(
                                 'CPI',
                                 timeframe,
@@ -178,7 +178,6 @@ class ML:
                         data.replace([np.inf, -np.inf, np.nan], 0, inplace=True)
                         data.reset_index(level=0, inplace=True)
                         data.rename(columns={"date": "ds", indicator_name: "y"}, inplace=True)
-                        data['ds'] = pd.to_datetime(data['ds'])
 
                         data_loader = ml.local.LocalDataLoader([], data=data)
 
