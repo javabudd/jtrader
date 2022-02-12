@@ -138,7 +138,7 @@ class ML:
                             ).sort_values(by='date', ascending=True)
                         elif data_type == self.client.IEX_DATA_TYPE_ECONOMICS:
                             api_result = self.client.economic(
-                                'CPI',
+                                indicator_name,
                                 timeframe,
                                 True
                             ).sort_values(by='date', ascending=True)

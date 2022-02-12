@@ -32,7 +32,7 @@ class IEX(Provider):
     ]
 
     IEX_TRAINABLE_ECONOMICS = [
-        'CPIAUCSL',
+        'CPIAUCSL', 'UNRATE'
     ]
 
     SPECIAL_INDICATORS = {
@@ -111,23 +111,29 @@ class IEX(Provider):
             "last": 1000,
         }
 
-        if economic_type == 'CPI':
+        def create_frame(frame_args: dict):
+            f = self.client.stocks.timeSeriesDF(**frame_args)
+            f['date'] = f['updated'].values
+            f['date'] = f.apply(self.adjust_economic_dates, axis=1)
+            f['date'] = pd.to_datetime(f['date'].dt.strftime('%Y-%m-%d'))
+            f.set_index('date', inplace=True)
+
+            return f
+
+        if economic_type == 'CPIAUCSL':
             args['key'] = 'CPIAUCSL'
             if as_dataframe:
-                frame = self.client.stocks.timeSeriesDF(**args)
-                frame['date'] = frame['updated'].values
-                frame['date'] = frame.apply(self.adjust_economic_dates, axis=1)
-                frame['date'] = pd.to_datetime(frame['date'].dt.strftime('%Y-%m-%d'))
-                frame.set_index('date', inplace=True)
+                frame = create_frame(args)
                 frame.rename(columns={'value': 'cpi_value'}, inplace=True)
 
                 return frame
         elif economic_type == 'UNRATE':
             args['key'] = 'UNRATE'
             if as_dataframe:
-                frame = self.client.stocks.timeSeriesDF(**args)
-                print(frame)
-                exit()
+                frame = create_frame(args)
+                frame.rename(columns={'value': 'unrate_value'}, inplace=True)
+
+                return frame
 
         raise NotImplemented
 
