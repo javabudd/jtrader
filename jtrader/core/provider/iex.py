@@ -32,7 +32,7 @@ class IEX(Provider):
     ]
 
     IEX_TRAINABLE_ECONOMICS = [
-        'CPIAUCSL', 'UNRATE'
+        'CPIAUCSL',
     ]
 
     SPECIAL_INDICATORS = {
@@ -48,7 +48,8 @@ class IEX(Provider):
         "todeg": "degrees",
         "torad": "radians",
         "CPIAUCSL": "cpi_value",
-        "UNRATE": "unrate_value"
+        "UNRATE": "unrate_value",
+        "RECPROUSM156N": "recession_prob_value"
     }
 
     IEX_TRAINABLE_DATA_POINTS = {
@@ -132,6 +133,13 @@ class IEX(Provider):
             if as_dataframe:
                 frame = create_frame(args)
                 frame.rename(columns={'value': 'unrate_value'}, inplace=True)
+
+                return frame
+        elif economic_type == 'RECPROUSM156N':
+            args['key'] = 'RECPROUSM156N'
+            if as_dataframe:
+                frame = create_frame(args)
+                frame.rename(columns={'value': 'recession_prob_value'}, inplace=True)
 
                 return frame
 
