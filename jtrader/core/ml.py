@@ -233,7 +233,7 @@ class ML:
 
             prediction = local_trainer.predict(periods=periods, extra_features=predictions)
 
-            prediction.to_csv('pred.csv')
+            prediction.to_csv('pred.csv', columns=['ds', 'trend', 'additive_terms', 'multiplicative_terms', 'yhat'])
 
     def run_predictor(self, model_name: str, prediction: list) -> None:
         model = self.load_model(model_name)
