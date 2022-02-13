@@ -32,7 +32,7 @@ class IEX(Provider):
     ]
 
     IEX_TRAINABLE_ECONOMICS = [
-        'CPIAUCSL',
+        'CPIAUCSL', 'RECPROUSM156N'
     ]
 
     SPECIAL_INDICATORS = {
