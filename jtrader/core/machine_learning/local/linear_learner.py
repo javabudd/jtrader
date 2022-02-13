@@ -57,7 +57,7 @@ class LocalLinearLearner(BaseModel):
                     df.reset_index(level=0, inplace=True)
                     df.rename(columns={"date": "ds"}, inplace=True)
                     df.fillna(extra_features[feature].mean(), inplace=True)
-                    data = pd.merge(self.data.data, df, on='ds')
+                    data = pd.merge_asof(self.data.data, df, on='ds', direction='nearest')
                     self.data._data = data
 
         return model
