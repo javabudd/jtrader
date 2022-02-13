@@ -32,7 +32,7 @@ class IEX(Provider):
     ]
 
     IEX_TRAINABLE_ECONOMICS = [
-        'CPIAUCSL', 'RECPROUSM156N', 'UNRATE'
+        'CPIAUCSL', 'RECPROUSM156N', 'UNRATE', 'A191RL1Q225SBEA'
     ]
 
     SPECIAL_INDICATORS = {
@@ -49,7 +49,8 @@ class IEX(Provider):
         "torad": "radians",
         "CPIAUCSL": "cpi_value",
         "UNRATE": "unrate_value",
-        "RECPROUSM156N": "recession_prob_value"
+        "RECPROUSM156N": "recession_prob_value",
+        "A191RL1Q225SBEA": "gdp_value"
     }
 
     IEX_TRAINABLE_DATA_POINTS = {
@@ -103,10 +104,12 @@ class IEX(Provider):
         return self.client.stock.technicals(stock, indicator_name, range=timeframe)
 
     def economic(self, economic_type: str, timeframe: str, as_dataframe: bool = False):
+        assert economic_type in self.SPECIAL_INDICATORS
+
         now = datetime.now()
         args = {
             "id": 'ECONOMIC',
-            "key": None,
+            "key": economic_type,
             "from_": (now - timedelta(days=(365 * int(timeframe[0])))).strftime('%Y-%m-%d'),
             "to_": now.strftime('%Y-%m-%d'),
             "last": 1000,
@@ -121,27 +124,11 @@ class IEX(Provider):
 
             return f
 
-        if economic_type == 'CPIAUCSL':
-            args['key'] = 'CPIAUCSL'
-            if as_dataframe:
-                frame = create_frame(args)
-                frame.rename(columns={'value': 'cpi_value'}, inplace=True)
+        if as_dataframe:
+            frame = create_frame(args)
+            frame.rename(columns={'value': self.SPECIAL_INDICATORS[economic_type]}, inplace=True)
 
-                return frame
-        elif economic_type == 'UNRATE':
-            args['key'] = 'UNRATE'
-            if as_dataframe:
-                frame = create_frame(args)
-                frame.rename(columns={'value': 'unrate_value'}, inplace=True)
-
-                return frame
-        elif economic_type == 'RECPROUSM156N':
-            args['key'] = 'RECPROUSM156N'
-            if as_dataframe:
-                frame = create_frame(args)
-                frame.rename(columns={'value': 'recession_prob_value'}, inplace=True)
-
-                return frame
+            return frame
 
         raise NotImplemented
 
