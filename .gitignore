@@ -111,3 +111,4 @@ out.csv
 docker-compose.override.yml
 **.db
 dask-worker-space
+pred.csv

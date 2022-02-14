@@ -1,6 +1,7 @@
 import hashlib
 import itertools
 import json
+import gc
 from pathlib import Path
 from typing import Union, Optional
 
@@ -28,11 +29,12 @@ class LocalLinearLearner(BaseModel):
         "objective_type": "Minimize",
     }
 
-    def __init__(self, data, stock: str, timeframe: str = '5y', model_name: str = None):
+    def __init__(self, data, stock: str, timeframe: str = '5y', model_name: str = None, is_stock_specific: bool = True):
         super().__init__(data, model_name)
 
         self.stock = stock
         self.timeframe = timeframe
+        self.is_stock_specific = is_stock_specific
         self._model = None
         self.db = ODM()
 
@@ -55,7 +57,7 @@ class LocalLinearLearner(BaseModel):
                     df.reset_index(level=0, inplace=True)
                     df.rename(columns={"date": "ds"}, inplace=True)
                     df.fillna(extra_features[feature].mean(), inplace=True)
-                    data = pd.merge(self.data.data, df, on='ds')
+                    data = pd.merge_asof(self.data.data, df, on='ds', direction='nearest')
                     self.data._data = data
 
         return model
@@ -78,7 +80,7 @@ class LocalLinearLearner(BaseModel):
             dask_cluster_address: Optional[str] = None
     ) -> Prophet:
         if hyperparameters is None or len(hyperparameters) == 0:
-            hyperparameters = self.db.get_prophet_params(self.stock, self.model_name)
+            hyperparameters = self.db.get_prophet_params(self.stock, self.model_name, self.is_stock_specific)
 
         # if there are no hyperparameters provided, run auto-tuning
         if hyperparameters is None:
@@ -98,6 +100,8 @@ class LocalLinearLearner(BaseModel):
             rmses = []
 
             for params in all_params:
+                gc.collect()
+
                 param_hash = hashlib.md5(json.dumps(params, sort_keys=True).encode('utf-8')).hexdigest()
                 model = self.get_prophet_model(params, extra_features)
 
@@ -118,7 +122,7 @@ class LocalLinearLearner(BaseModel):
             best_params = all_params[np.argmin(rmses)]
 
             if len(rmses) > 0:
-                self.db.put_prophet_params(self.stock, self.model_name, best_params)
+                self.db.put_prophet_params(self.stock, self.model_name, best_params, self.is_stock_specific)
 
             self._model = fitted_models[
                 hashlib.md5(json.dumps(best_params, sort_keys=True).encode('utf-8')).hexdigest()
