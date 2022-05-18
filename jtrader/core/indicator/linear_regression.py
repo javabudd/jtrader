@@ -20,8 +20,10 @@ class LinearRegression(Indicator):
 
             return
 
-        x = np.array([i for i in range(len(data))])
-        y = np.array(data['close'].astype(float))
+        close = self.clean_dataframe(data['close'])
+
+        y = np.array(close.astype(float))
+        x = np.array([i for i in range(len(close))])
 
         x = x.reshape(-1, 1)
         y = y.reshape(-1, 1)
