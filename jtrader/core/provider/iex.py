@@ -82,8 +82,8 @@ class IEX(Provider):
     ) -> None:
         raise NotImplemented
 
-    def chart(self, stock: str, start: datetime, end: datetime | None) -> dict | list:
-        return self.client.stocks.chart(stock, timeframe='1d')
+    def chart(self, stock: str, start: datetime | None, end: datetime | None, timeframe='1d') -> dict | list:
+        return self.client.stocks.chart(stock, timeframe=timeframe)
 
     def intraday(self, stock: str) -> dict:
         return self.client.stocks.intraday(stock)

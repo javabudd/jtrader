@@ -35,12 +35,12 @@ class KuCoin(Provider):
         while True:
             await asyncio.sleep(20, loop=loop)
 
-    def chart(self, stock: str, start: datetime, end: datetime | None) -> dict | list:
+    def chart(self, stock: str, start: datetime | None, end: datetime | None, timeframe='1min') -> dict | list:
         return self.client.get_kline_data(
             stock,
-            start=start.microsecond,
+            start=start.microsecond if start else None,
             end=end.microsecond if end else None,
-            kline_type="1min"
+            kline_type=timeframe
         )
 
     def symbols(self) -> dict:

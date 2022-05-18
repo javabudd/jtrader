@@ -69,7 +69,7 @@ class Worker:
                 timeframe = 'max'
 
             try:
-                provider_entries = self.provider.client.stocks.chart(stock_symbol, timeframe=timeframe)
+                provider_entries = self.provider.chart(stock_symbol, None, None, timeframe)
             except PyEXception:
                 self.logger.warning(f"Failed retrieving provider data for {stock_symbol}...")
 
