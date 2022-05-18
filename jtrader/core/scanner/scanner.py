@@ -71,9 +71,6 @@ class Scanner(IEX):
         self.logger.info('Processing finished')
 
     def process_timeframe(self, stocks):
-        today = datetime.today()
-        delta = 365
-
         for stock in stocks:
             data = self.client.stocks.chartDF(stock, timeframe='1d')
 
