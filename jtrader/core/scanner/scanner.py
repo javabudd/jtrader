@@ -63,44 +63,30 @@ class Scanner(IEX):
 
         if self.as_intraday:
             while True:
-                self.process_intraday(stocks)
+                self.process_threaded(stocks, 'intraday')
                 time.sleep(5)
         else:
-            self.process_timeframe(stocks)
+            self.process_threaded(stocks)
 
         self.logger.info('Processing finished')
 
-    def process_timeframe(self, stocks):
-        today = datetime.today()
-        delta = 365
-        start = today + relativedelta(days=-delta)
-        for stock in stocks:
-            data = pd.DataFrame(
-                self.odm.get_historical_stock_range(
-                    stock,
-                    start
-                )
-            )
-
-            data = data.iloc[::-1].reset_index(drop=True)
-
-            if data.empty:
-                self.logger.debug(f"Retrieved empty data set for stock {stock}")
-
-                continue
-
-            self.init_indicators(stock, data)
-
-    def process_intraday(self, stocks):
+    def process_threaded(self, stocks, type: str = 'swing'):
         i = 1
         threads: List[Thread] = []
 
-        chunked = chunk_threaded(stocks, self.is_sandbox, 25)
+        chunked = chunk_threaded(stocks, self.is_sandbox, 10)
+
+        if type == 'swing':
+            action = self.swing_loop
+        elif type == 'intraday':
+            action = self.intraday_loop
+        else:
+            raise NotImplemented
 
         for chunk in chunked:
             thread_name = f"Thread-{i}"
             """ @thread """
-            thread = spawn_thread(self.intraday_loop, True, False, args=(thread_name, chunk), daemon=True)
+            thread = spawn_thread(action, True, False, args=(thread_name, chunk), daemon=True)
             threads.append(thread)
             i += 1
 
@@ -120,6 +106,36 @@ class Scanner(IEX):
             time.sleep(sleep)
             self.logger.info(f"({thread_name}) Processing ticker: {stock}")
             data = self.client.stocks.intradayDF(stock, IEXOnly=True)
+            self.init_indicators(stock, data)
+
+        return True
+
+    def swing_loop(self, thread_name, chunk):
+        today = datetime.today()
+        delta = 365
+        start = today + relativedelta(days=-delta)
+        sleep = .2
+
+        if self.is_sandbox:
+            sleep = 2
+
+        for stock in chunk:
+            time.sleep(sleep)
+            self.logger.info(f"({thread_name}) Processing ticker: {stock}")
+            data = pd.DataFrame(
+                self.odm.get_historical_stock_range(
+                    stock,
+                    start
+                )
+            )
+
+            data = data.iloc[::-1].reset_index(drop=True)
+
+            if data.empty:
+                self.logger.debug(f"Retrieved empty data set for stock {stock}")
+
+                continue
+
             self.init_indicators(stock, data)
 
         return True
