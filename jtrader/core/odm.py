@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import date, datetime, timedelta
 from decimal import Decimal
 
 import boto3
@@ -14,6 +14,16 @@ class ODM:
         today = date.today()
 
         return self.stock_table.query(KeyConditionExpression=Key('date').eq(today.isoformat()), ScanIndexForward=False)
+
+    def get_last_stock_day(self, ticker) -> datetime:
+        response = self.stock_table.query(
+            KeyConditionExpression=Key('ticker').eq(ticker)
+        )
+
+        if 'Items' not in response or len(response['Items']) == 0:
+            return datetime.now() - timedelta(days=2*365)
+
+        return datetime.strptime(response['Items'][-1]['date'], '%Y-%m-%d')
 
     def get_historical_stock_day(self, ticker: str, day: str):
         response = self.stock_table.get_item(

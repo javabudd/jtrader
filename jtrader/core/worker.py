@@ -1,12 +1,11 @@
-from datetime import datetime
-from threading import Thread
-from typing import List
-
 import pandas as pd
 from cement.core.log import LogInterface
 from cement.utils.shell import spawn_thread
+from datetime import datetime
 from dateutil.relativedelta import relativedelta
 from pyEX import PyEXception
+from threading import Thread
+from typing import List
 
 from jtrader import chunk_threaded
 from jtrader.core.odm import ODM
@@ -23,7 +22,7 @@ class Worker:
     def run(self):
         i = 1
         threads: List[Thread] = []
-        for chunk in chunk_threaded(self.provider.symbols(), False, 25):
+        for chunk in chunk_threaded(self.provider.symbols(), False, 5):
             thread_name = f"Thread-{i}"
             """ @thread """
             thread = spawn_thread(self.insert_stocks, True, False, args=(thread_name, chunk), daemon=True)
@@ -36,10 +35,8 @@ class Worker:
                     threads.remove(thread)
                 thread.join(1)
 
-    def insert_stocks(self, thread_id: str, chunk: pd.DataFrame, timeframe: str = '5d'):
+    def insert_stocks(self, thread_id: str, chunk: pd.DataFrame):
         today = datetime.today()
-        days = timeframe_to_days(timeframe)
-        start = today + relativedelta(days=-days)
 
         for stock in chunk:
             if stock['isEnabled'] is False:
@@ -49,17 +46,34 @@ class Worker:
 
             self.logger.info(f"{thread_id} - Processing ticker {stock_symbol}...")
 
-            odm_entry_length = len(self.odm.get_historical_stock_range(stock_symbol, start))
+            last_day = self.odm.get_last_stock_day(stock_symbol)
+            diff = today - last_day
+            days = diff.days
+
+            if days == 0:
+                continue
+
+            if days == 1:
+                timeframe = '1d'
+            elif days <= 5:
+                timeframe = '5d'
+            elif days <= 30:
+                timeframe = '1m'
+            elif days <= 90:
+                timeframe = '3m'
+            elif days <= 180:
+                timeframe = '6m'
+            elif days <= 365:
+                timeframe = '1y'
+            else:
+                timeframe = 'max'
 
             try:
-                provider_entries = self.provider.chart(stock_symbol, timeframe=timeframe)
+                provider_entries = self.provider.client.stocks.chart(stock_symbol, timeframe=timeframe)
             except PyEXception:
                 self.logger.warning(f"Failed retrieving provider data for {stock_symbol}...")
 
                 continue
-
-            self.logger.debug('odm count: ' + str(odm_entry_length))
-            self.logger.debug('provider count: ' + str(len(provider_entries)))
 
             with self.odm.stock_table.batch_writer(overwrite_by_pkeys=['ticker', 'date']) as batch:
                 for result in provider_entries:
