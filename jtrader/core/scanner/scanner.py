@@ -72,7 +72,12 @@ class Scanner(IEX):
 
     def process_timeframe(self, stocks):
         for stock in stocks:
-            data = self.client.stocks.chartDF(stock, timeframe='1d')
+            try:
+                data = self.client.stocks.chartDF(stock, timeframe='1d')
+            except PyEXception as e:
+                self.logger.error(e.args[0] + ' ' + e.args[1])
+
+                continue
 
             if data.empty:
                 self.logger.debug(f"Retrieved empty data set for stock {stock}")

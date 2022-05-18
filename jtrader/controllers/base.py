@@ -38,7 +38,7 @@ indicators = [
     'chaikin',
     'pairs',
     'lr',
-    'volume'
+    'vwap'
 ]
 
 
