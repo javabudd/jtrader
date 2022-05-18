@@ -71,13 +71,18 @@ class Scanner(IEX):
         self.logger.info('Processing finished')
 
     def process_timeframe(self, stocks):
+        today = datetime.today()
+        delta = 365
+        start = today + relativedelta(days=-delta)
         for stock in stocks:
-            try:
-                data = self.client.stocks.chartDF(stock, timeframe='1d')
-            except PyEXception as e:
-                self.logger.error(e.args[0] + ' ' + e.args[1])
+            data = pd.DataFrame(
+                self.odm.get_historical_stock_range(
+                    stock,
+                    start
+                )
+            )
 
-                continue
+            data = data.iloc[::-1].reset_index(drop=True)
 
             if data.empty:
                 self.logger.debug(f"Retrieved empty data set for stock {stock}")
