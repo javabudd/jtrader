@@ -11,8 +11,13 @@ def chunks(chunk_data, n: int):
 
 def chunk_threaded(dictionary: dict, is_sandbox=False, chunk_size: int = 25):
     num_lines = len(dictionary)
-    chunk_size = math.floor(num_lines / chunk_size)
+
     if is_sandbox:
         chunk_size = math.floor(num_lines / 2)
+    else:
+        chunk_size = math.floor(num_lines / chunk_size)
+
+    if chunk_size == 0:
+        chunk_size = 1
 
     return list(chunks(dictionary, chunk_size))

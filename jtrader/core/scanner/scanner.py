@@ -23,6 +23,7 @@ class Scanner(IEX):
             self,
             is_sandbox: bool,
             indicators: Optional[List[Indicator]],
+            stocks: Optional[List[str]] = None,
             as_intraday: Optional[bool] = True,
             no_notifications: Optional[bool] = False
     ):
@@ -30,6 +31,7 @@ class Scanner(IEX):
 
         self.as_intraday = as_intraday
         self.odm = ODM()
+        self.stocks = stocks
         self.indicators = []
         if indicators is None:
             self.indicators = __INDICATOR_MAP__['all']
@@ -54,10 +56,16 @@ class Scanner(IEX):
         return signal_type
 
     def run(self):
-        stocks = self.client.symbols()
+        stocks = self.stocks
+        if stocks is None:
+            stocks = []
+            for symbol in self.client.symbols():
+                stocks.append(symbol['symbol'])
 
         if self.as_intraday:
-            self.process_intraday(stocks)
+            while True:
+                self.process_intraday(stocks)
+                time.sleep(5)
         else:
             self.process_timeframe(stocks)
 
@@ -112,8 +120,8 @@ class Scanner(IEX):
 
         for stock in chunk:
             time.sleep(sleep)
-            self.logger.info(f"({thread_name}) Processing ticker: {stock['symbol']}")
-            self.init_indicators(stock['symbol'])
+            self.logger.info(f"({thread_name}) Processing ticker: {stock}")
+            self.init_indicators(stock)
 
         return True
 

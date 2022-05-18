@@ -97,7 +97,6 @@ class Provider(ABC):
             print(f"Got an error: {e.response['error']}")
 
     def handle_websocket_exception(self, loop: asyncio.AbstractEventLoop, context) -> None:
-        print('woa')
         msg = context.get("exception", context["message"])
         self.logger.error(f"Caught exception: {msg}")
         self.logger.info("Shutting down...")

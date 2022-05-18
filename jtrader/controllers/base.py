@@ -239,12 +239,9 @@ class Base(Controller):
                     ['-s', '--stock-list'],
                     {
                         'help': 'change the default stock list',
-                        'action': 'store',
+                        'action': 'append',
                         'dest': 'stock_list',
-                        'choices': [
-                            'sp500',
-                            'all'
-                        ]
+                        'type': str
                     }
             ),
             (

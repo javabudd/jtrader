@@ -28,12 +28,19 @@ class APO(Indicator):
         return 'Absolute Price Oscillator'
 
     def is_valid(self, data, comparison_data=None):
+        self.clean_dataframe(data)
+
         if len(data) < self.WINDOW_SIZE_FOURTEEN:
             self.log_not_enough_data()
 
             return
 
         apo_chart = talib.APO(data['close'], fastperiod=self.fast_period, slowperiod=self.slow_period)
+
+        if len(apo_chart <= 1):
+            self.log_invalid_chart_length()
+
+            return
 
         if self.signals_bullish(data, apo_chart):
             return self.BULLISH
