@@ -1,14 +1,13 @@
 import json
-import time
-from datetime import datetime
-from threading import Thread
-from typing import Optional, List
-
 import numpy as np
 import pandas as pd
+import time
 from cement.utils.shell import spawn_thread
+from datetime import datetime
 from dateutil.relativedelta import relativedelta
 from pyEX import PyEXception
+from threading import Thread
+from typing import Optional, List
 
 from jtrader import chunk_threaded
 from jtrader.core.indicator import __INDICATOR_MAP__
@@ -74,24 +73,16 @@ class Scanner(IEX):
     def process_timeframe(self, stocks):
         today = datetime.today()
         delta = 365
-        start = today + relativedelta(days=-delta)
 
         for stock in stocks:
-            data = pd.DataFrame(
-                self.odm.get_historical_stock_range(
-                    stock['symbol'],
-                    start
-                )
-            )
-
-            data = data.iloc[::-1].reset_index(drop=True)
+            data = self.client.stocks.chartDF(stock, timeframe='1d')
 
             if data.empty:
-                self.logger.debug(f"Retrieved empty data set for stock {stock['symbol']}")
+                self.logger.debug(f"Retrieved empty data set for stock {stock}")
 
                 continue
 
-            self.init_indicators(stock['symbol'], data)
+            self.init_indicators(stock, data)
 
     def process_intraday(self, stocks):
         i = 1
@@ -121,15 +112,15 @@ class Scanner(IEX):
         for stock in chunk:
             time.sleep(sleep)
             self.logger.info(f"({thread_name}) Processing ticker: {stock}")
-            self.init_indicators(stock)
+            data = self.client.stocks.intradayDF(stock, IEXOnly=True)
+            self.init_indicators(stock, data)
 
         return True
 
-    def init_indicators(self, ticker: str, data=None):
+    def init_indicators(self, ticker: str, data: pd.DataFrame):
         period = 'swing'
         if self.as_intraday and data is None:
             period = 'intraday'
-            data = self.client.stocks.intradayDF(ticker, IEXOnly=True)
             if 'close' not in data:
                 self.logger.error(f"{ticker} Could not find closing intraday")
 
@@ -188,16 +179,20 @@ class Scanner(IEX):
                 break
 
             if len(passed_validators) > 0:
-                message = {
-                    "ticker": ticker,
-                    "signal_period": period,
-                    "indicators_triggered": passed_validators
-                }
+                bearish_count = list(filter(lambda x: x['signal_type' == 'bearish'], passed_validators.items()))
+                bullish_count = list(filter(lambda x: x['signal_type' == 'bullish'], passed_validators.items()))
 
-                message_string = json.dumps(message)
+                if len(bearish_count) == len(passed_validators) or len(bullish_count) == len(passed_validators):
+                    message = {
+                        "ticker": ticker,
+                        "signal_period": period,
+                        "indicators_triggered": passed_validators
+                    }
 
-                self.logger.info(message_string)
-                self.send_notification('```' + message_string + '```')
+                    message_string = json.dumps(message)
+
+                    self.logger.info(message_string)
+                    self.send_notification('```' + message_string + '```')
 
     @staticmethod
     def get_passed_validator_dict(signal_type: str, indicator: Indicator) -> dict:
