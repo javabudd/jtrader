@@ -82,7 +82,7 @@ class Provider(ABC):
             print(f"Got an error: {e.response['error']}")
 
     def send_slack_file(self, filename, title, channel: Optional[str] = '#stock-scanner', **kwargs) -> None:
-        client = WebClient(token=os.environ.get('SLACK_TOKEN'))
+        client = WebClient(token=self.slack_token)
 
         if self.is_sandbox:
             channel = '#stock-scanner-dev'
