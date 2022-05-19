@@ -58,13 +58,13 @@ class LoopRing(Provider):
 
         ws.run_forever()
 
-    def chart(self, stock: str, start: datetime, end: datetime | None) -> dict | list:
-        start = int(time.mktime(start.timetuple()) * 1000)
+    def chart(self, stock: str, start: datetime | None, end: datetime | None, timeframe='1min') -> dict | list:
+        start = int(time.mktime(start.timetuple()) * 1000) if start is not None else None
         end = int(time.mktime(end.timetuple()) * 1000) if end is not None else int(
             time.mktime(datetime.now().timetuple()) * 1000)
 
         response = self.client.get(
-            f"{self.BASE_URL}/api/v3/candlestick?market={stock}&interval=1min&start={start}&end={end}&limit=1440"
+            f"{self.BASE_URL}/api/v3/candlestick?market={stock}&interval={timeframe}&start={start}&end={end}&limit=1440"
         )
 
         candles = json.loads(response.text)['candlesticks']

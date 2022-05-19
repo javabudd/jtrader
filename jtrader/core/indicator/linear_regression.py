@@ -15,13 +15,15 @@ class LinearRegression(Indicator):
         return 'Linear Regression'
 
     def is_valid(self, data, comparison_data=None):
-        if len(data) < self.WINDOW_SIZE_FOURTEEN:
+        close = self.clean_dataframe(data['close'])
+
+        if len(close) < self.WINDOW_SIZE_FOURTEEN:
             self.log_not_enough_data()
 
             return
 
-        x = np.array([i for i in range(len(data))])
-        y = np.array(data['close'].astype(float))
+        y = np.array(close.astype(float))
+        x = np.array([i for i in range(len(close))])
 
         x = x.reshape(-1, 1)
         y = y.reshape(-1, 1)

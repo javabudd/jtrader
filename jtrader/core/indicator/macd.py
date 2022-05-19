@@ -44,8 +44,9 @@ class MACD(Indicator):
 
             return
 
-        # @TODO This needs a more robust divergence check
-        if macd.iloc[0] > signal_line.iloc[0]:
+        if macd.iloc[0] > signal_line.iloc[0] and signal_line.iloc[0] < 0:
             return self.BULLISH
+        elif macd.iloc[0] < signal_line.iloc[0] and signal_line.iloc[0] > 0:
+            return self.BEARISH
 
         return

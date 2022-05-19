@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import date, datetime, timedelta
 from decimal import Decimal
 
 import boto3
@@ -14,6 +14,16 @@ class ODM:
         today = date.today()
 
         return self.stock_table.query(KeyConditionExpression=Key('date').eq(today.isoformat()), ScanIndexForward=False)
+
+    def get_last_stock_day(self, ticker) -> datetime:
+        response = self.stock_table.query(
+            KeyConditionExpression=Key('ticker').eq(ticker)
+        )
+
+        if 'Items' not in response or len(response['Items']) == 0:
+            return datetime.now() - timedelta(days=2 * 365)
+
+        return datetime.strptime(response['Items'][-1]['date'], '%Y-%m-%d')
 
     def get_historical_stock_day(self, ticker: str, day: str):
         response = self.stock_table.get_item(
@@ -52,11 +62,11 @@ class ODM:
 
     @staticmethod
     def put_stock(item_writer, ticker, stock):
-        stock_open = Decimal(str(stock['open']))
-        stock_high = Decimal(str(stock['high']))
-        stock_close = Decimal(str(stock['close']))
-        stock_low = Decimal(str(stock['low']))
-        stock_volume = Decimal(str(stock['volume']))
+        stock_open = Decimal(str(stock['open'])) if stock['open'] is not None else None
+        stock_high = Decimal(str(stock['high'])) if stock['high'] is not None else None
+        stock_close = Decimal(str(stock['close'])) if stock['close'] is not None else None
+        stock_low = Decimal(str(stock['low'])) if stock['low'] is not None else None
+        stock_volume = Decimal(str(stock['volume'])) if stock['volume'] is not None else None
 
         u_open = stock_open
         if 'uOpen' in stock and stock['uOpen'] is not None:
@@ -117,10 +127,11 @@ class ODM:
                 'volume': stock_volume,
                 'updated': stock['updatedAt'] if 'updatedAt' in stock else None,
                 'changeOverTime':
-                    Decimal(str(stock['changeOverTime'])) if stock['changeOverTime'] is not None else 0,
+                    Decimal(str(stock['changeOverTime'])) if 'changeOverTime' in stock and stock[
+                        'changeOverTime'] is not None else 0,
                 'marketChangeOverTime': Decimal(
                     str(stock['marketChangeOverTime'])
-                ) if stock['marketChangeOverTime'] is not None else 0,
+                ) if 'marketChangeOverTime' in stock and stock['marketChangeOverTime'] is not None else 0,
                 'uOpen': u_open,
                 'uClose': u_close,
                 'uHigh': u_high,

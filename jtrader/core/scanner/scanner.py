@@ -1,14 +1,13 @@
 import json
-import time
-from datetime import datetime
-from threading import Thread
-from typing import Optional, List
-
 import numpy as np
 import pandas as pd
+import time
 from cement.utils.shell import spawn_thread
+from datetime import datetime
 from dateutil.relativedelta import relativedelta
 from pyEX import PyEXception
+from threading import Thread
+from typing import Optional, List
 
 from jtrader import chunk_threaded
 from jtrader.core.indicator import __INDICATOR_MAP__
@@ -64,45 +63,30 @@ class Scanner(IEX):
 
         if self.as_intraday:
             while True:
-                self.process_intraday(stocks)
+                self.process_threaded(stocks, 'intraday')
                 time.sleep(5)
         else:
-            self.process_timeframe(stocks)
+            self.process_threaded(stocks)
 
         self.logger.info('Processing finished')
 
-    def process_timeframe(self, stocks):
-        today = datetime.today()
-        delta = 365
-        start = today + relativedelta(days=-delta)
-
-        for stock in stocks:
-            data = pd.DataFrame(
-                self.odm.get_historical_stock_range(
-                    stock['symbol'],
-                    start
-                )
-            )
-
-            data = data.iloc[::-1].reset_index(drop=True)
-
-            if data.empty:
-                self.logger.debug(f"Retrieved empty data set for stock {stock['symbol']}")
-
-                continue
-
-            self.init_indicators(stock['symbol'], data)
-
-    def process_intraday(self, stocks):
+    def process_threaded(self, stocks, type: str = 'swing'):
         i = 1
         threads: List[Thread] = []
 
-        chunked = chunk_threaded(stocks, self.is_sandbox, 25)
+        chunked = chunk_threaded(stocks, self.is_sandbox, 10)
+
+        if type == 'swing':
+            action = self.swing_loop
+        elif type == 'intraday':
+            action = self.intraday_loop
+        else:
+            raise NotImplemented
 
         for chunk in chunked:
             thread_name = f"Thread-{i}"
             """ @thread """
-            thread = spawn_thread(self.intraday_loop, True, False, args=(thread_name, chunk), daemon=True)
+            thread = spawn_thread(action, True, False, args=(thread_name, chunk), daemon=True)
             threads.append(thread)
             i += 1
 
@@ -121,15 +105,45 @@ class Scanner(IEX):
         for stock in chunk:
             time.sleep(sleep)
             self.logger.info(f"({thread_name}) Processing ticker: {stock}")
-            self.init_indicators(stock)
+            data = self.client.stocks.intradayDF(stock, IEXOnly=True)
+            self.init_indicators(stock, data)
 
         return True
 
-    def init_indicators(self, ticker: str, data=None):
+    def swing_loop(self, thread_name, chunk):
+        today = datetime.today()
+        delta = 365
+        start = today + relativedelta(days=-delta)
+        sleep = .2
+
+        if self.is_sandbox:
+            sleep = 2
+
+        for stock in chunk:
+            time.sleep(sleep)
+            self.logger.info(f"({thread_name}) Processing ticker: {stock}")
+            data = pd.DataFrame(
+                self.odm.get_historical_stock_range(
+                    stock,
+                    start
+                )
+            )
+
+            data = data.iloc[::-1].reset_index(drop=True)
+
+            if data.empty:
+                self.logger.debug(f"Retrieved empty data set for stock {stock}")
+
+                continue
+
+            self.init_indicators(stock, data)
+
+        return True
+
+    def init_indicators(self, ticker: str, data: pd.DataFrame):
         period = 'swing'
         if self.as_intraday and data is None:
             period = 'intraday'
-            data = self.client.stocks.intradayDF(ticker, IEXOnly=True)
             if 'close' not in data:
                 self.logger.error(f"{ticker} Could not find closing intraday")
 
@@ -188,16 +202,20 @@ class Scanner(IEX):
                 break
 
             if len(passed_validators) > 0:
-                message = {
-                    "ticker": ticker,
-                    "signal_period": period,
-                    "indicators_triggered": passed_validators
-                }
+                bearish_count = list(filter(lambda x: x['signal_type' == 'bearish'], passed_validators.items()))
+                bullish_count = list(filter(lambda x: x['signal_type' == 'bullish'], passed_validators.items()))
 
-                message_string = json.dumps(message)
+                if len(bearish_count) == len(passed_validators) or len(bullish_count) == len(passed_validators):
+                    message = {
+                        "ticker": ticker,
+                        "signal_period": period,
+                        "indicators_triggered": passed_validators
+                    }
 
-                self.logger.info(message_string)
-                self.send_notification('```' + message_string + '```')
+                    message_string = json.dumps(message)
+
+                    self.logger.info(message_string)
+                    self.send_notification('```' + message_string + '```')
 
     @staticmethod
     def get_passed_validator_dict(signal_type: str, indicator: Indicator) -> dict:
