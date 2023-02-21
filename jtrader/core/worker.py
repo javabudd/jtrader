@@ -1,16 +1,15 @@
+from datetime import datetime
+from threading import Thread
+from typing import List
+
 import pandas as pd
 from cement.core.log import LogInterface
 from cement.utils.shell import spawn_thread
-from datetime import datetime
-from dateutil.relativedelta import relativedelta
 from pyEX import PyEXception
-from threading import Thread
-from typing import List
 
 from jtrader import chunk_threaded
 from jtrader.core.odm import ODM
 from jtrader.core.provider import Provider
-from jtrader.core.utils.stock import timeframe_to_days
 
 
 class Worker:
@@ -22,18 +21,24 @@ class Worker:
     def run(self):
         i = 1
         threads: List[Thread] = []
-        for chunk in chunk_threaded(self.provider.symbols(), False, 5):
-            thread_name = f"Thread-{i}"
-            """ @thread """
-            thread = spawn_thread(self.insert_stocks, True, False, args=(thread_name, chunk), daemon=True)
-            threads.append(thread)
-            i += 1
+        symbols = self.provider.symbols()
 
-        while len(threads) > 0:
-            for thread in threads:
-                if not thread.is_alive():
-                    threads.remove(thread)
-                thread.join(1)
+        if len(symbols) > 5:
+            for chunk in chunk_threaded(symbols, False, 5):
+                thread_name = f"Thread-{i}"
+                """ @thread """
+                thread = spawn_thread(self.insert_stocks, True, False, args=(thread_name, chunk), daemon=True)
+                threads.append(thread)
+                i += 1
+
+            while len(threads) > 0:
+                for thread in threads:
+                    if not thread.is_alive():
+                        threads.remove(thread)
+                    thread.join(1)
+        else:
+            df = pd.DataFrame(symbols)
+            self.insert_stocks('Thread-1', df)
 
     def insert_stocks(self, thread_id: str, chunk: pd.DataFrame):
         today = datetime.today()

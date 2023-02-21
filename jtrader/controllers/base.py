@@ -7,6 +7,7 @@ from jtrader.core.backtester import Backtester
 from jtrader.core.ml import ALGORITHMS
 from jtrader.core.ml import ML
 from jtrader.core.news import News
+from jtrader.core.provider import AlphaVantage as AlphaVantageProvider
 from jtrader.core.provider import IEX
 from jtrader.core.provider import KuCoin as KuCoinProvider
 from jtrader.core.provider import LoopRing as LoopRingProvider
@@ -73,6 +74,10 @@ class Base(Controller):
     def get_loopring_provider(is_sandbox: bool) -> LoopRingProvider:
         return LoopRingProvider(is_sandbox)
 
+    @staticmethod
+    def get_alphavantage_provider(is_sandbox: bool) -> AlphaVantageProvider:
+        return AlphaVantageProvider(is_sandbox)
+
     def _default(self):
         """Default action if no sub-command is passed."""
 
@@ -84,7 +89,7 @@ class Base(Controller):
     )
     def start_worker(self):
         """Start Worker Command"""
-        results = Worker(self.get_iex_provider(False), self.app.log).run()
+        results = Worker(self.get_alphavantage_provider(False), self.app.log).run()
 
         self.app.render({'results': results}, 'start_worker.jinja2')
 
