@@ -2,6 +2,10 @@
 
 ![JTrader](https://github.com/javabudd/jtrader/actions/workflows/ubuntu.yml/badge.svg?branch=main)
 
+## Requirements
+
+* Python 3.14
+
 ## Installation
 
 ```
